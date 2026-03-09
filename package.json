@@ -1,0 +1,9 @@
+{
+  "name": "recipe-backend-tiktok",
+  "version": "1.0.0",
+  "description": "TikTok download script for RecipeBackend using tiktok-api-dl",
+  "private": true,
+  "dependencies": {
+    "@tobyg74/tiktok-api-dl": "^1.0.0"
+  }
+}
