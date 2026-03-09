@@ -5,6 +5,7 @@ import SwiftData
 
 struct AnalyzeReelRequest: Encodable {
     let url: String
+    let language: String
 }
 
 struct RecipeIngredientItem: Codable {
@@ -54,8 +55,8 @@ final class RecipeBackendService {
 
     private init() {}
 
-    /// Sends the video URL to the backend and returns the analyzed recipe response.
-    func analyzeReel(url: String) async throws -> RecipeAnalyzeResponse {
+    /// Sends the video URL (and language) to the backend and returns the analyzed recipe response.
+    func analyzeReel(url: String, language: String) async throws -> RecipeAnalyzeResponse {
         guard let base = URL(string: RecipeBackendConfig.baseURL),
               let endpoint = URL(string: "/analyze_reel", relativeTo: base) else {
             throw RecipeBackendError.invalidURL
@@ -64,7 +65,7 @@ final class RecipeBackendService {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(AnalyzeReelRequest(url: url))
+        request.httpBody = try JSONEncoder().encode(AnalyzeReelRequest(url: url, language: language))
 
         let (data, response): (Data, URLResponse)
         do {

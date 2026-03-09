@@ -5,6 +5,7 @@ import SwiftData
 struct PasteLinkView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("settings.language") private var languageSetting: String = "System"
 
     var prefillURL: String?
     var onProcessed: (Recipe) -> Void
@@ -141,6 +142,14 @@ struct PasteLinkView: View {
         .shadow(color: AppTheme.shadow, radius: 20, x: 0, y: 8)
     }
 
+    private func currentLanguageCode() -> String {
+        switch languageSetting {
+        case "Chinese":
+            return "zh"
+        default:
+            return "en"
+        }
+    }
     private func processLink() {
         guard canProcess else { return }
         errorMessage = nil
@@ -148,7 +157,7 @@ struct PasteLinkView: View {
 
         Task { @MainActor in
             do {
-                let response = try await RecipeBackendService.shared.analyzeReel(url: trimmedURL)
+                let response = try await RecipeBackendService.shared.analyzeReel(url: trimmedURL, language: currentLanguageCode())
                 let recipe = response.toRecipe(sourceURL: trimmedURL, modelContext: modelContext)
                 try? modelContext.save()
                 isProcessing = false

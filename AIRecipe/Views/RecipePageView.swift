@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 struct RecipePageView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
     var openEditOnAppear: Bool = false
@@ -21,7 +22,9 @@ struct RecipePageView: View {
                         videoSection
                         estimateTimeSection
                         ingredientsSection
+                            .scaleEffect(fontScale, anchor: .topLeading)
                         stepsSection
+                            .scaleEffect(fontScale, anchor: .topLeading)
                         markAsDoneSection
                         if !recipe.sourceURL.isEmpty {
                             openLinkSection

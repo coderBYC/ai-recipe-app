@@ -62,27 +62,56 @@ enum AppTab {
     case home, add, settings
 }
 
-// MARK: - Settings (placeholder)
-
 struct SettingsView: View {
+    @AppStorage("settings.language") private var language = "System"
+    @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
+    @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
+
+    private let languages = ["System", "English", "Chinese"]
+    private let tiers = ["Free", "Pro Monthly", "Pro Yearly"]
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                AppTheme.surface.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    Spacer()
-                    Image(systemName: "gearshape.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(AppTheme.primary)
-                    Text("Settings")
-                        .appFont(.title2)
-                        .foregroundStyle(AppTheme.textPrimary)
-                    Text("Coming soon")
-                        .appFont(.callout)
+            List {
+                Section("Language") {
+                    Picker("App language", selection: $language) {
+                        ForEach(languages, id: \.self) { lang in
+                            Text(lang).tag(lang)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
+                    Text("Current: \(language)")
+                        .appFont(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
-                    Spacer()
+                }
+
+                Section("Subscription") {
+                    Picker("Plan", selection: $subscriptionTier) {
+                        ForEach(tiers, id: \.self) { tier in
+                            Text(tier).tag(tier)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
+                    Text("Use this plan to control AI usage and export limits.")
+                        .appFont(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Section("Recipe font size") {
+                    HStack {
+                        Text("Font size")
+                            .appFont(.body)
+                        Spacer()
+                        Text(String(format: "%.1fx", fontScale))
+                            .appFont(.callout)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                    Slider(value: $fontScale, in: 0.8...1.4, step: 0.1)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.surface.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -91,6 +120,19 @@ struct SettingsView: View {
                         .foregroundStyle(AppTheme.primary)
                 }
             }
+        }
+    }
+}
+
+enum AppLanguage: String {
+    case system = "System"
+    case english = "English"
+    case chinese = "Chinese"
+
+    var backendCode: String {
+        switch self {
+        case .system, .english: return "en"
+        case .chinese: return "zh"
         }
     }
 }

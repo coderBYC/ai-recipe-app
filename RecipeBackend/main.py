@@ -12,6 +12,9 @@ import os
 import shutil
 import uuid
 from typing import Optional
+from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -26,7 +29,7 @@ app.add_middleware(
 
 class AnalyzeRequest(BaseModel):
     url: str
-
+    language: str
 
 class RecipeResponse(BaseModel):
     recipe_name: str
@@ -36,35 +39,41 @@ class RecipeResponse(BaseModel):
     ingredients: list
     instructions: list
     video_url: Optional[str] = None
-#Hide 
-GEMINI_API_KEY = "AIzaSyCR-zRMLaz5sjcmGtGJ2nHygIvErxQkBWA"
 
-prompt = """Analyze the attached cooking video. 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
+
+
+def build_prompt(language: str) -> str:
+    """Builds the Gemini prompt, telling it which language to use for values."""
+    lang = (language or "en").lower()
+    return f"""Analyze the attached cooking video. 
     Extract the recipe and output the result strictly in JSON format using English for all keys and values.
     The JSON structure must match this template:
-    {
+    {{
     "recipe_name": "Title of the dish",
     "creator": "Name of the creator",
     "estimated_cooking_time": "Estimated cooking time in minutes",
     "description": "A short summary of the dish based on the video context",
     "ingredients": [
-        {
+        {{
         "item": "Ingredient Name",
         "amount": "Quantity and unit" 
-        }
+        }}
     ],
     "instructions": [
-        {
+        {{
         "step": 1,
         "description": "Detailed description of this cooking step"
-        },
+        }},
     ],
-    }
+    }}
     Guidelines:
     1. If specific quantities are not mentioned, use "As needed".
     2. Ensure the output is valid JSON only, with no introductory or concluding text.
-    3. Try add some icons to each ingredient
-    4. Make sure each step is short and concise"""
+    3. Try add some icons to each ingredient.
+    4. Make sure each step is short and concise.
+    5. Please include estimated cooking time.
+    6. Use language code '{lang}' for all user-facing text values (keys must stay in English)."""
 
 
 def is_youtube_url(url: str) -> bool:
@@ -109,9 +118,11 @@ async def serve_video(video_id: str):
 @app.post("/analyze_reel", response_model=RecipeResponse)
 async def analyze_reel(request: Request, req: AnalyzeRequest):
     url = (req.url or "").strip()
+    language = (req.language or "en").strip()
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     client = genai.Client(api_key=GEMINI_API_KEY)
+    current_prompt = build_prompt(req.language)
     video_url = None
 
     if is_youtube_url(url):
@@ -119,7 +130,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
         video_part = types.Part.from_uri(file_uri=url, mime_type="video/mp4")
         response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=[prompt, video_part],
+            contents=[current_prompt, video_part],
         )
     elif is_tiktok_url(url):
         # TikTok: download via tiktok-api-dl then upload file to Gemini
@@ -135,7 +146,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             raise HTTPException(status_code=500, detail="Video processing failed")
         response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=[prompt, video_file],
+            contents=[current_prompt, video_file],
         )
         if os.path.isfile(videoName):
             os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
@@ -158,7 +169,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             raise HTTPException(status_code=500, detail="Video processing failed")
         response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=[prompt, video_file],
+            contents=[current_prompt, video_file],
         )
         if os.path.isfile(videoName):
             os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
@@ -193,4 +204,3 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     )
 
 
-    
