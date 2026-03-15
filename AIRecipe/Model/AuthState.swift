@@ -6,3 +6,9 @@
 //
 
 import Foundation
+enum AuthState{
+    case notDetermined
+    case authenticated
+    case notAuthenticated
+}
+

@@ -1,8 +1,10 @@
 import SwiftUI
 import SwiftData
+import Supabase
 
 @main
 struct AIRecipeApp: App {
+    @State private var authManager = AuthManager(service: SupabaseService())
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([Recipe.self])
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -31,6 +33,7 @@ struct AIRecipeApp: App {
         WindowGroup {
             MainView()
                 .preferredColorScheme(.light)
+                .environment(authManager)
         }
         .modelContainer(sharedModelContainer)
     }

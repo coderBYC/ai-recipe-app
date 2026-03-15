@@ -7,6 +7,7 @@ struct RegistrationView: View {
     @State private var confirmedPassword = ""
     @State private var passwordsMatch = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(AuthManager.self) private var authManager
     
     var body: some View {
         VStack {
@@ -22,7 +23,7 @@ struct RegistrationView: View {
                     .font(.subheadline)
                     .padding(12)
                     .background(Color(.systemGray6))
-                    .boxStyle(cornerRadius: 5)
+                    .boxStyle(cornerRadius: 10)
                     .cornerRadius(10)
                     .padding(.horizontal,24)
                 TextField("Enter your username", text: $username)
@@ -30,7 +31,7 @@ struct RegistrationView: View {
                     .font(.subheadline)
                     .padding(12)
                     .background(Color(.systemGray6))
-                    .boxStyle(cornerRadius: 5)
+                    .boxStyle(cornerRadius: 10)
                     .cornerRadius(10)
                     .padding(.horizontal,24)
                     
@@ -39,7 +40,7 @@ struct RegistrationView: View {
                         .font(.subheadline)
                         .padding(12)
                         .background(Color(.systemGray6))
-                        .boxStyle(cornerRadius: 5)
+                        .boxStyle(cornerRadius: 10)
                         .cornerRadius(10)
                     
                     if !password.isEmpty && !confirmedPassword.isEmpty {
@@ -55,7 +56,7 @@ struct RegistrationView: View {
                         .font(.subheadline)
                         .padding(12)
                         .background(Color(.systemGray6))
-                        .boxStyle(cornerRadius: 5)
+                        .boxStyle(cornerRadius: 10)
                         .cornerRadius(10)
                     
                     if !password.isEmpty && !confirmedPassword.isEmpty {
@@ -69,7 +70,7 @@ struct RegistrationView: View {
                     passwordsMatch = newValue == password
                 }
             }
-            Button {} label: {
+            Button {signUp()} label: {
                 Text("Sign Up")
                     .frame(width:360,height:48)
                     .font(.headline)
@@ -78,6 +79,14 @@ struct RegistrationView: View {
                     .foregroundColor(.white)
             }
             .padding(.vertical)
+            
+            if let error = authManager.error {
+                Text(error.localizedDescription)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 24)
+                    .multilineTextAlignment(.center)
+            }
             
             Spacer()
             
@@ -96,6 +105,15 @@ struct RegistrationView: View {
     }
 }
 
+private extension RegistrationView {
+    func signUp() {
+        Task{
+            await authManager.signup(withEmail: email, password: password)
+        }
+    }
+}
+
 #Preview {
     RegistrationView()
+        .environment(AuthManager(service: SupabaseService()))
 }

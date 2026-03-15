@@ -188,7 +188,11 @@ struct PasteLinkView: View {
                 }
                 isProcessing = false
             } catch RecipeBackendError.serverError(let msg) {
-                errorMessage = "Server error: \(msg)"
+                if msg.contains("AI usage limit reached") || msg.contains("AI usage limit reached or not allowed") || msg.contains("429") {
+                    errorMessage = "You've reached your AI usage limit for this period. Upgrade your plan in Settings to continue."
+                } else {
+                    errorMessage = "Server error: \(msg)"
+                }
                 isProcessing = false
             } catch {
                 errorMessage = error.localizedDescription

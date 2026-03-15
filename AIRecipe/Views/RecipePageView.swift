@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 struct RecipePageView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
@@ -9,7 +10,10 @@ struct RecipePageView: View {
 
     @State private var showingEdit = false
     @State private var showingImport = false
-    
+    @State private var showCookMode = false
+    @State private var showShareSheet = false
+    @State private var exportError: String?
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -22,10 +26,8 @@ struct RecipePageView: View {
                         videoSection
                         estimateTimeSection
                         ingredientsSection
-                            .scaleEffect(fontScale, anchor: .topLeading)
                         stepsSection
-                            .scaleEffect(fontScale, anchor: .topLeading)
-                        markAsDoneSection
+                        ratingSection
                         if !recipe.sourceURL.isEmpty {
                             openLinkSection
                         }
@@ -42,6 +44,15 @@ struct RecipePageView: View {
                             .foregroundStyle(AppTheme.textPrimary)
                     }
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        exportRecipe()
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.callout)
+                            .foregroundStyle(AppTheme.textPrimary)
+                    }
+                }
             }
             .sheet(isPresented: $showingEdit) {
                 RecipeEditView(recipe: recipe, onDismiss: { showingEdit = false })
@@ -53,6 +64,32 @@ struct RecipePageView: View {
             }
             .onAppear {
                 if openEditOnAppear { showingEdit = true }
+            }
+            .fullScreenCover(isPresented: $showCookMode) {
+                CookModeView(recipe: recipe)
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(activityItems: [recipe.shareableExportText])
+            }
+            .alert("Export", isPresented: Binding(
+                get: { exportError != nil },
+                set: { if !$0 { exportError = nil } }
+            )) {
+                Button("OK") { exportError = nil }
+            } message: {
+                if let err = exportError { Text(err) }
+            }
+        }
+    }
+
+    private func exportRecipe() {
+        Task { @MainActor in
+            exportError = nil
+            do {
+                try await SupabaseService.shared.useExportOnce()
+                showShareSheet = true
+            } catch {
+                exportError = error.localizedDescription
             }
         }
     }
@@ -169,9 +206,14 @@ struct RecipePageView: View {
     /// Steps: vertical circle-line timeline (1 — 2 — 3)
     private var stepsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Steps", systemImage: "list.number")
-                .appFont(.headlineBold)
-                .foregroundStyle(AppTheme.textSecondary)
+            HStack{
+                Label("Steps", systemImage: "list.number")
+                    .appFont(.headlineBold)
+                    .foregroundStyle(AppTheme.textSecondary)
+                Spacer()
+            }
+            .padding(.vertical,0)
+            
             let steps = recipe.stepLines
             if steps.isEmpty {
                 Text("No steps listed")
@@ -193,6 +235,9 @@ struct RecipePageView: View {
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        .onTapGesture {
+            showCookMode = true
+        }
     }
 
     private func stepRow(number: Int, text: String) -> some View {
@@ -210,15 +255,27 @@ struct RecipePageView: View {
         }
     }
     
-    private var markAsDoneSection: some View {
-        HStack {
-            Text("Mark as Done ✅")
+    private var ratingSection: some View {
+        HStack(spacing: 10) {
+            Text("Rate this recipe")
                 .appFont(.body)
                 .foregroundStyle(AppTheme.textPrimary)
             Spacer()
-            Toggle("", isOn: $recipe.triedBefore)
-                .labelsHidden()
-                .tint(AppTheme.primary)
+            HStack(spacing: 4) {
+                ForEach(1...5, id: \.self) { star in
+                    Image(systemName: star <= recipe.rating ? "star.fill" : "star")
+                        .foregroundStyle(star <= recipe.rating ? AppTheme.primary : AppTheme.textSecondary.opacity(0.4))
+                        .onTapGesture {
+                            if recipe.rating == star {
+                                recipe.rating = 0
+                                recipe.triedBefore = false
+                            } else {
+                                recipe.rating = star
+                                recipe.triedBefore = true
+                            }
+                        }
+                }
+            }
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
@@ -243,6 +300,21 @@ struct RecipePageView: View {
                 .stroke(AppTheme.textSecondary.opacity(0.25), lineWidth: AppTheme.boxBorderWidth)
         )
     }
+}
+
+// MARK: - Share sheet (wraps UIActivityViewController; triggers useExportOnce in caller)
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Preview

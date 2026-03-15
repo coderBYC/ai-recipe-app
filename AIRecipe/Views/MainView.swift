@@ -6,21 +6,43 @@ struct MainView: View {
     @State private var selectedTab: AppTab = .home
     @State private var addSheet: AddRecipeSheet?
     @State private var showAddMenu = false
-
+    @Environment(AuthManager.self) private var authManager
+    
     var body: some View {
+        Group {
+            content
+        }
+        .task {
+            await authManager.getAuthState()
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch authManager.authState {
+        case .notDetermined:
+            ProgressView()
+        case .notAuthenticated:
+            LoginView(onSignedIn: { _ in }, onError: { _ in })
+        case .authenticated:
+            mainTabView
+        }
+    }
+
+    private var mainTabView: some View {
         TabView(selection: $selectedTab) {
             RecipeListView(addSheet: $addSheet)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
                 .tag(AppTab.home)
-
+            
             addMenuTriggerView
                 .tabItem {
                     Label("Add", systemImage: "plus.circle.fill")
                 }
                 .tag(AppTab.add)
-
+            
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
@@ -34,10 +56,6 @@ struct MainView: View {
                 selectedTab = .home
                 addSheet = .addLink
             }
-            ///Button("Take photo") {
-            ///    selectedTab = .home
-            ///    addSheet = .takePhoto
-            ///}
             Button("Manual recipe") {
                 selectedTab = .home
                 addSheet = .manualRecipe
@@ -66,48 +84,29 @@ struct SettingsView: View {
     @AppStorage("settings.language") private var language = "System"
     @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
-
+    @State private var showPaywall = false
     private let languages = ["System", "English", "Mandarin", "Spanish", "Hindi", "Korean"]
-    private let tiers = ["Free", "Pro Monthly", "Pro Yearly"]
 
     var body: some View {
         NavigationStack {
             List {
-                Section("Language") {
-                    Picker("App language", selection: $language) {
+                Section("Recipe Language") {
+                    Picker("language", selection: $language) {
                         ForEach(languages, id: \.self) { lang in
                             Text(lang).tag(lang)
                         }
                     }
+                    .padding(10)
+                    .boxStyle(cornerRadius: 5)
                     .pickerStyle(.navigationLink)
-                    Text("Current: \(language)")
-                        .appFont(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
                 }
 
                 Section("Subscription") {
-                    Picker("Plan", selection: $subscriptionTier) {
-                        ForEach(tiers, id: \.self) { tier in
-                            Text(tier).tag(tier)
-                        }
+                    Button("Plan") {
+                        showPaywall = true
                     }
-                    .pickerStyle(.navigationLink)
-                    Text("Use this plan to control AI usage and export limits.")
-                        .appFont(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Section("Recipe font size") {
-                    HStack {
-                        Text("Font size")
-                            .appFont(.body)
-                        Spacer()
-                        Text(String(format: "%.1fx", fontScale))
-                            .appFont(.callout)
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
-                    Slider(value: $fontScale, in: 0.8...1.4, step: 0.1)
+                    .padding(10)
+                    .boxStyle(cornerRadius: 5)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -119,6 +118,15 @@ struct SettingsView: View {
                         .appFont(.largeTitle)
                         .foregroundStyle(AppTheme.primary)
                 }
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(onPlanUpdated: { plan in
+                    subscriptionTier = plan
+                    Task {
+                        try? await SupabaseService.shared.updatePlan(to: plan)
+                    }
+                    showPaywall = false
+                })
             }
         }
     }
@@ -146,4 +154,5 @@ enum AppLanguage: String {
 #Preview("Main") {
     MainView()
         .modelContainer(for: Recipe.self, inMemory: true)
+        .environment(AuthManager(service: SupabaseService()))
 }

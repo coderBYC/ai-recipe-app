@@ -14,7 +14,7 @@ struct RecipeListView: View {
     @State private var searchText = ""
     @State private var selectedTag: String?
     
-    private let recipeTags = ["All", "YouTube", "Instagram", "TikTok", "Done", "Recent"]
+    private let recipeTags = ["All", "YouTube", "Instagram", "TikTok", "Done", "Recent", "Rating ↓", "Rating ↑"]
     
     var filteredRecipes: [Recipe] {
         var list = recipes
@@ -26,10 +26,26 @@ struct RecipeListView: View {
             }
         }
         if let tag = selectedTag, tag != "All" {
-            if tag == "Done" { list = list.filter { $0.triedBefore } }
-            else if tag == "Recent" { list = Array(list.prefix(10)) }
-            else if tag == "YouTube" || tag == "Instagram" || tag == "TikTok" {
+            if tag == "Done" {
+                list = list.filter { $0.triedBefore || $0.rating > 0 }
+            } else if tag == "Recent" {
+                list = Array(list.prefix(10))
+            } else if tag == "YouTube" || tag == "Instagram" || tag == "TikTok" {
                 list = list.filter { $0.source == tag }
+            } else if tag == "Rating ↓" {
+                list = list.sorted {
+                    if $0.rating == $1.rating {
+                        return $0.createdAt > $1.createdAt
+                    }
+                    return $0.rating > $1.rating
+                }
+            } else if tag == "Rating ↑" {
+                list = list.sorted {
+                    if $0.rating == $1.rating {
+                        return $0.createdAt > $1.createdAt
+                    }
+                    return $0.rating < $1.rating
+                }
             }
         }
         return list
@@ -261,13 +277,22 @@ struct RecipeRowView: View {
                             .appFont(.caption)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
-                    if recipe.triedBefore {
+                    if recipe.triedBefore || recipe.rating > 0 {
                         Text("Done")
                             .appFont(.caption2)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(AppTheme.triedBadge, in: Capsule())
+                    }
+                }
+                if recipe.rating > 0 {
+                    HStack(spacing: 2) {
+                        ForEach(1...5, id: \.self) { star in
+                            Image(systemName: star <= recipe.rating ? "star.fill" : "star")
+                                .font(.caption2)
+                                .foregroundStyle(star <= recipe.rating ? AppTheme.primary : AppTheme.textSecondary.opacity(0.4))
+                        }
                     }
                 }
             }

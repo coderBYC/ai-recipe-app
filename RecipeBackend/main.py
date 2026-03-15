@@ -13,6 +13,7 @@ import shutil
 import uuid
 from typing import Optional
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
+import httpx
 
 load_dotenv()
 
@@ -41,6 +42,9 @@ class RecipeResponse(BaseModel):
     video_url: Optional[str] = None
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 
 def build_prompt(language: str) -> str:
@@ -77,6 +81,49 @@ def build_prompt(language: str) -> str:
     6. Use language code {lang} for all user-facing text values (keys must stay in English)."""
 
     
+async def verify_ai_quota(request: Request) -> None:
+    """
+    Optional server-side check with Supabase before using Gemini.
+    Expects SUPABASE_URL and SUPABASE_SERVICE_KEY in the environment, and
+    an X-User-Id header with the Supabase auth user id.
+
+    This function calls the Postgres RPC `use_ai_once` which should:
+    - Check the user's plan_type and remaining ai_usage_count
+    - Increment ai_usage_count if allowed
+    - Raise an error if the limit is reached
+    """
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        # Supabase not configured; skip server-side quota enforcement.
+        return
+
+    user_id = request.headers.get("X-User-Id")
+    if not user_id:
+        # No user id; treat as anonymous free user – you can choose to block or allow.
+        raise HTTPException(status_code=401, detail="Missing X-User-Id for AI usage tracking.")
+
+    rpc_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/rpc/use_ai_once"
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.post(
+            rpc_url,
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            json={"user_id": user_id},
+        )
+    if resp.status_code >= 400:
+        # Surface a friendly error to the client.
+        try:
+            detail = resp.json()
+        except Exception:
+            detail = resp.text
+        raise HTTPException(
+            status_code=429,
+            detail=f"AI usage limit reached or not allowed: {detail}",
+        )
+
 
 
 def is_youtube_url(url: str) -> bool:
@@ -123,6 +170,9 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     url = (req.url or "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
+
+    # Verify AI usage with Supabase before calling Gemini (if configured).
+    await verify_ai_quota(request)
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(req.language)
     video_url = None

@@ -49,6 +49,8 @@ final class Recipe: Identifiable {
     var notes: String
     var customImageData: Data?
     var createdAt: Date
+    /// 0–5 star rating given by the user.
+    var rating: Int
     /// URL to the downloaded video (served by backend) for in-app playback. Empty for YouTube (use sourceURL embed instead).
     var downloadedVideoURL: String
     /// Newline-separated step descriptions for circle-line timeline.
@@ -70,7 +72,8 @@ final class Recipe: Identifiable {
         customImageData: Data? = nil,
         stepsContent: String = "",
         ingredientCheckmarks: String = "",
-        downloadedVideoURL: String = ""
+        downloadedVideoURL: String = "",
+        rating: Int = 0
     ) {
         self.id = UUID()
         self.title = title
@@ -88,6 +91,7 @@ final class Recipe: Identifiable {
         self.stepsContent = stepsContent
         self.ingredientCheckmarks = ingredientCheckmarks
         self.createdAt = Date()
+        self.rating = rating
     }
     
     var sourceEnum: RecipeSource {
@@ -145,5 +149,21 @@ final class Recipe: Identifiable {
         let parts = ingredientCheckmarks.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
         guard index >= 0, index < parts.count else { return false }
         return parts[index].trimmingCharacters(in: .whitespaces) == "1"
+    }
+
+    /// Plain-text representation for export/share; counts as one export when shared.
+    var shareableExportText: String {
+        var lines: [String] = []
+        lines.append(title.isEmpty ? "Recipe" : title)
+        if !creator.isEmpty { lines.append("By \(creator)") }
+        lines.append("Time: \(estimatedCookingMinutes) min")
+        lines.append("")
+        lines.append("Ingredients:")
+        for line in ingredientLines { lines.append("• \(line)") }
+        lines.append("")
+        lines.append("Steps:")
+        for (i, step) in stepLines.enumerated() { lines.append("\(i + 1). \(step)") }
+        if !sourceURL.isEmpty { lines.append(""); lines.append("Source: \(sourceURL)") }
+        return lines.joined(separator: "\n")
     }
 }

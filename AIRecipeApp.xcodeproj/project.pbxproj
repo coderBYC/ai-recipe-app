@@ -3,21 +3,20 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A9F400B2F5F70D900DFA8EF /* SupabaseService 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400A2F5F70D900DFA8EF /* SupabaseService 2.swift */; };
-		1A9F400D2F5F75E400DFA8EF /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400C2F5F75E400DFA8EF /* AuthView.swift */; };
-		1A9F400F2F5F761500DFA8EF /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400E2F5F761500DFA8EF /* ProfileView.swift */; };
-		1A9F40112F5F766600DFA8EF /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F40102F5F766600DFA8EF /* AppView.swift */; };
+		1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */; };
 		1A9F40142F5F772E00DFA8EF /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40132F5F772E00DFA8EF /* Auth */; };
 		1A9F40162F5F772E00DFA8EF /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40152F5F772E00DFA8EF /* Functions */; };
 		1A9F40182F5F772E00DFA8EF /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40172F5F772E00DFA8EF /* PostgREST */; };
 		1A9F401A2F5F772E00DFA8EF /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40192F5F772E00DFA8EF /* Realtime */; };
 		1A9F401C2F5F772E00DFA8EF /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F401B2F5F772E00DFA8EF /* Storage */; };
-		1A9F401E2F5F788900DFA8EF /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F401D2F5F788900DFA8EF /* File.swift */; };
 		1A9F40212F5FBE7E00DFA8EF /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40202F5FBE7E00DFA8EF /* Supabase */; };
+		1A9F403B2F62254400DFA8EF /* CookModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F403A2F62254400DFA8EF /* CookModeView.swift */; };
+		1A9F403D2F62436D00DFA8EF /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F403C2F62436D00DFA8EF /* AuthManager.swift */; };
+		1A9F404E2F65F80900DFA8EF /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F404D2F65F80900DFA8EF /* StoreManager.swift */; };
 		1ABCDACF2F57AEEB00975132 /* SourceIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */; };
 		B0010001 /* AIRecipeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010001 /* AIRecipeApp.swift */; };
 		B0010002 /* RecipeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010002 /* RecipeListView.swift */; };
@@ -37,11 +36,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1A9F400A2F5F70D900DFA8EF /* SupabaseService 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SupabaseService 2.swift"; sourceTree = "<group>"; };
-		1A9F400C2F5F75E400DFA8EF /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
-		1A9F400E2F5F761500DFA8EF /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
-		1A9F40102F5F766600DFA8EF /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
-		1A9F401D2F5F788900DFA8EF /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
+		1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		1A9F403A2F62254400DFA8EF /* CookModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeView.swift; sourceTree = "<group>"; };
+		1A9F403C2F62436D00DFA8EF /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		1A9F404D2F65F80900DFA8EF /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceIconView.swift; sourceTree = "<group>"; };
 		E0010000 /* AIRecipeApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIRecipeApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0010001 /* AIRecipeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeApp.swift; sourceTree = "<group>"; };
@@ -62,6 +60,12 @@
 		F0010010 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		F0010011 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1A9F40292F6114E400DFA8EF /* Auth View */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Auth View"; sourceTree = "<group>"; };
+		1A9F403E2F6249AF00DFA8EF /* Model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Model; sourceTree = "<group>"; };
+		1A9F404F2F65F91900DFA8EF /* Payment */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Payment; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C0010001 /* Frameworks */ = {
@@ -99,6 +103,7 @@
 		G0010001 /* AIRecipe */ = {
 			isa = PBXGroup;
 			children = (
+				1A9F403E2F6249AF00DFA8EF /* Model */,
 				F0010001 /* AIRecipeApp.swift */,
 				G0010003 /* Views */,
 				G0010004 /* Helpers */,
@@ -122,18 +127,17 @@
 		G0010003 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				1A9F400C2F5F75E400DFA8EF /* AuthView.swift */,
+				1A9F404F2F65F91900DFA8EF /* Payment */,
 				F0010011 /* MainView.swift */,
 				F0010002 /* RecipeListView.swift */,
-				1A9F40102F5F766600DFA8EF /* AppView.swift */,
-				1A9F400E2F5F761500DFA8EF /* ProfileView.swift */,
 				F0010003 /* AddRecipeView.swift */,
-				1A9F401D2F5F788900DFA8EF /* File.swift */,
 				F0010004 /* RecipeEditView.swift */,
 				F0010005 /* RecipePageView.swift */,
+				1A9F40292F6114E400DFA8EF /* Auth View */,
 				F0010006 /* ImagePickerView.swift */,
 				F0010007 /* QRCodeScannerView.swift */,
 				F0010008 /* PasteLinkView.swift */,
+				1A9F403A2F62254400DFA8EF /* CookModeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -143,9 +147,11 @@
 			children = (
 				F0010009 /* VideoThumbnailView.swift */,
 				1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */,
-				1A9F400A2F5F70D900DFA8EF /* SupabaseService 2.swift */,
+				1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */,
 				F001000A /* BoxStyle.swift */,
 				F001000E /* RecipeBackendService.swift */,
+				1A9F403C2F62436D00DFA8EF /* AuthManager.swift */,
+				1A9F404D2F65F80900DFA8EF /* StoreManager.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -188,6 +194,11 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1A9F40292F6114E400DFA8EF /* Auth View */,
+				1A9F403E2F6249AF00DFA8EF /* Model */,
+				1A9F404F2F65F91900DFA8EF /* Payment */,
 			);
 			name = AIRecipeApp;
 			productName = AIRecipeApp;
@@ -246,24 +257,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A9F403D2F62436D00DFA8EF /* AuthManager.swift in Sources */,
+				1A9F404E2F65F80900DFA8EF /* StoreManager.swift in Sources */,
 				B0010001 /* AIRecipeApp.swift in Sources */,
 				B0010002 /* RecipeListView.swift in Sources */,
-				1A9F40112F5F766600DFA8EF /* AppView.swift in Sources */,
 				B0010003 /* AddRecipeView.swift in Sources */,
 				B0010004 /* RecipeEditView.swift in Sources */,
-				1A9F401E2F5F788900DFA8EF /* File.swift in Sources */,
 				B0010005 /* RecipePageView.swift in Sources */,
-				1A9F400B2F5F70D900DFA8EF /* SupabaseService 2.swift in Sources */,
+				1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */,
 				B0010006 /* ImagePickerView.swift in Sources */,
 				B0010007 /* QRCodeScannerView.swift in Sources */,
 				B0010008 /* PasteLinkView.swift in Sources */,
 				B0010011 /* MainView.swift in Sources */,
-				1A9F400F2F5F761500DFA8EF /* ProfileView.swift in Sources */,
 				B0010009 /* VideoThumbnailView.swift in Sources */,
 				1ABCDACF2F57AEEB00975132 /* SourceIconView.swift in Sources */,
 				B001000A /* BoxStyle.swift in Sources */,
+				1A9F403B2F62254400DFA8EF /* CookModeView.swift in Sources */,
 				B001000E /* RecipeBackendService.swift in Sources */,
-				1A9F400D2F5F75E400DFA8EF /* AuthView.swift in Sources */,
 				B001000B /* AppTheme.swift in Sources */,
 				B001000C /* Recipe.swift in Sources */,
 			);
@@ -397,14 +407,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AIRecipeApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AIRecipe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Recipe";
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to scan recipe photos and QR codes.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -432,14 +444,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AIRecipeApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AIRecipe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Recipe";
-				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to scan recipe photos and QR codes.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
