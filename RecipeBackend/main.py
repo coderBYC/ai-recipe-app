@@ -45,7 +45,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMe
 
 def build_prompt(language: str) -> str:
     """Builds the Gemini prompt, telling it which language to use for values."""
-    lang = (language or "en").lower()
+    lang = language.lower()
+    print(lang)
     return f"""Analyze the attached cooking video. 
     Extract the recipe and output the result strictly in JSON format using English for all keys and values.
     The JSON structure must match this template:
@@ -56,7 +57,7 @@ def build_prompt(language: str) -> str:
     "description": "A short summary of the dish based on the video context",
     "ingredients": [
         {{
-        "item": "Ingredient Name",
+        "item": "🍔Ingredient Name",
         "amount": "Quantity and unit" 
         }}
     ],
@@ -70,10 +71,12 @@ def build_prompt(language: str) -> str:
     Guidelines:
     1. If specific quantities are not mentioned, use "As needed".
     2. Ensure the output is valid JSON only, with no introductory or concluding text.
-    3. Try add some icons to each ingredient.
+    3. Try add some icons to each ingredient in the front.
     4. Make sure each step is short and concise.
     5. Please include estimated cooking time.
-    6. Use language code '{lang}' for all user-facing text values (keys must stay in English)."""
+    6. Use language code {lang} for all user-facing text values (keys must stay in English)."""
+
+    
 
 
 def is_youtube_url(url: str) -> bool:
@@ -118,7 +121,6 @@ async def serve_video(video_id: str):
 @app.post("/analyze_reel", response_model=RecipeResponse)
 async def analyze_reel(request: Request, req: AnalyzeRequest):
     url = (req.url or "").strip()
-    language = (req.language or "en").strip()
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     client = genai.Client(api_key=GEMINI_API_KEY)

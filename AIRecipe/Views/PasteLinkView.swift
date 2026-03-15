@@ -144,11 +144,19 @@ struct PasteLinkView: View {
 
     private func currentLanguageCode() -> String {
         switch languageSetting {
-        case "Chinese":
+        case "Mandarin":
             return "zh"
+        case "Spanish":
+            return "es"
+        case "Hindi":
+            return "hi"
+        case "Korean":
+            return "ko"
+        case "System":
+            return "en"
         default:
             return "en"
-        }
+        }   
     }
     private func processLink() {
         guard canProcess else { return }
@@ -157,7 +165,14 @@ struct PasteLinkView: View {
 
         Task { @MainActor in
             do {
-                let response = try await RecipeBackendService.shared.analyzeReel(url: trimmedURL, language: currentLanguageCode())
+                // 1) Check and increment AI usage via Supabase (when configured).
+                try? await SupabaseService.shared.useAIOnce()
+
+                // 2) Call the backend to analyze the reel.
+                let response = try await RecipeBackendService.shared.analyzeReel(
+                    url: trimmedURL,
+                    language: currentLanguageCode()
+                )
                 let recipe = response.toRecipe(sourceURL: trimmedURL, modelContext: modelContext)
                 try? modelContext.save()
                 isProcessing = false

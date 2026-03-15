@@ -34,10 +34,10 @@ struct MainView: View {
                 selectedTab = .home
                 addSheet = .addLink
             }
-            Button("Take photo") {
-                selectedTab = .home
-                addSheet = .takePhoto
-            }
+            ///Button("Take photo") {
+            ///    selectedTab = .home
+            ///    addSheet = .takePhoto
+            ///}
             Button("Manual recipe") {
                 selectedTab = .home
                 addSheet = .manualRecipe
@@ -67,7 +67,7 @@ struct SettingsView: View {
     @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
 
-    private let languages = ["System", "English", "Chinese"]
+    private let languages = ["System", "English", "Mandarin", "Spanish", "Hindi", "Korean"]
     private let tiers = ["Free", "Pro Monthly", "Pro Yearly"]
 
     var body: some View {
@@ -128,11 +128,17 @@ enum AppLanguage: String {
     case system = "System"
     case english = "English"
     case chinese = "Chinese"
+    case spanish = "Spanish"
+    case hindi = "Hindi"
+    case korean = "Korean"
 
     var backendCode: String {
         switch self {
         case .system, .english: return "en"
         case .chinese: return "zh"
+        case .spanish: return "es"
+        case .hindi: return "hi"
+        case .korean: return "ko"
         }
     }
 }

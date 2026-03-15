@@ -1,3 +1,11 @@
+//
+//  AppView.swift
+//  AIRecipeApp
+//
+//  Created by Bryan Chen on 2026/3/9.
+//
+
+
 import SwiftUI
 
 struct AppView: View {
@@ -19,4 +27,8 @@ struct AppView: View {
       }
     }
   }
+}
+
+#Preview {
+    AppView()
 }
