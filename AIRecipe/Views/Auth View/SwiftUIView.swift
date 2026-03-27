@@ -12,11 +12,14 @@ struct RegistrationView: View {
     var body: some View {
         VStack {
             Spacer()
-            Image(.youTubeIcon)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 150, height: 150)
-                .padding()
+            Text("Let Him Cook")
+                .font(.largeTitle)
+                .bold()
+                .fontDesign(Font.Design.serif)
+            Text("Viral Reels To Recipe")
+                .font(.title2)
+                .fontDesign(Font.Design.serif)
+                .padding(.bottom,60)
             VStack(spacing:8){
                 TextField("Enter your email", text: $email)
                     .autocapitalization(.none)
@@ -74,7 +77,7 @@ struct RegistrationView: View {
                 Text("Sign Up")
                     .frame(width:360,height:48)
                     .font(.headline)
-                    .background(Color.accentColor)
+                    .background(Color.black)
                     .cornerRadius(8)
                     .foregroundColor(.white)
             }

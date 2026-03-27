@@ -23,17 +23,6 @@ struct RecipeEditView: View {
                                 .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
                         }
                         section("Source") {
-                            Picker("Platform", selection: $recipe.sourceEnum) {
-                                ForEach(RecipeSource.allCases) { s in
-                                    Label {
-                                        Text(s.rawValue)
-                                    } icon: {
-                                        SourceIconView(source: s)
-                                    }
-                                    .tag(s)
-                                }
-                            }
-                            .pickerStyle(.segmented)
                             TextField("Video URL", text: $recipe.sourceURL)
                                 .textFieldStyle(.plain)
                                 .keyboardType(.URL)
@@ -45,13 +34,6 @@ struct RecipeEditView: View {
                         }
                         section("Creator") {
                             TextField("Channel or creator", text: $recipe.creator)
-                                .textFieldStyle(.plain)
-                                .appFont(.body)
-                                .padding(12)
-                                .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
-                        }
-                        section("Timestamp") {
-                            TextField("e.g. 2:30", text: $recipe.timestamp)
                                 .textFieldStyle(.plain)
                                 .appFont(.body)
                                 .padding(12)

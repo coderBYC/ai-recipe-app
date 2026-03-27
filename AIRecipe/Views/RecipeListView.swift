@@ -132,7 +132,7 @@ struct RecipeListView: View {
                         .padding(.horizontal, tag == "All" || tag == "Done" || tag == "Recent" ? 12 : 10)
                         .padding(.vertical, 5)
                     }
-                    .background(selectedTag == tag ? Color.accentColor : AppTheme.cardBackground)
+                    .background(selectedTag == tag ? Color.black : AppTheme.cardBackground)
                     .boxStyle(cornerRadius: 5)
                     .padding(.horizontal,3)
                 }
@@ -251,11 +251,6 @@ struct RecipeRowView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: recipe.sourceEnum.iconName)
-                .font(.title3)
-                .foregroundStyle(AppTheme.primary)
-                .frame(width: 40, height: 40)
-                .background(AppTheme.textSecondary.opacity(0.12), in: RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
             VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.title.isEmpty ? "Untitled recipe" : recipe.title)
                     .appFont(.headline)

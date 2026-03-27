@@ -111,16 +111,6 @@ struct RecipePageView: View {
                     .background(Color.white, in: RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
                     .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
             }
-            Button {
-                showingImport = true
-            } label: {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.callout)
-                    .foregroundStyle(.black)
-                    .frame(width: 36, height: 36)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
-                    .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
-            }
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
@@ -133,7 +123,7 @@ struct RecipePageView: View {
             downloadedVideoURL: recipe.downloadedVideoURL,
             source: recipe.sourceEnum
         )
-        .frame(height: 200)
+        .frame(height: 230)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
@@ -145,9 +135,13 @@ struct RecipePageView: View {
         HStack(spacing: 8) {
             Image(systemName: "timer")
                 .foregroundStyle(AppTheme.primary)
-            Text("Estimated time: \(recipe.estimatedCookingMinutes) min")
-                .appFont(.callout)
-                .foregroundStyle(AppTheme.textPrimary)
+            if recipe.prepMinutes > 0 {
+                Text("Prep: \(recipe.prepMinutes) min • Cook: \(recipe.estimatedCookingMinutes) min")
+                    .appFont(.callout)
+            } else {
+                Text("Cook: \(recipe.estimatedCookingMinutes) min")
+                    .appFont(.callout)
+            }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -325,6 +319,7 @@ struct ShareSheet: UIViewControllerRepresentable {
     let ctx = ModelContext(container)
     let recipe = Recipe(
         title: "Sample Recipe",
+        sourceURL: "https://www.youtube.com/watch?v=noaf6TrczKs&list=RDnoaf6TrczKs&start_radio=1",
         creator: "Chef",
         ingredients: "Salt\nPepper\nOlive oil",
         stepsContent: "Step 1: Mix Mix Mix Mix Mix Mix Mix Mix Mix Mix Mix MixMix Mix Mix Mix Mix MixMix Mix Mix Mix Mix Mix Mix Mix Mix Mix Mix MixMix Mix Mix Mix Mix Mix Mix Mix Mix Mix Mix Mix  \nStep 2: Bake"

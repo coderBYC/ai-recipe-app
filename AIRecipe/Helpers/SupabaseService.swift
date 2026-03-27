@@ -21,6 +21,11 @@ final class SupabaseService {
     let client: SupabaseClient
 
     init() {
+        #if DEBUG
+        if SupabaseConfig.key.hasPrefix("sb_") || SupabaseConfig.key.count < 80 {
+            print("SupabaseService: Supabase anon key looks invalid. Use the long anon key from Supabase Dashboard → Settings → API (starts with 'eyJ...').")
+        }
+        #endif
         client = SupabaseClient(
             supabaseURL: SupabaseConfig.url,
             supabaseKey: SupabaseConfig.key
@@ -50,19 +55,31 @@ final class SupabaseService {
         let user = try? await client.auth.session.user
         return user == nil ? .notAuthenticated : .authenticated
     }
+
+    /// Supabase auth user id for API headers (e.g. recipe backend `X-User-Id`).
+    func currentUserIdString() async -> String? {
+        guard let userId = try? await client.auth.session.user.id else { return nil }
+        return userId.uuidString
+    }
     
     func useAIOnce() async throws {
-        struct EmptyParams: Encodable {}
+        guard let userId = try? await client.auth.session.user.id else {
+            throw SupabaseUsageError.notAuthenticated
+        }
+        struct Params: Encodable { let user_id: UUID }
         _ = try await client
-            .rpc("use_ai_once", params: EmptyParams())
+            .rpc("use_ai_once", params: Params(user_id: userId))
             .execute()
     }
 
     /// Call the `use_export_once` RPC in Supabase to check and increment export usage.
     func useExportOnce() async throws {
-        struct EmptyParams: Encodable {}
+        guard let userId = try? await client.auth.session.user.id else {
+            throw SupabaseUsageError.notAuthenticated
+        }
+        struct Params: Encodable { let user_id: UUID }
         _ = try await client
-            .rpc("use_export_once", params: EmptyParams())
+            .rpc("use_export_once", params: Params(user_id: userId))
             .execute()
     }
 
@@ -72,7 +89,9 @@ final class SupabaseService {
             throw SupabaseUsageError.notAuthenticated
         }
 
-        struct ProfileUpdate: Encodable { let plan_type: String }
+        struct ProfileUpdate: Encodable {
+            let plan_type: String
+        }
 
         _ = try await client
             .from("profiles")

@@ -23,6 +23,7 @@ struct RecipeAnalyzeResponse: Codable {
     let description: String
     let creator: String
     let estimated_cooking_time: String
+    let prep_time: String?
     let ingredients: [RecipeIngredientItem]
     let instructions: [RecipeInstructionItem]
     let video_url: String?
@@ -36,7 +37,7 @@ enum RecipeBackendConfig {
         #if targetEnvironment(simulator)
         return "http://127.0.0.1:8000"
         #else
-        return "http://127.0.0.1:8000" // Use your Mac's IP when testing on a real device
+        return "http://35.3.118.45:8000" // Use your Mac's IP when testing on a real device
         #endif
     }
 }
@@ -56,7 +57,8 @@ final class RecipeBackendService {
     private init() {}
 
     /// Sends the video URL (and language) to the backend and returns the analyzed recipe response.
-    func analyzeReel(url: String, language: String) async throws -> RecipeAnalyzeResponse {
+    /// Pass `userId` (Supabase auth user UUID string) when your API enforces quota via `X-User-Id` + Supabase RPC.
+    func analyzeReel(url: String, language: String, userId: String? = nil) async throws -> RecipeAnalyzeResponse {
         guard let base = URL(string: RecipeBackendConfig.baseURL),
               let endpoint = URL(string: "/analyze_reel", relativeTo: base) else {
             throw RecipeBackendError.invalidURL
@@ -66,6 +68,9 @@ final class RecipeBackendService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(AnalyzeReelRequest(url: url, language: language))
+        if let userId, !userId.isEmpty {
+            request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        }
 
         let (data, response): (Data, URLResponse)
         do {
@@ -99,7 +104,8 @@ extension RecipeAnalyzeResponse {
         let ingredientsText = ingredients.map { "\($0.item) - \($0.amount)" }.joined(separator: "\n")
         let stepsText = instructions.sorted(by: { $0.step < $1.step }).map(\.description).joined(separator: "\n")
         let creator = creator.trimmingCharacters(in: .whitespacesAndNewlines)
-        let estimatedCookingMinutes = Int(estimated_cooking_time.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+        let estimatedCookingMinutes = Self.parseMinutes(from: estimated_cooking_time)
+        let prepMinutes = Self.parseMinutes(from: prep_time ?? "")
         let totalSteps = instructions.count
 
         let recipe = Recipe(
@@ -110,6 +116,7 @@ extension RecipeAnalyzeResponse {
             timestamp: "",
             ingredients: ingredientsText,
             estimatedCookingMinutes: estimatedCookingMinutes,
+            prepMinutes: prepMinutes,
             totalSteps: totalSteps,
             triedBefore: false,
             notes: notes,
@@ -118,5 +125,16 @@ extension RecipeAnalyzeResponse {
         )
         modelContext.insert(recipe)
         return recipe
+    }
+
+    private static func parseMinutes(from raw: String) -> Int {
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if s.isEmpty { return 0 }
+        // Extract first integer from strings like "10", "10 min", "10 minutes"
+        let digits = s.filter { $0.isNumber || $0 == " " }
+        if let match = s.range(of: #"\d+"#, options: .regularExpression) {
+            return Int(s[match]) ?? 0
+        }
+        return Int(digits.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
     }
 }

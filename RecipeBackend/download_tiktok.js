@@ -38,6 +38,23 @@ function getVideoUrl(result) {
   return null;
 }
 
+function getCreatorName(result) {
+  if (!result || result.status !== "success") return "";
+  const r = result.result;
+  if (!r || typeof r !== "object") return "";
+
+  // Common shapes by version:
+  // v1: result.author.username / nickname
+  // v2: result.author.nickname
+  // v3: result.author.nickname
+  if (r.author && typeof r.author === "object") {
+    if (typeof r.author.nickname === "string" && r.author.nickname.trim()) return r.author.nickname.trim();
+    if (typeof r.author.username === "string" && r.author.username.trim()) return r.author.username.trim();
+    if (typeof r.author.uniqueId === "string" && r.author.uniqueId.trim()) return r.author.uniqueId.trim();
+  }
+  return "";
+}
+
 function ensureStringUrl(value) {
   if (typeof value === "string" && value.length > 0) return value;
   if (Array.isArray(value) && value.length > 0) return ensureStringUrl(value[0]);
@@ -91,6 +108,7 @@ async function main() {
   try {
     const result = await Tiktok.Downloader(url, { version: "v1" });
     let videoUrl = getVideoUrl(result);
+    let creatorName = getCreatorName(result);
     if (!videoUrl && result.resultNotParsed) {
       const r = result.resultNotParsed;
       if (r && r.result && r.result.video && r.result.video.downloadAddr)
@@ -99,10 +117,12 @@ async function main() {
     if (!videoUrl) {
       const v2 = await Tiktok.Downloader(url, { version: "v2" });
       videoUrl = getVideoUrl(v2);
+      if (!creatorName) creatorName = getCreatorName(v2);
     }
     if (!videoUrl) {
       const v3 = await Tiktok.Downloader(url, { version: "v3" });
       videoUrl = getVideoUrl(v3);
+      if (!creatorName) creatorName = getCreatorName(v3);
     }
     if (!videoUrl) {
       console.error("Could not get video URL from TikTok API");
@@ -116,6 +136,10 @@ async function main() {
     const dir = path.dirname(outputPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     await downloadToFile(urlString, outputPath);
+    // Emit creator name in a parseable way for Python wrapper.
+    if (creatorName) {
+      console.log(`CREATOR_NAME:${creatorName}`);
+    }
     process.exit(0);
   } catch (err) {
     console.error("TikTok download error:", err.message);

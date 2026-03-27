@@ -44,6 +44,7 @@ final class Recipe: Identifiable {
     var timestamp: String
     var ingredients: String
     var estimatedCookingMinutes: Int
+    var prepMinutes: Int
     var totalSteps: Int
     var triedBefore: Bool
     var notes: String
@@ -66,6 +67,7 @@ final class Recipe: Identifiable {
         timestamp: String = "",
         ingredients: String = "",
         estimatedCookingMinutes: Int = 0,
+        prepMinutes: Int = 0,
         totalSteps: Int = 0,
         triedBefore: Bool = false,
         notes: String = "",
@@ -83,6 +85,7 @@ final class Recipe: Identifiable {
         self.timestamp = timestamp
         self.ingredients = ingredients
         self.estimatedCookingMinutes = estimatedCookingMinutes
+        self.prepMinutes = prepMinutes
         self.totalSteps = totalSteps
         self.triedBefore = triedBefore
         self.notes = notes

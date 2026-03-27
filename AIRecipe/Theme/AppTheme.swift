@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Black & white minimal theme
 
 enum AppTheme {
-    static let primary = Color.accentColor
+    static let primary = Color.black
     static let primaryDark = Color(white: 0.15)
     static let surface = Color.white
     static let cardBackground = Color.white

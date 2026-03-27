@@ -10,13 +10,13 @@ struct BoxStyle: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.accentColor, lineWidth: AppTheme.boxBorderWidth)
+                    .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
             )
             .padding(.trailing, AppTheme.boxShadowOffset)
             .padding(.bottom, AppTheme.boxShadowOffset)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(Color.accentColor)
+                    .fill(Color.black)
             )
     }
 }

@@ -5,10 +5,18 @@
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
-		<dict>
-			<key>NSExtensionActivationRule</key>
-			<string>TRUEPREDICATE</string>
-		</dict>
+	<dict>
+		<key>NSExtensionActivationRule</key>
+		<string>SUBQUERY (
+			extensionItems,
+			$extensionItem,
+			SUBQUERY (
+				$extensionItem.attachments,
+				$attachment,
+				ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url"
+			).@count == 1
+		).@count > 0</string>
+	</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>

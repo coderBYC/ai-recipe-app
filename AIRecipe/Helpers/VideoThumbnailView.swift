@@ -2,7 +2,7 @@ import SwiftUI
 import AVKit
 import WebKit
 
-/// Recipe video preview: plays downloaded video URL, or YouTube embed, or shows thumbnail/placeholder.
+/// Recipe video preview: plays downloaded video URL, YouTube embed, or shows thumbnail/placeholder.
 struct VideoThumbnailView: View {
     let sourceURL: String
     let customImageData: Data?
@@ -22,27 +22,16 @@ struct VideoThumbnailView: View {
                 VideoPlayer(player: AVPlayer(url: url))
                     .onDisappear { /* optional: pause when off-screen */ }
             } else if source == .youtube, let embedURL = Recipe.youtubeEmbedURL(from: sourceURL) {
-                YouTubeEmbedView(url: embedURL)
+                YouTubeEmbedView(embedURL: embedURL)
             } else if let data = customImageData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-            } else if source == .youtube, let url = Recipe.youtubeThumbnailURL(from: sourceURL) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().aspectRatio(contentMode: .fill)
-                    case .failure, .empty:
-                        placeholderView
-                    @unknown default:
-                        placeholderView
-                    }
-                }
             } else {
                 placeholderView
             }
         }
-        .frame(height: 200)
+        .frame(height: 230)
         .clipped()
     }
 
@@ -63,32 +52,56 @@ struct VideoThumbnailView: View {
 }
 
 // MARK: - YouTube embed (WKWebView)
+// 使用 loadHTMLString + baseURL 避免錯誤 153（YouTube 要求正確的 Referer）
 
 struct YouTubeEmbedView: View {
-    let url: URL
+    let embedURL: URL
 
     var body: some View {
-        WebView(url: url)
+        YouTubeWebView(embedURL: embedURL)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
     }
 }
 
-private struct WebView: UIViewRepresentable {
-    let url: URL
+private struct YouTubeWebView: UIViewRepresentable {
+    let embedURL: URL
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
+        config.preferences.javaScriptEnabled = true
+
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.scrollView.isScrollEnabled = false
-        webView.isOpaque = false
+        webView.scrollView.bounces = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.isOpaque = true
         webView.backgroundColor = .black
+        webView.scrollView.backgroundColor = .black
+
+        let bundleId = Bundle.main.bundleIdentifier ?? "com.example.app"
+        let referrer = "https://\(bundleId)".lowercased()
+        guard let baseURL = URL(string: referrer) else {
+            webView.load(URLRequest(url: embedURL))
+            return webView
+        }
+        // html/body/iframe 100% height so no extra black block below; object-fit contain keeps aspect ratio inside frame
+        let html = """
+        <!DOCTYPE html>
+        <html style="height:100%;margin:0;padding:0;">
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        </head>
+        <body style="height:100%;margin:0;padding:0;background:#000;">
+            <iframe style="position:absolute;left:0;top:0;width:100%;height:100%;border:0;" src="\(embedURL.absoluteString)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe>
+        </body>
+        </html>
+        """
+        webView.loadHTMLString(html, baseURL: baseURL)
         return webView
     }
 
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        if webView.url != url {
-            webView.load(URLRequest(url: url))
-        }
-    }
+    func updateUIView(_ webView: WKWebView, context: Context) {}
 }

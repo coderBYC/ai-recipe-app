@@ -12,11 +12,15 @@ struct LoginView: View{
         NavigationStack {
             VStack {
                 Spacer()
-                Image(.youTubeIcon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 150, height: 150)
-                    .padding()
+                Text("Let Him Cook")
+                    .font(.largeTitle)
+                    .bold()
+                    .fontDesign(Font.Design.serif)
+                Text("Viral Reels To Recipe")
+                    .font(.title2)
+                    .fontDesign(Font.Design.serif)
+                    .padding(.bottom,60)
+                   
                 VStack(spacing:8){
                     TextField("Enter your email", text: $email)
                         .autocapitalization(.none)
@@ -39,9 +43,11 @@ struct LoginView: View{
                     Text("Login")
                         .frame(width:300,height:54)
                         .font(.title2)
-                        .background(Color.accentColor)
+                        .fontDesign(.serif)
+                        .background(Color.white)
+                        .boxStyle(cornerRadius: 10)
                         .cornerRadius(8)
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                 }
                 .padding(.vertical)
                 
@@ -85,8 +91,7 @@ struct LoginView: View{
                     }
                 }
                 .frame(width:300,height:54)
-                        
-                        
+                
                         Spacer()
                         
                         Divider()

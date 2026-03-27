@@ -165,13 +165,18 @@ struct PasteLinkView: View {
 
         Task { @MainActor in
             do {
-                // 1) Check and increment AI usage via Supabase (when configured).
-                try? await SupabaseService.shared.useAIOnce()
+                // Quota: when the backend has SUPABASE_* set, it runs `use_ai_once` via `X-User-Id`.
+                // Avoid calling `useAIOnce()` here too — that would double-count or 401 without the header.
+                guard let userId = await SupabaseService.shared.currentUserIdString() else {
+                    errorMessage = "You need to be signed in to analyze videos."
+                    isProcessing = false
+                    return
+                }
 
-                // 2) Call the backend to analyze the reel.
                 let response = try await RecipeBackendService.shared.analyzeReel(
                     url: trimmedURL,
-                    language: currentLanguageCode()
+                    language: currentLanguageCode(),
+                    userId: userId
                 )
                 let recipe = response.toRecipe(sourceURL: trimmedURL, modelContext: modelContext)
                 try? modelContext.save()

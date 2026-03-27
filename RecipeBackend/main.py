@@ -14,7 +14,6 @@ import uuid
 from typing import Optional
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 import httpx
-
 load_dotenv()
 
 app = FastAPI()
@@ -37,12 +36,12 @@ class RecipeResponse(BaseModel):
     description: str
     creator: str = ""
     estimated_cooking_time: str = "0"
+    prep_time: str = "0"
     ingredients: list
     instructions: list
     video_url: Optional[str] = None
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
-
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
@@ -52,12 +51,13 @@ def build_prompt(language: str) -> str:
     lang = language.lower()
     print(lang)
     return f"""Analyze the attached cooking video. 
-    Extract the recipe and output the result strictly in JSON format using English for all keys and values.
+    Extract the recipe and output the result strictly in JSON format. JSON keys must be English.
     The JSON structure must match this template:
     {{
     "recipe_name": "Title of the dish",
     "creator": "Name of the creator",
-    "estimated_cooking_time": "Estimated cooking time in minutes",
+    "prep_time": "5",
+    "estimated_cooking_time": "10",
     "description": "A short summary of the dish based on the video context",
     "ingredients": [
         {{
@@ -77,8 +77,9 @@ def build_prompt(language: str) -> str:
     2. Ensure the output is valid JSON only, with no introductory or concluding text.
     3. Try add some icons to each ingredient in the front.
     4. Make sure each step is short and concise.
-    5. Please include estimated cooking time.
-    6. Use language code {lang} for all user-facing text values (keys must stay in English)."""
+    5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
+    6. Make sure the creator name is right if it's a youtube video.
+    7. Use language code {lang} for all user-facing text values (keys must stay in English)."""
 
     
 async def verify_ai_quota(request: Request) -> None:
@@ -93,7 +94,6 @@ async def verify_ai_quota(request: Request) -> None:
     - Raise an error if the limit is reached
     """
     if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-        # Supabase not configured; skip server-side quota enforcement.
         return
 
     user_id = request.headers.get("X-User-Id")
@@ -124,6 +124,22 @@ async def verify_ai_quota(request: Request) -> None:
             detail=f"AI usage limit reached or not allowed: {detail}",
         )
 
+
+
+async def youtube_oembed_author_name(video_url: str) -> str:
+    """Official channel display name from YouTube oEmbed (no API key)."""
+    try:
+        api = "https://www.youtube.com/oembed"
+        params = {"url": video_url.strip(), "format": "json"}
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(api, params=params)
+        if resp.status_code != 200:
+            return ""
+        payload = resp.json()
+        name = (payload.get("author_name") or "").strip()
+        return name
+    except Exception:
+        return ""
 
 
 def is_youtube_url(url: str) -> bool:
@@ -176,6 +192,8 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(req.language)
     video_url = None
+    # Some platforms block creator metadata; keep it optional.
+    creator_name = ""
 
     if is_youtube_url(url):
         # YouTube: send the link to Gemini directly (no download)
@@ -186,7 +204,15 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
         )
     elif is_tiktok_url(url):
         # TikTok: download via tiktok-api-dl then upload file to Gemini
-        videoName = download_tiktok_video(url)
+        tk_result = download_tiktok_video(url)
+        # Support both legacy return shapes:
+        # - "path.mp4"
+        # - ("path.mp4", "author name")
+        if isinstance(tk_result, tuple):
+            videoName = tk_result[0] if len(tk_result) > 0 else None
+            creator_name = tk_result[1] if len(tk_result) > 1 and tk_result[1] else creator_name
+        else:
+            videoName = tk_result
         if not videoName:
             raise HTTPException(status_code=500, detail="Failed to download TikTok video")
         video_file = client.files.upload(file=videoName)
@@ -209,7 +235,11 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             video_url = f"{base}/video/{video_id}"
     else:
         # Instagram (or other): download then upload file to Gemini
-        videoName = download_instagram_reel(url)
+        ig_result = download_instagram_reel(url)
+        if not ig_result:
+            raise HTTPException(status_code=500, detail="Failed to download video")
+        videoName, creator_name = ig_result
+        creator_name = creator_name or ""
         if not videoName:
             raise HTTPException(status_code=500, detail="Failed to download video")
         video_file = client.files.upload(file=videoName)
@@ -234,6 +264,12 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     raw_text = getattr(response, "text", None) or ""
     try:
         data = extract_json_from_response(raw_text)
+        creator_name = creator_name or data.get("creator", "")
+        # YouTube: Gemini often guesses wrong; prefer oEmbed channel name.
+        if is_youtube_url(url):
+            yt_author = await youtube_oembed_author_name(url)
+            if yt_author:
+                creator_name = yt_author
     except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=502,
@@ -248,8 +284,9 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     return RecipeResponse(
         recipe_name=data.get("recipe_name", "Untitled Recipe"),
         description=data.get("description", ""),
-        creator=data.get("creator", ""),
+        creator=creator_name,
         estimated_cooking_time=str(data.get("estimated_cooking_time", "0")),
+        prep_time=str(data.get("prep_time", "0")),
         ingredients=data.get("ingredients", []),
         instructions=data.get("instructions", []),
         video_url=video_url,

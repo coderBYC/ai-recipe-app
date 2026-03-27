@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftData
+import StoreKit
+import UIKit
 
 /// Root view with iOS glass-style TabView: Home, Add, Settings.
 struct MainView: View {
@@ -84,6 +86,7 @@ struct SettingsView: View {
     @AppStorage("settings.language") private var language = "System"
     @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
+    @Environment(AuthManager.self) private var authManager
     @State private var showPaywall = false
     private let languages = ["System", "English", "Mandarin", "Spanish", "Hindi", "Korean"]
 
@@ -102,11 +105,46 @@ struct SettingsView: View {
                 }
 
                 Section("Subscription") {
-                    Button("Plan") {
+                    Button("\(subscriptionTier)") {
                         showPaywall = true
                     }
                     .padding(10)
                     .boxStyle(cornerRadius: 5)
+
+                    Button("Manage subscription") {
+                        Task { @MainActor in
+                            if let scene = UIApplication.shared.connectedScenes
+                                .compactMap({ $0 as? UIWindowScene })
+                                .first {
+                                do {
+                                    try await AppStore.showManageSubscriptions(in: scene)
+                                } catch {
+                                    openSubscriptionsInAppStore()
+                                }
+                            } else {
+                                openSubscriptionsInAppStore()
+                            }
+                        }
+                    }
+                    .padding(10)
+                    .boxStyle(cornerRadius: 5)
+
+                    Text("Cancel or change your plan in the App Store. Apple does not allow canceling inside the app.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("Account") {
+                    Button(role: .destructive) {
+                        Task {
+                            await authManager.signOut()
+                        }
+                    } label: {
+                        Text("Sign Out")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(10)
+                            .boxStyle(cornerRadius: 5)
+                    }
                 }
             }
             .scrollContentBackground(.hidden)
@@ -125,10 +163,14 @@ struct SettingsView: View {
                     Task {
                         try? await SupabaseService.shared.updatePlan(to: plan)
                     }
-                    showPaywall = false
                 })
             }
         }
+    }
+
+    private func openSubscriptionsInAppStore() {
+        guard let url = URL(string: "https://apps.apple.com/account/subscriptions") else { return }
+        UIApplication.shared.open(url)
     }
 }
 

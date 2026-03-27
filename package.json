@@ -3,7 +3,15 @@
   "version": "1.0.0",
   "description": "TikTok download script for RecipeBackend using tiktok-api-dl",
   "private": true,
+  "main": "node_modules/expo/AppEntry.js",
   "dependencies": {
-    "@tobyg74/tiktok-api-dl": "^1.0.0"
+    "@tobyg74/tiktok-api-dl": "^1.0.0",
+    "expo": "~54.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.0"
+  },
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   }
 }
