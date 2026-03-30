@@ -5,4 +5,3 @@ google-genai
 instaloader
 httpx
 python-dotenv
-pyktok

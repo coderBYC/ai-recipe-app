@@ -13,6 +13,20 @@ enum SupabaseUsageError: Error {
     case sdkNotConfigured
 }
 
+enum SupabaseAccountError: Error, LocalizedError {
+    case notAuthenticated
+    case deleteFailed(status: Int, body: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .notAuthenticated:
+            return "Not signed in."
+        case .deleteFailed(let status, let body):
+            return "Could not delete account (HTTP \(status)): \(body)"
+        }
+    }
+}
+
 /// Thin wrapper around SupabaseClient for user plan and usage counters.
 final class SupabaseService {
     static let shared = SupabaseService()
@@ -81,6 +95,32 @@ final class SupabaseService {
         _ = try await client
             .rpc("use_export_once", params: Params(user_id: userId))
             .execute()
+    }
+
+    /// Deletes the signed-in user via GoTrue `DELETE /auth/v1/user` (removes `auth.users` and cascades to `profiles` if FK is set).
+    func deleteAccount() async throws {
+        let session: Session
+        do {
+            session = try await client.auth.session
+        } catch {
+            throw SupabaseAccountError.notAuthenticated
+        }
+        let url = SupabaseConfig.url.appendingPathComponent("auth/v1/user")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue(SupabaseConfig.key, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw SupabaseAccountError.deleteFailed(status: 0, body: "No HTTP response")
+        }
+        if !(200...299).contains(http.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            throw SupabaseAccountError.deleteFailed(status: http.statusCode, body: body)
+        }
+
+        try await client.auth.signOut()
     }
 
     /// Update the user's subscription plan in the `profiles` table.

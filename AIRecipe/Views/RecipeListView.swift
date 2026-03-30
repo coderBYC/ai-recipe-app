@@ -13,7 +13,11 @@ struct RecipeListView: View {
     @State private var pendingPhotoData: Data?
     @State private var searchText = ""
     @State private var selectedTag: String?
-    
+
+    /// Screen padding for text fields and cards; scroll views extend full width then re-inset so shadows aren’t clipped.
+    private let contentInset: CGFloat = 16
+    private var shadowPad: CGFloat { AppTheme.boxShadowOffset }
+
     private let recipeTags = ["All", "YouTube", "Instagram", "TikTok", "Done", "Recent", "Rating ↓", "Rating ↑"]
     
     var filteredRecipes: [Recipe] {
@@ -58,11 +62,19 @@ struct RecipeListView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    searchBar
-                    tagsSection
+                    Group {
+                        searchBar
+                        tagsSection
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .layoutPriority(1)
+
                     recipeListContent
+                        .layoutPriority(0)
+                        .frame(minHeight: 0, maxHeight: .infinity)
                 }
-                .padding(.horizontal, 16)
+                .padding(.leading, contentInset)
+                .padding(.trailing, contentInset + shadowPad)
                 .padding(.top, 10)
                 
                 if isProcessingPhoto {
@@ -74,6 +86,8 @@ struct RecipeListView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Home")
                         .appFont(.largeTitle)
+                        .fontDesign(.serif)
+                        .fontWeight(.semibold)
                         .foregroundStyle(AppTheme.primary)
                 }
             }
@@ -104,7 +118,14 @@ struct RecipeListView: View {
                 .appFont(.body)
         }
         .padding(12)
-        .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        .background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(AppTheme.cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 5)
+                .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
+        )
     }
     
     private var tagsSection: some View {
@@ -113,6 +134,7 @@ struct RecipeListView: View {
                 ForEach(recipeTags, id: \.self) { tag in
                     Button {
                         selectedTag = selectedTag == tag ? nil : tag
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     } label: {
                         Group {
                             switch tag {
@@ -130,15 +152,25 @@ struct RecipeListView: View {
                         .foregroundStyle(selectedTag == tag ? .white : AppTheme.textPrimary)
                         .frame(minWidth: 32, minHeight: 28)
                         .padding(.horizontal, tag == "All" || tag == "Done" || tag == "Recent" ? 12 : 10)
-                        .padding(.vertical, 5)
+                        .padding(.vertical, 3)
                     }
-                    .background(selectedTag == tag ? Color.black : AppTheme.cardBackground)
-                    .boxStyle(cornerRadius: 5)
-                    .padding(.horizontal,3)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(selectedTag == tag ? AppTheme.primary : AppTheme.cardBackground)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
+                    )
                 }
             }
-            
+            .padding(.leading, contentInset)
+            .padding(.trailing, contentInset)
         }
+        // Default clip: scrollClipDisabled on horizontal scroll can paint past the bar and
+        // overlap/shear the recipe list; tag chips only need a stroke, not overflow.
+        .padding(.horizontal, -contentInset)
+        .scrollClipDisabled()
     }
     
     @ViewBuilder
@@ -153,16 +185,14 @@ struct RecipeListView: View {
             }
             .padding(.horizontal,14)
             .padding(.vertical,10)
-            .buttonStyle(PlainButtonStyle()).boxStyle()
-            
-                
+            .buttonStyle(PlainButtonStyle()).boxStyle(cornerRadius: 8)
             .tint(AppTheme.primary)
             .appFont(.callout)
             .padding(.top,8)
             Spacer()
         } else {
-            ScrollView {
-                LazyVStack(spacing: 10) {
+            ScrollView(showsIndicators: false) {
+                LazyVStack(spacing: 12) {
                     ForEach(filteredRecipes) { recipe in
                         RecipeRowView(recipe: recipe)
                             .onTapGesture { selectedRecipe = recipe }
@@ -173,8 +203,13 @@ struct RecipeListView: View {
                             }
                     }
                 }
-                .padding(.bottom, 24)
+                // Inset so the first row’s 2px stroke isn’t sheared by ScrollView’s top clip.
+                .padding(.top, AppTheme.boxBorderWidth)
+                .padding(.leading, contentInset)
+                .padding(.trailing, contentInset + shadowPad)
+                .padding(.bottom, 24 + shadowPad)
             }
+            .padding(.horizontal, -contentInset)
         }
     }
     
@@ -189,6 +224,12 @@ struct RecipeListView: View {
             }
         case .addLinkWithURL(let url):
             PasteLinkView(prefillURL: url) { recipe in
+                addSheet = nil
+                selectedRecipe = recipe
+                openEditWhenRecipeOpens = true
+            }
+        case .addLinkWithURLAutoProcess(let url):
+            PasteLinkView(prefillURL: url, autoProcessOnAppear: true) { recipe in
                 addSheet = nil
                 selectedRecipe = recipe
                 openEditWhenRecipeOpens = true
@@ -272,14 +313,6 @@ struct RecipeRowView: View {
                             .appFont(.caption)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
-                    if recipe.triedBefore || recipe.rating > 0 {
-                        Text("Done")
-                            .appFont(.caption2)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(AppTheme.triedBadge, in: Capsule())
-                    }
                 }
                 if recipe.rating > 0 {
                     HStack(spacing: 2) {
@@ -291,13 +324,13 @@ struct RecipeRowView: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .greatestFiniteMagnitude, alignment: .leading)
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
         }
         .padding(14)
-        .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        .boxStyle(cornerRadius: 8)
     }
 }
 
@@ -320,6 +353,7 @@ struct RecipeRowView: View {
 enum AddRecipeSheet: Identifiable {
     case addLink
     case addLinkWithURL(String)
+    case addLinkWithURLAutoProcess(String)
     case scanQR
     case takePhoto
     case manualRecipe
@@ -327,6 +361,7 @@ enum AddRecipeSheet: Identifiable {
         switch self {
         case .addLink: return "addLink"
         case .addLinkWithURL(let u): return "addLink-\(u)"
+        case .addLinkWithURLAutoProcess(let u): return "addLink-auto-\(u)"
         case .scanQR: return "scanQR"
         case .takePhoto: return "takePhoto"
         case .manualRecipe: return "manualRecipe"

@@ -5,18 +5,15 @@
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
-	<dict>
-		<key>NSExtensionActivationRule</key>
-		<string>SUBQUERY (
-			extensionItems,
-			$extensionItem,
-			SUBQUERY (
-				$extensionItem.attachments,
-				$attachment,
-				ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url"
-			).@count == 1
-		).@count > 0</string>
-	</dict>
+		<dict>
+			<key>NSExtensionActivationRule</key>
+			<dict>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+			</dict>
+		</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>

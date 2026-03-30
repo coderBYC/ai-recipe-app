@@ -7,6 +7,7 @@ struct RecipePageView: View {
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
     var openEditOnAppear: Bool = false
+    @ObservedObject private var subManager = SubscriptionManager.shared
 
     @State private var showingEdit = false
     @State private var showingImport = false
@@ -23,7 +24,9 @@ struct RecipePageView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         headerRow
-                        videoSection
+                        if shouldShowVideoPreview {
+                            videoSection
+                        }
                         estimateTimeSection
                         ingredientsSection
                         stepsSection
@@ -79,6 +82,19 @@ struct RecipePageView: View {
             } message: {
                 if let err = exportError { Text(err) }
             }
+            .task {
+                await subManager.checkStatus()
+            }
+        }
+    }
+
+    /// Free users: hide the whole video block for Instagram/TikTok (no embed, no placeholder).
+    private var shouldShowVideoPreview: Bool {
+        switch recipe.sourceEnum {
+        case .youtube:
+            return true
+        case .instagram, .tiktok:
+            return subManager.isPremium
         }
     }
 

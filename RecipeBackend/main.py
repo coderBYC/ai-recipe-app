@@ -125,6 +125,53 @@ async def verify_ai_quota(request: Request) -> None:
         )
 
 
+def is_instagram_url(url: str) -> bool:
+    """Instagram reel/post links (hosted download path on server)."""
+    u = (url or "").lower().strip()
+    return "instagram.com" in u or "instagr.am" in u
+
+
+async def is_pro_user(request: Request) -> bool:
+    """
+    Determine Pro entitlement for deciding whether we generate/store a downloadable video.
+
+    Priority:
+    1) If the app sends `X-Is-Pro`, use it (RevenueCat entitlement).
+    2) Otherwise, fall back to Supabase `profiles.plan_type`.
+    """
+    header_plan = (request.headers.get("X-Is-Pro") or "").strip().lower()
+    if header_plan:
+        return header_plan in {"true", "1", "pro", "premium", "yes"}
+
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return False
+
+    user_id = request.headers.get("X-User-Id")
+    if not user_id:
+        return False
+
+    profiles_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/profiles"
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                profiles_url,
+                params={"id": f"eq.{user_id}", "select": "plan_type"},
+                headers={
+                    "apikey": SUPABASE_SERVICE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                    "Accept": "application/json",
+                },
+            )
+        if resp.status_code >= 400:
+            return False
+        rows = resp.json()
+        if not rows:
+            return False
+        plan = str((rows[0] or {}).get("plan_type") or "").strip().lower()
+        return plan == "pro"
+    except Exception:
+        return False
+
 
 async def youtube_oembed_author_name(video_url: str) -> str:
     """Official channel display name from YouTube oEmbed (no API key)."""
@@ -189,6 +236,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
 
     # Verify AI usage with Supabase before calling Gemini (if configured).
     await verify_ai_quota(request)
+    user_is_pro = await is_pro_user(request)
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(req.language)
     video_url = None
@@ -205,9 +253,6 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     elif is_tiktok_url(url):
         # TikTok: download via tiktok-api-dl then upload file to Gemini
         tk_result = download_tiktok_video(url)
-        # Support both legacy return shapes:
-        # - "path.mp4"
-        # - ("path.mp4", "author name")
         if isinstance(tk_result, tuple):
             videoName = tk_result[0] if len(tk_result) > 0 else None
             creator_name = tk_result[1] if len(tk_result) > 1 and tk_result[1] else creator_name
@@ -226,13 +271,18 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             model="gemini-2.5-flash",
             contents=[current_prompt, video_file],
         )
-        if os.path.isfile(videoName):
+        if user_is_pro and os.path.isfile(videoName):
             os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
             video_id = str(uuid.uuid4())
             dest = os.path.join(SERVED_VIDEOS_DIR, f"{video_id}.mp4")
             shutil.copy2(videoName, dest)
             base = str(request.base_url).rstrip("/")
             video_url = f"{base}/video/{video_id}"
+        if os.path.isfile(videoName):
+            try:
+                os.remove(videoName)
+            except OSError:
+                pass
     else:
         # Instagram (or other): download then upload file to Gemini
         ig_result = download_instagram_reel(url)
@@ -253,19 +303,23 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             model="gemini-2.5-flash",
             contents=[current_prompt, video_file],
         )
-        if os.path.isfile(videoName):
+        if user_is_pro and os.path.isfile(videoName):
             os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
             video_id = str(uuid.uuid4())
             dest = os.path.join(SERVED_VIDEOS_DIR, f"{video_id}.mp4")
             shutil.copy2(videoName, dest)
             base = str(request.base_url).rstrip("/")
             video_url = f"{base}/video/{video_id}"
+        if os.path.isfile(videoName):
+            try:
+                os.remove(videoName)
+            except OSError:
+                pass
 
     raw_text = getattr(response, "text", None) or ""
     try:
         data = extract_json_from_response(raw_text)
         creator_name = creator_name or data.get("creator", "")
-        # YouTube: Gemini often guesses wrong; prefer oEmbed channel name.
         if is_youtube_url(url):
             yt_author = await youtube_oembed_author_name(url)
             if yt_author:

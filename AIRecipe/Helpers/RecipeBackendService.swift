@@ -32,12 +32,20 @@ struct RecipeAnalyzeResponse: Codable {
 // MARK: - Backend config
 
 enum RecipeBackendConfig {
-    /// Base URL for the recipe analysis API. Use your machine's IP (e.g. http://192.168.1.x:8000) when testing on device.
+    /// Base URL for the recipe analysis API.
+    ///
+    /// **Simulator:** `127.0.0.1` is your Mac, so it reaches `uvicorn` on the same machine.
+    ///
+    /// **Physical iPhone:** `localhost` / `127.0.0.1` would point at the **phone itself**, not your Mac — requests never hit your laptop.
+    /// Set the `#else` URL to wherever the API actually runs:
+    /// - **Backend on this Mac:** Wi‑Fi IP from System Settings → Network (e.g. `http://192.168.1.42:8000`). Phone and Mac on same Wi‑Fi; run `uvicorn --host 0.0.0.0 --port 8000`; allow port 8000 in macOS Firewall if needed.
+    /// - **Backend on a cloud VM:** use that host’s public IP/DNS and ensure port 8000 is open to the internet.
     static var baseURL: String {
         #if targetEnvironment(simulator)
         return "http://127.0.0.1:8000"
         #else
-        return "http://35.3.118.45:8000" // Use your Mac's IP when testing on a real device
+        // TODO: Put your Mac’s LAN IP (local dev) or your server’s URL (deployed).
+        return "http://35.2.184.241:8000"
         #endif
     }
 }
@@ -58,7 +66,7 @@ final class RecipeBackendService {
 
     /// Sends the video URL (and language) to the backend and returns the analyzed recipe response.
     /// Pass `userId` (Supabase auth user UUID string) when your API enforces quota via `X-User-Id` + Supabase RPC.
-    func analyzeReel(url: String, language: String, userId: String? = nil) async throws -> RecipeAnalyzeResponse {
+    func analyzeReel(url: String, language: String, userId: String? = nil, isPro: Bool? = nil) async throws -> RecipeAnalyzeResponse {
         guard let base = URL(string: RecipeBackendConfig.baseURL),
               let endpoint = URL(string: "/analyze_reel", relativeTo: base) else {
             throw RecipeBackendError.invalidURL
@@ -70,6 +78,9 @@ final class RecipeBackendService {
         request.httpBody = try JSONEncoder().encode(AnalyzeReelRequest(url: url, language: language))
         if let userId, !userId.isEmpty {
             request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        }
+        if let isPro {
+            request.setValue(isPro ? "true" : "false", forHTTPHeaderField: "X-Is-Pro")
         }
 
         let (data, response): (Data, URLResponse)

@@ -1,12 +1,21 @@
 import SwiftUI
 import SwiftData
 import Supabase
+import RevenueCat
+
+extension Notification.Name {
+    static let importSharedRecipeLink = Notification.Name("importSharedRecipeLink")
+}
 
 @main
 struct AIRecipeApp: App {
     @State private var authManager = AuthManager(service: SupabaseService())
+    init (){
+        Purchases.logLevel = .debug
+        Purchases.configure(withAPIKey: "appl_ZuccwFPnXxTruTqXcEEDVfrSopD")
+    }
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Recipe.self])
+        let schema = Schema([Recipe.self, PlannedMeal.self])
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let storeURL = appSupport.appending(path: "default.store")
         let config = ModelConfiguration(isStoredInMemoryOnly: false)
@@ -34,7 +43,30 @@ struct AIRecipeApp: App {
             MainView()
                 .preferredColorScheme(.light)
                 .environment(authManager)
+                .onOpenURL { url in
+                    Task {
+                        await handleIncomingURL(url)
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    @MainActor
+    private func handleIncomingURL(_ url: URL) async {
+        // Supabase magic-link callback.
+        if url.scheme == "io.supabase.user-management" {
+            try? await SupabaseService.shared.client.auth.session(from: url)
+            return
+        }
+
+        // Share extension deep link: airecipe://import?url=<encoded>
+        if url.scheme == "airecipe",
+           url.host == "import",
+           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let sharedURL = components.queryItems?.first(where: { $0.name == "url" })?.value,
+           !sharedURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            NotificationCenter.default.post(name: .importSharedRecipeLink, object: sharedURL)
+        }
     }
 }

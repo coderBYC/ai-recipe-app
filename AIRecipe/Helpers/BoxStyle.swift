@@ -12,8 +12,8 @@ struct BoxStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
             )
-            .padding(.trailing, AppTheme.boxShadowOffset)
-            .padding(.bottom, AppTheme.boxShadowOffset)
+            .padding(.trailing, 4)
+            .padding(.bottom, 4)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(Color.black)
