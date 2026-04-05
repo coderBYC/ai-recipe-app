@@ -1,2 +1,8 @@
 node_modules
 .env
+RecipeBackend/.env
+RecipeBackend/.venv/
+.DS_Store
+
+# API keys (see Config/AppSecrets.local.xcconfig.example)
+Config/AppSecrets.local.xcconfig

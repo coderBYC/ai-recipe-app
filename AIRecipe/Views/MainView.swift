@@ -10,26 +10,78 @@ struct MainView: View {
     @State private var selectedTab: AppTab = .home
     @State private var addSheet: AddRecipeSheet?
     @State private var showAddMenu = false
+    /// When set with Settings tab, `SettingsView` presents the matching legal sheet.
+    @State private var deepLinkLegalDocument: LegalDocumentKind?
     @Environment(AuthManager.self) private var authManager
     @AppStorage("hasOnboard") private var hasOnboard: Bool = false
 
     var body: some View {
-        if hasOnboard{
-            Group {
-                content
+        Group {
+            if hasOnboard {
+                Group {
+                    content
+                }
+                .task {
+                    await authManager.getAuthState()
+                    consumePendingSharedRecipeURL()
+                    consumePendingDeepLink()
+                }
+            } else {
+                OnboardingView(isFinished: $hasOnboard)
             }
-            .task {
-                await authManager.getAuthState()
+        }
+        .onAppear {
+            Task { @MainActor in
+                consumePendingSharedRecipeURL()
+                consumePendingDeepLink()
             }
-            .onReceive(NotificationCenter.default.publisher(for: .importSharedRecipeLink)) { note in
-                guard let shared = note.object as? String else { return }
-                let trimmed = shared.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmed.isEmpty else { return }
-                selectedTab = .home
-                addSheet = .addLinkWithURLAutoProcess(trimmed)
-            }
-        } else{
-            OnboardingView(isFinished: $hasOnboard)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .importSharedRecipeLink)) { _ in
+            consumePendingSharedRecipeURL()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openAppDeepLink)) { _ in
+            consumePendingDeepLink()
+        }
+        .onChange(of: hasOnboard) { _, _ in
+            consumePendingSharedRecipeURL()
+            consumePendingDeepLink()
+        }
+        .onChange(of: authManager.authState) { _, _ in
+            consumePendingSharedRecipeURL()
+            consumePendingDeepLink()
+        }
+    }
+
+    /// Presents auto-processing sheet when a share/deep link stored URL is available and Home is reachable.
+    private func consumePendingSharedRecipeURL() {
+        PendingRecipeImport.migratePendingFromAppGroupToStandardIfNeeded()
+        guard hasOnboard, authManager.authState == .authenticated else { return }
+        guard let raw = UserDefaults.standard.string(forKey: PendingRecipeImport.userDefaultsKey) else { return }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            UserDefaults.standard.removeObject(forKey: PendingRecipeImport.userDefaultsKey)
+            return
+        }
+        UserDefaults.standard.removeObject(forKey: PendingRecipeImport.userDefaultsKey)
+        selectedTab = .home
+        addSheet = .addLinkWithURLAutoProcess(trimmed)
+    }
+
+    /// Handles `airecipe://settings`, `airecipe://terms`, `airecipe://privacy` after onboard + sign-in.
+    private func consumePendingDeepLink() {
+        guard hasOnboard, authManager.authState == .authenticated else { return }
+        guard let route = PendingAppDeepLink.consume() else { return }
+        switch route {
+        case PendingAppDeepLink.settings:
+            selectedTab = .settings
+        case PendingAppDeepLink.terms:
+            selectedTab = .settings
+            deepLinkLegalDocument = .termsOfService
+        case PendingAppDeepLink.privacy:
+            selectedTab = .settings
+            deepLinkLegalDocument = .privacyAndAI
+        default:
+            break
         }
     }
 
@@ -55,7 +107,7 @@ struct MainView: View {
             case .mealPlan:
                 MealPlanView()
             case .settings:
-                SettingsView()
+                SettingsView(deepLinkLegalDocument: $deepLinkLegalDocument)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -174,6 +226,7 @@ struct CookBookView: View {
 }
 
 struct SettingsView: View {
+    @Binding var deepLinkLegalDocument: LegalDocumentKind?
     @AppStorage("settings.language") private var language = "System"
     @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
@@ -182,6 +235,10 @@ struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var showPaywall = false
     @State private var legalDocument: LegalDocumentKind?
+
+    init(deepLinkLegalDocument: Binding<LegalDocumentKind?> = .constant(nil)) {
+        _deepLinkLegalDocument = deepLinkLegalDocument
+    }
     @State private var showDeleteAccountConfirm = false
     @State private var deleteAccountError: String?
     @State private var isDeletingAccount = false
@@ -391,6 +448,10 @@ struct SettingsView: View {
             .sheet(item: $legalDocument) { kind in
                 LegalDocumentReaderView(kind: kind)
             }
+            .onAppear { syncDeepLinkLegalIfNeeded() }
+            .onChange(of: deepLinkLegalDocument) { _, _ in
+                syncDeepLinkLegalIfNeeded()
+            }
             .sheet(isPresented: $showPaywall) {
                 RevenueCatUI.PaywallView(displayCloseButton: true)
                     .onPurchaseCompleted { _, _ in
@@ -430,6 +491,12 @@ struct SettingsView: View {
                 Text(deleteAccountError ?? "")
             }
         }
+    }
+
+    private func syncDeepLinkLegalIfNeeded() {
+        guard let kind = deepLinkLegalDocument else { return }
+        legalDocument = kind
+        deepLinkLegalDocument = nil
     }
 
     @MainActor

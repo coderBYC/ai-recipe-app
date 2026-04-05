@@ -1,12 +1,6 @@
 import Foundation
 import Supabase
 
-/// Configuration for the Supabase client used for subscriptions and usage limits.
-enum SupabaseConfig {
-    static let url = URL(string: "https://bebnwgehuzvrkjoiszdi.supabase.co")!
-    static let key = "sb_publishable_RVWEbkVAOtuDdLFJfF3cAA_KP21sv9C"
-}
-
 /// Errors specific to Supabase usage/plan handling.
 enum SupabaseUsageError: Error {
     case notAuthenticated
@@ -105,10 +99,13 @@ final class SupabaseService {
         } catch {
             throw SupabaseAccountError.notAuthenticated
         }
-        let url = SupabaseConfig.url.appendingPathComponent("auth/v1/user")
+        guard let base = AppSecrets.supabaseURL else {
+            throw SupabaseAccountError.deleteFailed(status: 0, body: "Supabase URL not configured.")
+        }
+        let url = base.appendingPathComponent("auth/v1/user")
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
-        request.setValue(SupabaseConfig.key, forHTTPHeaderField: "apikey")
+        request.setValue(AppSecrets.supabaseAnonKey, forHTTPHeaderField: "apikey")
         request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -121,6 +118,27 @@ final class SupabaseService {
         }
 
         try await client.auth.signOut()
+    }
+
+    /// Free-tier AI generations already completed (matches `use_ai_once` / backend quota). Next attempt should show paywall when not Pro.
+    func fetchAIUsageCount() async throws -> Int {
+        guard let userId = try? await client.auth.session.user.id else {
+            throw SupabaseUsageError.notAuthenticated
+        }
+
+        struct Row: Decodable {
+            let ai_usage_count: Int?
+        }
+
+        let row: Row = try await client
+            .from("profiles")
+            .select("ai_usage_count")
+            .eq("id", value: userId)
+            .single()
+            .execute()
+            .value
+
+        return row.ai_usage_count ?? 0
     }
 
     /// Update the user's subscription plan in the `profiles` table.

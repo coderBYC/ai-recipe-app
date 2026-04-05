@@ -42,10 +42,10 @@ enum RecipeBackendConfig {
     /// - **Backend on a cloud VM:** use that host’s public IP/DNS and ensure port 8000 is open to the internet.
     static var baseURL: String {
         #if targetEnvironment(simulator)
-        return "http://127.0.0.1:8000"
+        return "https://ai-recipe-app-8z9f.onrender.com/"
         #else
         // TODO: Put your Mac’s LAN IP (local dev) or your server’s URL (deployed).
-        return "http://35.2.184.241:8000"
+        return "https://ai-recipe-app-8z9f.onrender.com/"
         #endif
     }
 }

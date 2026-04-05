@@ -2,12 +2,14 @@ import SwiftUI
 import SwiftData
 import UIKit
 import Foundation
+import RevenueCatUI
 
 /// Paste link flow presented like a confirmation dialog: title, message, field, then vertical action list.
 struct PasteLinkView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @AppStorage("settings.language") private var languageSetting: String = "System"
+    @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
 
     var prefillURL: String?
     var autoProcessOnAppear: Bool = false
@@ -20,6 +22,10 @@ struct PasteLinkView: View {
     @State private var loadingPhase: LoadingPhase = .idle
     @State private var progressTask: Task<Void, Never>?
     @State private var didAutoProcess = false
+    @State private var showPaywall = false
+
+    /// Free users get this many completed generations before the next attempt shows the paywall (Supabase shows `2` → third tap).
+    private static let freeTierCompletedGenerationsBeforePaywall = 2
 
     private var trimmedURL: String { linkText.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var canProcess: Bool { !trimmedURL.isEmpty && URL(string: trimmedURL) != nil }
@@ -45,6 +51,21 @@ struct PasteLinkView: View {
             }
         }
         .presentationBackground(.clear)
+        .sheet(isPresented: $showPaywall) {
+            RevenueCatUI.PaywallView(displayCloseButton: true)
+                .onPurchaseCompleted { _, _ in
+                    Task { @MainActor in
+                        await SubscriptionManager.shared.refreshAndSyncPlan()
+                        subscriptionTier = SubscriptionManager.shared.isPremium ? "Pro" : "Free"
+                    }
+                }
+                .onRestoreCompleted { _ in
+                    Task { @MainActor in
+                        await SubscriptionManager.shared.refreshAndSyncPlan()
+                        subscriptionTier = SubscriptionManager.shared.isPremium ? "Pro" : "Free"
+                    }
+                }
+        }
         .onAppear {
             if let url = prefillURL, !url.isEmpty { linkText = url }
             if autoProcessOnAppear, !didAutoProcess {
@@ -230,11 +251,21 @@ struct PasteLinkView: View {
                 }
 
                 let needsDownloadedVideo = urlNeedsDownloadedVideo(trimmedURL)
-                if needsDownloadedVideo {
-                    // Make sure RevenueCat entitlement is up-to-date before the backend decides
-                    // whether to store/serve the downloaded video (Pro-only preview).
-                    loadingPhase = .syncing
-                    await SubscriptionManager.shared.checkStatus()
+                loadingPhase = .syncing
+                await SubscriptionManager.shared.checkStatus()
+
+                if !SubscriptionManager.shared.isPremium {
+                    do {
+                        let used = try await SupabaseService.shared.fetchAIUsageCount()
+                        if used >= Self.freeTierCompletedGenerationsBeforePaywall {
+                            progressTask?.cancel()
+                            isProcessing = false
+                            showPaywall = true
+                            return
+                        }
+                    } catch {
+                        // If usage can’t be read (e.g. RLS), continue — server still enforces quota.
+                    }
                 }
 
                 loadingPhase = .sending
@@ -265,7 +296,8 @@ struct PasteLinkView: View {
                 isProcessing = false
             } catch RecipeBackendError.serverError(let msg) {
                 if msg.contains("AI usage limit reached") || msg.contains("AI usage limit reached or not allowed") || msg.contains("429") {
-                    errorMessage = "You've reached your AI usage limit for this period. Upgrade your plan in Settings to continue."
+                    errorMessage = "You've reached your AI usage limit for this period. Upgrade your plan to continue."
+                    showPaywall = true
                 } else {
                     errorMessage = "Server error: \(msg)"
                 }
