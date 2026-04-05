@@ -29,15 +29,10 @@ final class SupabaseService {
     let client: SupabaseClient
 
     init() {
-        #if DEBUG
-        if SupabaseConfig.key.hasPrefix("sb_") || SupabaseConfig.key.count < 80 {
-            print("SupabaseService: Supabase anon key looks invalid. Use the long anon key from Supabase Dashboard → Settings → API (starts with 'eyJ...').")
+        guard let url = AppSecrets.supabaseURL, !AppSecrets.supabaseAnonKey.isEmpty else {
+            fatalError(AppSecrets.configurationHint)
         }
-        #endif
-        client = SupabaseClient(
-            supabaseURL: SupabaseConfig.url,
-            supabaseKey: SupabaseConfig.key
-        )
+        client = SupabaseClient(supabaseURL: url, supabaseKey: AppSecrets.supabaseAnonKey)
     }
 
     func login(withEmail email:String, password: String) async throws -> AuthState{

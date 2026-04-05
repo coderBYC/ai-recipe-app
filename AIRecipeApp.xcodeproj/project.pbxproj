@@ -28,8 +28,6 @@
 		B0010003 /* AddRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010003 /* AddRecipeView.swift */; };
 		B0010004 /* RecipeEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010004 /* RecipeEditView.swift */; };
 		B0010005 /* RecipePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010005 /* RecipePageView.swift */; };
-		B0010006 /* ImagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010006 /* ImagePickerView.swift */; };
-		B0010007 /* QRCodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010007 /* QRCodeScannerView.swift */; };
 		B0010008 /* PasteLinkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010008 /* PasteLinkView.swift */; };
 		B0010009 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010009 /* VideoThumbnailView.swift */; };
 		B001000A /* BoxStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001000A /* BoxStyle.swift */; };
@@ -42,6 +40,7 @@
 		B0010013 /* PlannedMeal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010013 /* PlannedMeal.swift */; };
 		B0010014 /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010014 /* MealPlanView.swift */; };
 		B0010015 /* AppSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010015 /* AppSecrets.swift */; };
+		B0010016 /* CookModeVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010017 /* CookModeVoiceController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,14 +84,14 @@
 		1A9F40912F6F33D700DFA8EF /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1A9F41A12F6F79F500DFA8EF /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceIconView.swift; sourceTree = "<group>"; };
+		1AF4FA902F7F5194003BF5E5 /* AppSecrets.local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppSecrets.local.xcconfig; sourceTree = "<group>"; };
+		1AF4FA922F7F51CE003BF5E5 /* AppSecrets.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppSecrets.local.xcconfig.example; sourceTree = "<group>"; };
 		E0010000 /* AIRecipeApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIRecipeApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0010001 /* AIRecipeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeApp.swift; sourceTree = "<group>"; };
 		F0010002 /* RecipeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeListView.swift; sourceTree = "<group>"; };
 		F0010003 /* AddRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRecipeView.swift; sourceTree = "<group>"; };
 		F0010004 /* RecipeEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeEditView.swift; sourceTree = "<group>"; };
 		F0010005 /* RecipePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePageView.swift; sourceTree = "<group>"; };
-		F0010006 /* ImagePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerView.swift; sourceTree = "<group>"; };
-		F0010007 /* QRCodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeScannerView.swift; sourceTree = "<group>"; };
 		F0010008 /* PasteLinkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteLinkView.swift; sourceTree = "<group>"; };
 		F0010009 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
 		F001000A /* BoxStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxStyle.swift; sourceTree = "<group>"; };
@@ -108,6 +107,7 @@
 		F0010014 /* MealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanView.swift; sourceTree = "<group>"; };
 		F0010015 /* AppSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSecrets.swift; sourceTree = "<group>"; };
 		F0010016 /* AppSecrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppSecrets.xcconfig; sourceTree = "<group>"; };
+		F0010017 /* CookModeVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeVoiceController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -180,14 +180,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		G0010008 /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				F0010016 /* AppSecrets.xcconfig */,
-			);
-			path = Config;
-			sourceTree = "<group>";
-		};
 		G0010001 /* AIRecipe */ = {
 			isa = PBXGroup;
 			children = (
@@ -226,8 +218,6 @@
 				F0010004 /* RecipeEditView.swift */,
 				F0010005 /* RecipePageView.swift */,
 				1A9F40292F6114E400DFA8EF /* Auth View */,
-				F0010006 /* ImagePickerView.swift */,
-				F0010007 /* QRCodeScannerView.swift */,
 				F0010008 /* PasteLinkView.swift */,
 				1A9F403A2F62254400DFA8EF /* CookModeView.swift */,
 				1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */,
@@ -246,6 +236,7 @@
 				F001000E /* RecipeBackendService.swift */,
 				1A9F403C2F62436D00DFA8EF /* AuthManager.swift */,
 				1A9F41A12F6F79F500DFA8EF /* SubscriptionManager.swift */,
+				F0010017 /* CookModeVoiceController.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -273,6 +264,16 @@
 				F0010010 /* README.md */,
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		G0010008 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				1AF4FA902F7F5194003BF5E5 /* AppSecrets.local.xcconfig */,
+				1AF4FA922F7F51CE003BF5E5 /* AppSecrets.local.xcconfig.example */,
+				F0010016 /* AppSecrets.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -443,8 +444,7 @@
 				B0010005 /* RecipePageView.swift in Sources */,
 				1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */,
 				B0010015 /* AppSecrets.swift in Sources */,
-				B0010006 /* ImagePickerView.swift in Sources */,
-				B0010007 /* QRCodeScannerView.swift in Sources */,
+				B0010016 /* CookModeVoiceController.swift in Sources */,
 				B0010008 /* PasteLinkView.swift in Sources */,
 				B0010011 /* MainView.swift in Sources */,
 				B0010012 /* LegalDocuments.swift in Sources */,
@@ -734,7 +734,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AIRecipe/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "AI Recipe";
+				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -772,7 +772,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = AIRecipe/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "AI Recipe";
+				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

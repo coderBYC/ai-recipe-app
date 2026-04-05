@@ -5,13 +5,11 @@ import WebKit
 /// Recipe video preview: plays downloaded video URL, YouTube embed, or shows thumbnail/placeholder.
 struct VideoThumbnailView: View {
     let sourceURL: String
-    let customImageData: Data?
     let downloadedVideoURL: String
     let source: RecipeSource
 
-    init(sourceURL: String, customImageData: Data?, downloadedVideoURL: String = "", source: RecipeSource) {
+    init(sourceURL: String, downloadedVideoURL: String = "", source: RecipeSource) {
         self.sourceURL = sourceURL
-        self.customImageData = customImageData
         self.downloadedVideoURL = downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
         self.source = source
     }
@@ -23,10 +21,6 @@ struct VideoThumbnailView: View {
                     .onDisappear { /* optional: pause when off-screen */ }
             } else if source == .youtube, let embedURL = Recipe.youtubeEmbedURL(from: sourceURL) {
                 YouTubeEmbedView(embedURL: embedURL)
-            } else if let data = customImageData, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
             } else {
                 placeholderView
             }

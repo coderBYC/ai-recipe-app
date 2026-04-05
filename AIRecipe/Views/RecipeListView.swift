@@ -9,8 +9,6 @@ struct RecipeListView: View {
     @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
     @State private var selectedRecipe: Recipe?
     @State private var openEditWhenRecipeOpens = false
-    @State private var isProcessingPhoto = false
-    @State private var pendingPhotoData: Data?
     @State private var searchText = ""
     @State private var selectedTag: String?
 
@@ -76,10 +74,6 @@ struct RecipeListView: View {
                 .padding(.leading, contentInset)
                 .padding(.trailing, contentInset + shadowPad)
                 .padding(.top, 10)
-                
-                if isProcessingPhoto {
-                    processingPhotoOverlay
-                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -100,11 +94,6 @@ struct RecipeListView: View {
                     onDismiss: { selectedRecipe = nil; openEditWhenRecipeOpens = false },
                     openEditOnAppear: openEditWhenRecipeOpens
                 )
-            }
-            .onChange(of: isProcessingPhoto) { _, processing in
-                if processing, let data = pendingPhotoData {
-                    processPhotoAndOpenDetail(imageData: data)
-                }
             }
         }
     }
@@ -234,53 +223,8 @@ struct RecipeListView: View {
                 selectedRecipe = recipe
                 openEditWhenRecipeOpens = true
             }
-        case .scanQR:
-            QRCodeScannerView { scannedURL in
-                addSheet = nil
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    addSheet = .addLinkWithURL(scannedURL)
-                }
-            }
-        case .takePhoto:
-            ImagePickerView(sourceType: .camera) { imageData in
-                addSheet = nil
-                pendingPhotoData = imageData
-                isProcessingPhoto = true
-            }
         case .manualRecipe:
             AddRecipeView()
-        }
-    }
-    
-    private var processingPhotoOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.4).ignoresSafeArea()
-            VStack(spacing: 12) {
-                ProgressView().scaleEffect(1.2).tint(.white)
-                Text("Processing photo…").appFont(.headline).foregroundStyle(.white)
-            }
-        }
-    }
-    
-    private func processPhotoAndOpenDetail(imageData: Data) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            let recipe = Recipe(
-                title: "Imported recipe",
-                source: .youtube,
-                sourceURL: "",
-                creator: "",
-                timestamp: "",
-                ingredients: "",
-                estimatedCookingMinutes: 0,
-                totalSteps: 0,
-                triedBefore: false,
-                notes: "",
-                customImageData: imageData
-            )
-            modelContext.insert(recipe)
-            pendingPhotoData = nil
-            isProcessingPhoto = false
-            selectedRecipe = recipe
         }
     }
 }
@@ -354,16 +298,12 @@ enum AddRecipeSheet: Identifiable {
     case addLink
     case addLinkWithURL(String)
     case addLinkWithURLAutoProcess(String)
-    case scanQR
-    case takePhoto
     case manualRecipe
     var id: String {
         switch self {
         case .addLink: return "addLink"
         case .addLinkWithURL(let u): return "addLink-\(u)"
         case .addLinkWithURLAutoProcess(let u): return "addLink-auto-\(u)"
-        case .scanQR: return "scanQR"
-        case .takePhoto: return "takePhoto"
         case .manualRecipe: return "manualRecipe"
         }
     }

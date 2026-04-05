@@ -76,7 +76,9 @@ struct AIRecipeApp: App {
     }
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([Recipe.self, PlannedMeal.self])
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            fatalError("SwiftData: could not resolve application support directory.")
+        }
         let storeURL = appSupport.appending(path: "default.store")
         let config = ModelConfiguration(isStoredInMemoryOnly: false)
 

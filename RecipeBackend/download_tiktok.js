@@ -101,7 +101,12 @@ async function main() {
   try {
     Tiktok = require("@tobyg74/tiktok-api-dl");
   } catch (e) {
-    console.error("Missing dependency. Run: npm install");
+    const msg = e && e.message ? e.message : String(e);
+    console.error(
+      "Cannot load @tobyg74/tiktok-api-dl:",
+      msg,
+      "| Ensure the image ran `npm ci` in /app (Docker) or deploy includes node_modules next to download_tiktok.js."
+    );
     process.exit(1);
   }
 

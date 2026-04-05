@@ -1,10 +1,16 @@
+# Render / production: use this Dockerfile with build context = this directory (RecipeBackend),
+# so COPY requirements.txt and package.json resolve. If context is repo root, set Dockerfile path
+# and context accordingly or move COPY lines to RecipeBackend/ prefixes.
 FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-# System deps for Python packages (and pip).
+# System deps: Python/pip, and Cairo/Pango/JPEG/GIF/Rsvg + pkg-config so npm `canvas` (pulled by
+# @tobyg74/tiktok-api-dl) can compile on Debian slim.
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 python3-pip ca-certificates build-essential \
+  && apt-get install -y --no-install-recommends \
+     python3 python3-pip ca-certificates build-essential pkg-config \
+     libcairo2-dev libpango1.0-dev libjpeg-dev libpng-dev libgif-dev librsvg2-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -15,7 +21,8 @@ COPY requirements.txt /app/requirements.txt
 COPY package.json /app/package.json
 COPY package-lock.json /app/package-lock.json
 
-RUN npm ci
+RUN npm ci --omit=dev \
+  && node -e "require('@tobyg74/tiktok-api-dl'); console.log('tiktok-api-dl ok')"
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 # --- App code ---

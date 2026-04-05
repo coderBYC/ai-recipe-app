@@ -48,7 +48,6 @@ final class Recipe: Identifiable {
     var totalSteps: Int
     var triedBefore: Bool
     var notes: String
-    var customImageData: Data?
     var createdAt: Date
     /// 0–5 star rating given by the user.
     var rating: Int
@@ -71,7 +70,6 @@ final class Recipe: Identifiable {
         totalSteps: Int = 0,
         triedBefore: Bool = false,
         notes: String = "",
-        customImageData: Data? = nil,
         stepsContent: String = "",
         ingredientCheckmarks: String = "",
         downloadedVideoURL: String = "",
@@ -89,7 +87,6 @@ final class Recipe: Identifiable {
         self.totalSteps = totalSteps
         self.triedBefore = triedBefore
         self.notes = notes
-        self.customImageData = customImageData
         self.downloadedVideoURL = downloadedVideoURL
         self.stepsContent = stepsContent
         self.ingredientCheckmarks = ingredientCheckmarks

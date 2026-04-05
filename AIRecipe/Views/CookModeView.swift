@@ -4,6 +4,7 @@ struct CookModeView: View {
     
     @Bindable var recipe: Recipe
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var voice = CookModeVoiceController()
     @State private var stepIndex: Int = 0
     @State private var timerSeconds: Int = 0
     @State private var isTimerRunning: Bool = false
@@ -34,6 +35,22 @@ struct CookModeView: View {
                 
                 // Top bar
                 HStack {
+                    if voice.isListening {
+                        Image(systemName: "mic.fill")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    } else if voice.authorizationDenied {
+                        Image(systemName: "mic.slash.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange.opacity(0.9))
+                    }
+                    if !voice.statusText.isEmpty {
+                        Text(voice.statusText)
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.65))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
                     Spacer()
                     Button {
                         dismiss()
@@ -136,6 +153,36 @@ struct CookModeView: View {
                 timerSeconds -= 1
             } else if isTimerRunning, timerSeconds == 0 {
                 isTimerRunning = false
+            }
+        }
+        .onAppear {
+            voice.requestPermissionsAndStart()
+        }
+        .onDisappear {
+            voice.stop()
+        }
+        .onChange(of: voice.issuedCommand) { _, cmd in
+            switch cmd {
+            case .none:
+                break
+            case .next:
+                nextStep()
+                voice.resetIssuedCommand()
+            case .back:
+                previousStep()
+                voice.resetIssuedCommand()
+            case .setMinutes(let m):
+                timerSeconds = m * 60
+                isTimerRunning = true
+                voice.resetIssuedCommand()
+            case .pauseTimer:
+                isTimerRunning = false
+                voice.resetIssuedCommand()
+            case .resumeTimer:
+                if timerSeconds > 0 {
+                    isTimerRunning = true
+                }
+                voice.resetIssuedCommand()
             }
         }
     }

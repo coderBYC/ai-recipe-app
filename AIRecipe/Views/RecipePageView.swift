@@ -135,7 +135,6 @@ struct RecipePageView: View {
     private var videoSection: some View {
         VideoThumbnailView(
             sourceURL: recipe.sourceURL,
-            customImageData: recipe.customImageData,
             downloadedVideoURL: recipe.downloadedVideoURL,
             source: recipe.sourceEnum
         )
@@ -292,7 +291,7 @@ struct RecipePageView: View {
     }
     
     private var openLinkSection: some View {
-        Link(destination: URL(string: recipe.sourceURL) ?? URL(string: "https://")!) {
+        Link(destination: URL(string: recipe.sourceURL) ?? URL(string: "https://example.com")!) {
             HStack {
                 Text("Open in \(recipe.sourceEnum.rawValue)")
                     .appFont(.headlineBold)
