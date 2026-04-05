@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import instaloader  # pyright: ignore[reportMissingImports]
 import os
 import time
@@ -5,7 +7,22 @@ import glob
 import subprocess
 import uuid
 import traceback
+import shutil
+from typing import Optional
 #import pyktok as pyk # pyright: ignore[reportMissingImports]
+
+
+def _node_executable() -> Optional[str]:
+    """Resolve Node for TikTok helper (Docker sets NODE_EXECUTABLE=/usr/bin/node)."""
+    env_bin = os.environ.get("NODE_EXECUTABLE", "").strip()
+    if env_bin and os.path.isfile(env_bin) and os.access(env_bin, os.X_OK):
+        return env_bin
+    for path in ("/usr/bin/node", "/usr/local/bin/node"):
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    found = shutil.which("node")
+    return found
+
 
 def download_tiktok_video(url, target_dir="downloads"):
     """Download a TikTok video using @tobyg74/tiktok-api-dl.
@@ -22,9 +39,13 @@ def download_tiktok_video(url, target_dir="downloads"):
     out_name = f"tiktok_{uuid.uuid4().hex[:12]}.mp4"
     out_path = os.path.join(target_dir, out_name)
     creator_name = ""
+    node_bin = _node_executable()
+    if not node_bin:
+        print("❌ Node.js not found (set NODE_EXECUTABLE or install node).")
+        return None
     try:
         result = subprocess.run(
-            ["node", script_path, url, os.path.abspath(out_path)],
+            [node_bin, script_path, url, os.path.abspath(out_path)],
             capture_output=True,
             text=True,
             timeout=120,
