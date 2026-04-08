@@ -27,6 +27,12 @@ app.add_middleware(
 )
 
 
+@app.get("/healthz")
+async def healthz():
+    """Lightweight check for load balancers (e.g. Render)."""
+    return {"status": "ok"}
+
+
 class AnalyzeRequest(BaseModel):
     url: str
     language: str

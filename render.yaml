@@ -1,0 +1,16 @@
+# Render Blueprint: builds the API with Docker so Node/npm + `npm ci` + `canvas` native deps
+# are always present (see RecipeBackend/Dockerfile).
+#
+# If you deploy without this file, choose Environment: Docker in the dashboard and set:
+#   Dockerfile path: RecipeBackend/Dockerfile
+#   Docker build context: RecipeBackend
+#
+# A "Python" native service will NOT run `npm ci`; you will see:
+#   Cannot find module '@tobyg74/tiktok-api-dl'
+services:
+  - type: web
+    name: recipe-backend
+    runtime: docker
+    dockerfilePath: ./RecipeBackend/Dockerfile
+    dockerContext: ./RecipeBackend
+    healthCheckPath: /healthz

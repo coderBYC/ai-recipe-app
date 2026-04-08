@@ -1,15 +1,14 @@
-# Render: Docker service, root directory = `RecipeBackend` (this folder).
-# Node + npm come from NodeSource APT so `node`/`npm` live under /usr/bin (works even if PATH is minimal).
+# Render: Docker service, dockerContext = this folder (RecipeBackend).
+# Node + npm from NodeSource; Python deps in a venv (avoids PEP 668 / pip install failures on system Python).
 FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    # Used by download.py so TikTok subprocess always finds Node without relying on PATH.
-    NODE_EXECUTABLE=/usr/bin/node \
-    PATH=/usr/bin:/usr/local/bin:/bin
+ENV PYTHONDONTWRITEBYTECODE=1
+# TikTok helper subprocess uses this absolute path (see download.py).
+ENV NODE_EXECUTABLE=/usr/bin/node
 
-# Python, Node 22 + npm (NodeSource), native deps for `canvas` (@tobyg74/tiktok-api-dl).
+# Node 22 + npm (NodeSource), native deps for npm `canvas` (@tobyg74/tiktok-api-dl).
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
      ca-certificates curl gnupg bash \
@@ -23,14 +22,20 @@ RUN apt-get update \
   && test -x /usr/bin/node \
   && test -x /usr/bin/npm
 
-# --- Install dependencies ---
+# --- Node deps (TikTok) ---
 COPY requirements.txt /app/requirements.txt
 COPY package.json /app/package.json
 COPY package-lock.json /app/package-lock.json
 
 RUN npm ci --omit=dev \
-  && node -e "require('@tobyg74/tiktok-api-dl'); console.log('tiktok-api-dl ok')" \
-  && pip3 install --no-cache-dir --break-system-packages -r /app/requirements.txt
+  && node -e "require('@tobyg74/tiktok-api-dl'); console.log('tiktok-api-dl ok')"
+
+# --- Python deps in venv (reliable pip; no --break-system-packages) ---
+RUN python3 -m venv /opt/venv \
+  && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
+  && /opt/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
+
+ENV PATH="/opt/venv/bin:/usr/bin:/usr/local/bin:/bin"
 
 # --- App code ---
 COPY main.py /app/main.py
