@@ -13,6 +13,10 @@ from typing import Optional
 #import pyktok as pyk # pyright: ignore[reportMissingImports]
 
 
+class InstagramBlockedError(Exception):
+    """Raised when Instagram throttles or blocks scraping requests."""
+
+
 def _node_executable() -> Optional[str]:
     """Resolve Node for TikTok helper (Docker sets NODE_EXECUTABLE=/usr/bin/node)."""
     env_bin = os.environ.get("NODE_EXECUTABLE", "").strip()
@@ -121,4 +125,11 @@ def download_instagram_reel(url, target_dir="downloads"):
     except Exception as e:
         print(f"❌ Error in download_instagram_reel: {e}")
         traceback.print_exc()
+        msg = str(e).lower()
+        if ("please wait a few minutes" in msg
+                or "401 unauthorized" in msg
+                or "403 forbidden" in msg
+                or "challenge_required" in msg
+                or "login_required" in msg):
+            raise InstagramBlockedError(str(e))
         return None
