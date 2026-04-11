@@ -8,10 +8,6 @@ from google import genai
 from google.genai import types  # pyright: ignore[reportMissingImports]
 from google.genai import errors as genai_errors  # pyright: ignore[reportMissingImports]
 from download import download_instagram_reel, download_tiktok_video, InstagramBlockedError
-from openclaw_client import (
-    OpenClawClientError,
-    extract_recipe_from_instagram_reel,
-)
 import time
 import json
 import re
@@ -71,13 +67,6 @@ class RecipeResponse(BaseModel):
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-OPENCLAW_ENABLED = os.getenv("OPENCLAW_ENABLED", "").strip().lower() in {"1", "true", "yes"}
-OPENCLAW_BASE_URL = os.getenv("OPENCLAW_BASE_URL", "http://127.0.0.1:18789").strip()
-OPENCLAW_AUTH_TOKEN = os.getenv("OPENCLAW_AUTH_TOKEN", "").strip()
-OPENCLAW_SESSION_ID = os.getenv("OPENCLAW_SESSION_ID", "recipe-extraction-prod").strip()
-OPENCLAW_AGENT = os.getenv("OPENCLAW_AGENT", "main").strip() or "main"
-OPENCLAW_PROFILE = os.getenv("OPENCLAW_PROFILE", "user").strip() or "user"
-OPENCLAW_MESSAGES_PATH_TEMPLATE = os.getenv("OPENCLAW_MESSAGES_PATH_TEMPLATE", "").strip() or None
 
 
 def build_prompt(language: str) -> str:
@@ -157,12 +146,6 @@ async def verify_ai_quota(request: Request) -> None:
             status_code=429,
             detail=f"AI usage limit reached or not allowed: {detail}",
         )
-
-
-def is_instagram_url(url: str) -> bool:
-    """Instagram reel/post links (hosted download path on server)."""
-    u = (url or "").lower().strip()
-    return "instagram.com" in u or "instagr.am" in u
 
 
 async def is_pro_user(request: Request) -> bool:
@@ -342,27 +325,6 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
                 except OSError:
                     pass
         else:
-            if OPENCLAW_ENABLED and is_instagram_url(url):
-                data = await extract_recipe_from_instagram_reel(
-                    url,
-                    base_url=OPENCLAW_BASE_URL,
-                    auth_token=OPENCLAW_AUTH_TOKEN,
-                    session_id=OPENCLAW_SESSION_ID,
-                    agent=OPENCLAW_AGENT,
-                    profile=OPENCLAW_PROFILE,
-                    messages_path_template=OPENCLAW_MESSAGES_PATH_TEMPLATE,
-                )
-                creator_name = creator_name or str(data.get("creator", "") or "")
-                return RecipeResponse(
-                    recipe_name=data.get("recipe_name", "Untitled Recipe"),
-                    description=data.get("description", ""),
-                    creator=creator_name,
-                    estimated_cooking_time=str(data.get("estimated_cooking_time", "0")),
-                    prep_time=str(data.get("prep_time", "0")),
-                    ingredients=data.get("ingredients", []),
-                    instructions=data.get("instructions", []),
-                    video_url=video_url,
-                )
             # Instagram (or other): download then upload file to Gemini
             ig_result = download_instagram_reel(url)
             if not ig_result:
@@ -398,11 +360,6 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
                 "Instagram temporarily blocked this server (rate limit/challenge). "
                 "Please wait a few minutes and retry, or use a logged-in Instaloader session."
             ),
-        ) from e
-    except OpenClawClientError as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"OpenClaw extraction failed: {e}",
         ) from e
     except genai_errors.ServerError as e:
         # Avoid leaking as 500 when Gemini is overloaded/transiently unavailable.
