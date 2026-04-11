@@ -7,6 +7,7 @@ struct VideoThumbnailView: View {
     let sourceURL: String
     let downloadedVideoURL: String
     let source: RecipeSource
+    @State private var resolvedDownloadedURL: URL?
 
     init(sourceURL: String, downloadedVideoURL: String = "", source: RecipeSource) {
         self.sourceURL = sourceURL
@@ -17,21 +18,58 @@ struct VideoThumbnailView: View {
     var body: some View {
         Group {
             if let url = playableDownloadedURL {
-                VideoPlayer(player: AVPlayer(url: url))
-                    .onDisappear { /* optional: pause when off-screen */ }
+                ResolvedVideoPlayer(url: url)
             } else if source == .youtube, let embedURL = Recipe.youtubeEmbedURL(from: sourceURL) {
                 YouTubeEmbedView(embedURL: embedURL)
             } else {
                 placeholderView
             }
         }
+        .task(id: downloadedVideoURL) {
+            await refreshResolvedVideoURLIfNeeded()
+        }
         .frame(height: 230)
         .clipped()
     }
 
     private var playableDownloadedURL: URL? {
+        if let resolvedDownloadedURL { return resolvedDownloadedURL }
         guard !downloadedVideoURL.isEmpty, let url = URL(string: downloadedVideoURL) else { return nil }
         return url
+    }
+
+    /// For Instagram/TikTok premium previews, rewrite stale `/video/{id}` links to the latest relay host.
+    @MainActor
+    private func refreshResolvedVideoURLIfNeeded() async {
+        guard !downloadedVideoURL.isEmpty, let original = URL(string: downloadedVideoURL) else {
+            resolvedDownloadedURL = nil
+            return
+        }
+        guard source == .instagram || source == .tiktok else {
+            resolvedDownloadedURL = original
+            return
+        }
+        // Only rewrite backend-served paths; leave arbitrary absolute URLs untouched.
+        guard original.path.hasPrefix("/video/") else {
+            resolvedDownloadedURL = original
+            return
+        }
+
+        await BackendConfigDiscovery.shared.refreshFromGistIfConfigured()
+        guard let relay = BackendConfigDiscovery.shared.currentRelayBaseURL(),
+              let relayBase = URL(string: relay) else {
+            resolvedDownloadedURL = original
+            return
+        }
+
+        var components = URLComponents()
+        components.scheme = relayBase.scheme
+        components.host = relayBase.host
+        components.port = relayBase.port
+        components.path = original.path
+        components.query = original.query
+        components.fragment = original.fragment
+        resolvedDownloadedURL = components.url ?? original
     }
 
     private var placeholderView: some View {
@@ -41,6 +79,24 @@ struct VideoThumbnailView: View {
                 Image(systemName: source.iconName)
                     .font(.system(size: 48))
                     .foregroundStyle(AppTheme.primary.opacity(0.5))
+            }
+    }
+}
+
+private struct ResolvedVideoPlayer: View {
+    let url: URL
+    @State private var player = AVPlayer()
+
+    var body: some View {
+        VideoPlayer(player: player)
+            .task(id: url) {
+                let item = AVPlayerItem(url: url)
+                player.replaceCurrentItem(with: item)
+                // Start immediately; user still has native controls to pause/seek.
+                player.play()
+            }
+            .onDisappear {
+                player.pause()
             }
     }
 }

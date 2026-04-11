@@ -32,20 +32,12 @@ struct RecipeAnalyzeResponse: Codable {
 // MARK: - Backend config
 
 enum RecipeBackendConfig {
-    /// Base URL for the recipe analysis API.
-    ///
-    /// **Simulator:** `127.0.0.1` is your Mac, so it reaches `uvicorn` on the same machine.
-    ///
-    /// **Physical iPhone:** `localhost` / `127.0.0.1` would point at the **phone itself**, not your Mac — requests never hit your laptop.
-    /// Set the `#else` URL to wherever the API actually runs:
-    /// - **Backend on this Mac:** Wi‑Fi IP from System Settings → Network (e.g. `http://192.168.1.42:8000`). Phone and Mac on same Wi‑Fi; run `uvicorn --host 0.0.0.0 --port 8000`; allow port 8000 in macOS Firewall if needed.
-    /// - **Backend on a cloud VM:** use that host’s public IP/DNS and ensure port 8000 is open to the internet.
+    /// Default base URL (YouTube, TikTok, or fallback). **Instagram** may override via `BackendConfigDiscovery` (gist + Cloudflare tunnel).
     static var baseURL: String {
         #if targetEnvironment(simulator)
-        return "https://ai-recipe-app-8z9f.onrender.com/"
+        return "http://127.0.0.1:8000"
         #else
-        // TODO: Put your Mac’s LAN IP (local dev) or your server’s URL (deployed).
-        return "https://ai-recipe-app-8z9f.onrender.com/"
+        return "https://ai-recipe-app-1-h59j.onrender.com"
         #endif
     }
 }
@@ -64,10 +56,51 @@ final class RecipeBackendService {
 
     private init() {}
 
+    private static func isInstagramReelURL(_ raw: String) -> Bool {
+        let u = raw.lowercased()
+        return u.contains("instagram.com") || u.contains("instagr.am")
+    }
+
+    /// Base URL for `/analyze_reel` — Instagram uses the gist-published tunnel when configured.
+    private static func analysisBaseURL(forReelURL reelURL: String) async -> String {
+        guard isInstagramReelURL(reelURL) else { return RecipeBackendConfig.baseURL }
+        await BackendConfigDiscovery.shared.refreshFromGistIfConfigured()
+        if let relay = BackendConfigDiscovery.shared.currentRelayBaseURL() {
+            if await isRelayReachable(relay) {
+            #if DEBUG
+                print("Instagram request routed to relay: \(relay)")
+            #endif
+                return relay
+            } else {
+#if DEBUG
+                print("Instagram relay unreachable, fallback to default backend: \(relay)")
+#endif
+            }
+        }
+        return RecipeBackendConfig.baseURL
+    }
+
+    /// Probe relay health quickly to avoid failing Instagram requests on stale gist hostnames.
+    private static func isRelayReachable(_ relayBase: String) async -> Bool {
+        guard let base = URL(string: relayBase),
+              let url = URL(string: "/healthz", relativeTo: base) else { return false }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 4
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else { return false }
+            return (200...299).contains(http.statusCode)
+        } catch {
+            return false
+        }
+    }
+
     /// Sends the video URL (and language) to the backend and returns the analyzed recipe response.
     /// Pass `userId` (Supabase auth user UUID string) when your API enforces quota via `X-User-Id` + Supabase RPC.
     func analyzeReel(url: String, language: String, userId: String? = nil, isPro: Bool? = nil) async throws -> RecipeAnalyzeResponse {
-        guard let base = URL(string: RecipeBackendConfig.baseURL),
+        let baseString = await Self.analysisBaseURL(forReelURL: url)
+        guard let base = URL(string: baseString),
               let endpoint = URL(string: "/analyze_reel", relativeTo: base) else {
             throw RecipeBackendError.invalidURL
         }

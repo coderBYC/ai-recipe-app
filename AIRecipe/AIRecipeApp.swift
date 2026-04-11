@@ -65,7 +65,6 @@ enum PendingRecipeImport {
 
 @main
 struct AIRecipeApp: App {
-    @State private var authManager = AuthManager(service: SupabaseService())
     init() {
         Purchases.logLevel = .debug
         let rcKey = AppSecrets.revenueCatPublicKey
@@ -102,16 +101,35 @@ struct AIRecipeApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainView()
+            AppLifecycleRoot()
                 .preferredColorScheme(.light)
-                .environment(authManager)
-                .onOpenURL { url in
-                    Task {
-                        await handleIncomingURL(url)
-                    }
-                }
         }
         .modelContainer(sharedModelContainer)
+    }
+}
+
+/// Hosts `MainView`, auth, deep links, and refreshes Instagram relay URL when the app foregrounds.
+private struct AppLifecycleRoot: View {
+    @State private var authManager = AuthManager(service: SupabaseService())
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        MainView()
+            .environment(authManager)
+            .task {
+                await BackendConfigDiscovery.shared.refreshFromGistIfConfigured()
+            }
+            .onOpenURL { url in
+                Task {
+                    await handleIncomingURL(url)
+                }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                Task {
+                    await BackendConfigDiscovery.shared.refreshFromGistIfConfigured()
+                }
+            }
     }
 
     @MainActor

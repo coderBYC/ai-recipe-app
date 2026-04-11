@@ -41,6 +41,7 @@
 		B0010014 /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010014 /* MealPlanView.swift */; };
 		B0010015 /* AppSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010015 /* AppSecrets.swift */; };
 		B0010016 /* CookModeVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010017 /* CookModeVoiceController.swift */; };
+		B0010018 /* BackendConfigDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010020 /* BackendConfigDiscovery.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +109,7 @@
 		F0010015 /* AppSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSecrets.swift; sourceTree = "<group>"; };
 		F0010016 /* AppSecrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppSecrets.xcconfig; sourceTree = "<group>"; };
 		F0010017 /* CookModeVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeVoiceController.swift; sourceTree = "<group>"; };
+		F0010020 /* BackendConfigDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendConfigDiscovery.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -229,6 +231,7 @@
 			isa = PBXGroup;
 			children = (
 				F0010015 /* AppSecrets.swift */,
+				F0010020 /* BackendConfigDiscovery.swift */,
 				F0010009 /* VideoThumbnailView.swift */,
 				1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */,
 				1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */,
@@ -444,6 +447,7 @@
 				B0010005 /* RecipePageView.swift in Sources */,
 				1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */,
 				B0010015 /* AppSecrets.swift in Sources */,
+				B0010018 /* BackendConfigDiscovery.swift in Sources */,
 				B0010016 /* CookModeVoiceController.swift in Sources */,
 				B0010008 /* PasteLinkView.swift in Sources */,
 				B0010011 /* MainView.swift in Sources */,

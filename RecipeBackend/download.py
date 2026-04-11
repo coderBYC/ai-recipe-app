@@ -4,6 +4,7 @@ import instaloader  # pyright: ignore[reportMissingImports]
 import os
 import time
 import glob
+import random
 import subprocess
 import uuid
 import traceback
@@ -75,17 +76,30 @@ def download_tiktok_video(url, target_dir="downloads"):
         return None
 
 
-def download_instagram_reel(url, target_dir="downloads"):
-    L = instaloader.Instaloader(
-    save_metadata=False,
-    download_pictures=False,
-    download_videos=True,
-    download_video_thumbnails=False,
-    download_geotags=False,
-    post_metadata_txt_pattern=None
+_IPHONE_UA = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 )
-    # Optional: Login if the reel is private or restricted
-    # L.login("YOUR_USERNAME", "YOUR_PASSWORD") 
+
+
+def download_instagram_reel(url, target_dir="downloads"):
+    time.sleep(random.uniform(2.0, 5.0))
+    ua = os.environ.get("INSTAGRAM_USER_AGENT", _IPHONE_UA)
+    L = instaloader.Instaloader(
+        save_metadata=False,
+        download_pictures=False,
+        download_videos=True,
+        download_video_thumbnails=False,
+        download_geotags=False,
+        post_metadata_txt_pattern=None,
+        user_agent=ua,
+    )
+    session_user = os.environ.get("INSTAGRAM_SESSION_USERNAME", "").strip()
+    if session_user:
+        try:
+            L.load_session_from_file(session_user)
+        except Exception as se:
+            print(f"⚠️ Could not load Instagram session for {session_user}: {se}")
     try:
         # Extract the 'shortcode' from the URL (e.g., 'C12345' from /reels/C12345/)
         shortcode = url.split("/")[-2]
