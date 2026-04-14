@@ -4,7 +4,6 @@ import instaloader  # pyright: ignore[reportMissingImports]
 import os
 import time
 import glob
-import random
 import subprocess
 import uuid
 import traceback
@@ -87,7 +86,13 @@ _IPHONE_UA = (
 
 
 def download_instagram_reel(url, target_dir="downloads"):
-    time.sleep(random.uniform(2.0, 5.0))
+    # Optional courtesy delay before hitting Instagram (was 2–5s random). Set INSTAGRAM_PRE_FETCH_DELAY_SEC=0 to skip.
+    try:
+        delay = float(os.environ.get("INSTAGRAM_PRE_FETCH_DELAY_SEC", "0.5").strip())
+    except ValueError:
+        delay = 0.5
+    if delay > 0:
+        time.sleep(min(delay, 30.0))
     ua = os.environ.get("INSTAGRAM_USER_AGENT", _IPHONE_UA)
     L = instaloader.Instaloader(
         save_metadata=False,
@@ -112,7 +117,7 @@ def download_instagram_reel(url, target_dir="downloads"):
         print(shortcode)
         # Download the reel
         L.download_post(post, target=target_dir)
-        time.sleep(1)
+        time.sleep(0.25)
         files = glob.glob(os.path.join(target_dir, "*.mp4"))
         if not files:
             return None

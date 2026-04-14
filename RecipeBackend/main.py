@@ -8,6 +8,7 @@ from google import genai
 from google.genai import types  # pyright: ignore[reportMissingImports]
 from google.genai import errors as genai_errors  # pyright: ignore[reportMissingImports]
 from download import download_instagram_reel, download_tiktok_video, InstagramBlockedError
+import asyncio
 import time
 import json
 import re
@@ -256,6 +257,40 @@ def _generate_content_with_retry(client: genai.Client, contents, attempts: int =
     raise RuntimeError("Gemini generation failed without an explicit error.")
 
 
+def _gemini_file_poll_interval_sec() -> float:
+    """Poll Gemini Files API while uploaded video is PROCESSING (was 10s; default 3s)."""
+    try:
+        v = float(os.getenv("GEMINI_FILE_POLL_INTERVAL_SEC", "3"))
+    except ValueError:
+        v = 3.0
+    return max(1.0, min(v, 15.0))
+
+
+def _gemini_file_poll_max_sec() -> float:
+    try:
+        return max(30.0, float(os.getenv("GEMINI_FILE_POLL_MAX_SEC", "600")))
+    except ValueError:
+        return 600.0
+
+
+async def _wait_for_gemini_file_ready(client: genai.Client, video_file):
+    """Poll until Gemini finishes indexing the uploaded file; uses asyncio.sleep (non-blocking for other requests)."""
+    interval = _gemini_file_poll_interval_sec()
+    deadline = time.monotonic() + _gemini_file_poll_max_sec()
+    while video_file.state.name == "PROCESSING":
+        if time.monotonic() > deadline:
+            raise HTTPException(
+                status_code=504,
+                detail="Timed out waiting for Gemini to process the video file. Try a shorter clip or retry later.",
+            )
+        print(".", end="", flush=True)
+        await asyncio.sleep(interval)
+        video_file = client.files.get(name=video_file.name)
+    if video_file.state.name == "FAILED":
+        raise HTTPException(status_code=500, detail="Video processing failed")
+    return video_file
+
+
 SERVED_VIDEOS_DIR = "served_videos"
 MAX_VIDEO_UPLOAD_BYTES = 200 * 1024 * 1024
 ALLOWED_VIDEO_SUFFIXES = {".mp4", ".mov", ".m4v", ".mpeg", ".mpg"}
@@ -305,12 +340,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             if not videoName:
                 raise HTTPException(status_code=500, detail="Failed to download TikTok video")
             video_file = client.files.upload(file=videoName)
-            while video_file.state.name == "PROCESSING":
-                print(".", end="")
-                time.sleep(10)
-                video_file = client.files.get(name=video_file.name)
-            if video_file.state.name == "FAILED":
-                raise HTTPException(status_code=500, detail="Video processing failed")
+            video_file = await _wait_for_gemini_file_ready(client, video_file)
             response = _generate_content_with_retry(client, [current_prompt, video_file])
             if user_is_pro and os.path.isfile(videoName):
                 os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
@@ -334,12 +364,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             if not videoName:
                 raise HTTPException(status_code=500, detail="Failed to download video")
             video_file = client.files.upload(file=videoName)
-            while video_file.state.name == "PROCESSING":
-                print(".", end="")
-                time.sleep(10)
-                video_file = client.files.get(name=video_file.name)
-            if video_file.state.name == "FAILED":
-                raise HTTPException(status_code=500, detail="Video processing failed")
+            video_file = await _wait_for_gemini_file_ready(client, video_file)
             response = _generate_content_with_retry(client, [current_prompt, video_file])
             if user_is_pro and os.path.isfile(videoName):
                 os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
@@ -444,12 +469,7 @@ async def analyze_video_upload(
             raise HTTPException(status_code=400, detail="Empty upload")
 
         video_file = client.files.upload(file=tmp_path)
-        while video_file.state.name == "PROCESSING":
-            print(".", end="")
-            time.sleep(10)
-            video_file = client.files.get(name=video_file.name)
-        if video_file.state.name == "FAILED":
-            raise HTTPException(status_code=500, detail="Video processing failed")
+        video_file = await _wait_for_gemini_file_ready(client, video_file)
         response = _generate_content_with_retry(client, [current_prompt, video_file])
         if user_is_pro and tmp_path and os.path.isfile(tmp_path):
             os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
