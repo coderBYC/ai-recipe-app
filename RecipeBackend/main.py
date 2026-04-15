@@ -64,6 +64,8 @@ class RecipeResponse(BaseModel):
     ingredients: list
     instructions: list
     video_url: Optional[str] = None
+    # Seconds into the video where the finished dish is clearest (for client-side frame grab).
+    dish_hero_timestamp_seconds: str = "1"
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -95,6 +97,7 @@ def build_prompt(language: str) -> str:
         "description": "Detailed description of this cooking step"
         }},
     ],
+    "dish_hero_timestamp_seconds": "0"
     }}
     Guidelines:
     1. If specific quantities are not mentioned, use "As needed".
@@ -103,9 +106,83 @@ def build_prompt(language: str) -> str:
     4. Make sure each step is short and concise.
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
     6. Make sure the creator name is right if it's a youtube video.
-    7. Use language code {lang} for all user-facing text values (keys must stay in English)."""
+    7. Use language code {lang} for all user-facing text values (keys must stay in English).
+    8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the moment the final prepared/plated dish is shown most clearly and in focus. If it never appears, use "0"."""
 
     
+def _require_user_id(request: Request) -> str:
+    """Supabase auth user id from the app (same header as analyze routes)."""
+    user_id = (request.headers.get("X-User-Id") or "").strip()
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Missing X-User-Id.")
+    return user_id
+
+
+async def supabase_rpc_use_export_once(user_id: str) -> None:
+    """
+    Calls Postgres RPC `use_export_once` (increment / enforce export quota) using the service role.
+    No-op if Supabase env is not configured.
+    """
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+
+    rpc_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/rpc/use_export_once"
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.post(
+            rpc_url,
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            json={"user_id": user_id},
+        )
+    if resp.status_code >= 400:
+        try:
+            detail = resp.json()
+        except Exception:
+            detail = resp.text
+        raise HTTPException(
+            status_code=429,
+            detail=f"Export usage limit reached or not allowed: {detail}",
+        )
+
+
+async def supabase_update_profile_plan(user_id: str, plan_type: str) -> None:
+    """PATCH `profiles.plan_type` for the given user (service role). No-op if Supabase is not configured."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return
+
+    profiles_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/profiles"
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.patch(
+            profiles_url,
+            params={"id": f"eq.{user_id}"},
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Prefer": "return=minimal",
+            },
+            json={"plan_type": plan_type},
+        )
+    if resp.status_code >= 400:
+        try:
+            detail = resp.json()
+        except Exception:
+            detail = resp.text
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not update subscription plan: {detail}",
+        )
+
+
+class PlanUpdateRequest(BaseModel):
+    plan_type: str
+
+
 async def verify_ai_quota(request: Request) -> None:
     """
     Optional server-side check with Supabase before using Gemini.
@@ -219,6 +296,31 @@ def is_tiktok_url(url: str) -> bool:
     return "tiktok.com" in u or "vt.tiktok.com" in u
 
 
+def normalize_dish_hero_timestamp_seconds(data: dict) -> str:
+    """Coerce model output to a non-negative seconds string for the API response."""
+    raw = data.get("dish_hero_timestamp_seconds")
+    if raw is None:
+        return "0"
+    s = str(raw).strip().replace(",", ".")
+    if not s:
+        return "0"
+    try:
+        v = float(s)
+        if v != v or v < 0:  # NaN or negative
+            return "0"
+        return str(v)
+    except ValueError:
+        pass
+    m = re.search(r"[\d.]+", s)
+    if m:
+        try:
+            v = float(m.group(0))
+            return str(max(0.0, v))
+        except ValueError:
+            pass
+    return "0"
+
+
 def extract_json_from_response(raw: str) -> dict:
     """Extract JSON from Gemini output, which may be wrapped in markdown code blocks or have extra text."""
     if not raw or not raw.strip():
@@ -299,6 +401,29 @@ ALLOWED_VIDEO_SUFFIXES = {".mp4", ".mov", ".m4v", ".mpeg", ".mpg"}
 def _upload_suffix(filename: str) -> str:
     ext = Path(filename or "").suffix.lower()
     return ext if ext in ALLOWED_VIDEO_SUFFIXES else ".mp4"
+
+
+@app.post("/usage/export_once")
+async def usage_export_once(request: Request):
+    """
+    Records one recipe export/share against the user's quota (Supabase RPC `use_export_once`).
+    """
+    user_id = _require_user_id(request)
+    await supabase_rpc_use_export_once(user_id)
+    return {"ok": True}
+
+
+@app.post("/profile/plan")
+async def profile_update_plan(request: Request, body: PlanUpdateRequest):
+    """
+    Mirrors RevenueCat entitlement to `profiles.plan_type` (e.g. pro / free).
+    """
+    user_id = _require_user_id(request)
+    raw = (body.plan_type or "").strip().lower()
+    if raw not in {"pro", "free"}:
+        raise HTTPException(status_code=400, detail="plan_type must be 'pro' or 'free'")
+    await supabase_update_profile_plan(user_id, raw)
+    return {"ok": True}
 
 
 @app.get("/video/{video_id}")
@@ -426,6 +551,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
         ingredients=data.get("ingredients", []),
         instructions=data.get("instructions", []),
         video_url=video_url,
+        dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
 
 
@@ -519,6 +645,7 @@ async def analyze_video_upload(
         ingredients=data.get("ingredients", []),
         instructions=data.get("instructions", []),
         video_url=video_url,
+        dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
 
 
