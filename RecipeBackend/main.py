@@ -19,6 +19,7 @@ import tempfile
 from typing import Optional
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 import httpx
+import cv2
 load_dotenv()
 
 app = FastAPI()
@@ -64,8 +65,9 @@ class RecipeResponse(BaseModel):
     ingredients: list
     instructions: list
     video_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     # Seconds into the video where the finished dish is clearest (for client-side frame grab).
-    dish_hero_timestamp_seconds: str = "1"
+    dish_hero_timestamp_seconds: str = "0"
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -107,7 +109,7 @@ def build_prompt(language: str) -> str:
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
     6. Make sure the creator name is right if it's a youtube video.
     7. Use language code {lang} for all user-facing text values (keys must stay in English).
-    8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the moment the final prepared/plated dish is shown most clearly and in focus. If it never appears, use "0"."""
+    8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the moment the final prepared/plated dish is shown most clearly and in focus(usually at the beginning or end of the video). If it never appears, use "0"."""
 
     
 def _require_user_id(request: Request) -> str:
@@ -393,7 +395,7 @@ async def _wait_for_gemini_file_ready(client: genai.Client, video_file):
     return video_file
 
 
-SERVED_VIDEOS_DIR = "served_videos"
+SERVED_THUMBS_DIR = "served_thumbnails"
 MAX_VIDEO_UPLOAD_BYTES = 200 * 1024 * 1024
 ALLOWED_VIDEO_SUFFIXES = {".mp4", ".mov", ".m4v", ".mpeg", ".mpg"}
 
@@ -401,6 +403,40 @@ ALLOWED_VIDEO_SUFFIXES = {".mp4", ".mov", ".m4v", ".mpeg", ".mpg"}
 def _upload_suffix(filename: str) -> str:
     ext = Path(filename or "").suffix.lower()
     return ext if ext in ALLOWED_VIDEO_SUFFIXES else ".mp4"
+
+
+def _save_thumbnail_from_video(video_path: str, request: Request, seconds: float) -> Optional[str]:
+    """
+    Extract one frame from `video_path` and persist it as a JPG served by this backend.
+    Returns absolute thumbnail URL or None on failure.
+    """
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        return None
+    try:
+        fps = cap.get(cv2.CAP_PROP_FPS) or 0.0
+        frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0.0
+        if fps > 0 and frame_count > 0:
+            duration = frame_count / fps
+            target_sec = max(0.0, min(seconds, duration * 0.99))
+        else:
+            target_sec = max(0.0, seconds)
+        cap.set(cv2.CAP_PROP_POS_MSEC, target_sec * 1000.0)
+        ok, frame = cap.read()
+        if not ok or frame is None:
+            cap.set(cv2.CAP_PROP_POS_MSEC, 0)
+            ok, frame = cap.read()
+            if not ok or frame is None:
+                return None
+        os.makedirs(SERVED_THUMBS_DIR, exist_ok=True)
+        thumb_id = str(uuid.uuid4())
+        out_path = os.path.join(SERVED_THUMBS_DIR, f"{thumb_id}.jpg")
+        if not cv2.imwrite(out_path, frame):
+            return None
+        base = str(request.base_url).rstrip("/")
+        return f"{base}/thumbnail/{thumb_id}"
+    finally:
+        cap.release()
 
 
 @app.post("/usage/export_once")
@@ -426,13 +462,13 @@ async def profile_update_plan(request: Request, body: PlanUpdateRequest):
     return {"ok": True}
 
 
-@app.get("/video/{video_id}")
-async def serve_video(video_id: str):
-    """Serve a previously downloaded video file for in-app playback."""
-    path = os.path.join(SERVED_VIDEOS_DIR, f"{video_id}.mp4")
+@app.get("/thumbnail/{thumb_id}")
+async def serve_thumbnail(thumb_id: str):
+    """Serve generated JPG thumbnail extracted from analyzed video."""
+    path = os.path.join(SERVED_THUMBS_DIR, f"{thumb_id}.jpg")
     if not os.path.isfile(path):
-        raise HTTPException(status_code=404, detail="Video not found")
-    return FileResponse(path, media_type="video/mp4")
+        raise HTTPException(status_code=404, detail="Thumbnail not found")
+    return FileResponse(path, media_type="image/jpeg")
 
 @app.post("/analyze_reel", response_model=RecipeResponse)
 async def analyze_reel(request: Request, req: AnalyzeRequest):
@@ -442,12 +478,12 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
 
     # Verify AI usage with Supabase before calling Gemini (if configured).
     await verify_ai_quota(request)
-    user_is_pro = await is_pro_user(request)
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(req.language)
-    video_url = None
+    thumbnail_url = None
     # Some platforms block creator metadata; keep it optional.
     creator_name = ""
+    local_video_path: Optional[str] = None
 
     try:
         if is_youtube_url(url):
@@ -464,21 +500,10 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
                 videoName = tk_result
             if not videoName:
                 raise HTTPException(status_code=500, detail="Failed to download TikTok video")
+            local_video_path = videoName
             video_file = client.files.upload(file=videoName)
             video_file = await _wait_for_gemini_file_ready(client, video_file)
             response = _generate_content_with_retry(client, [current_prompt, video_file])
-            if user_is_pro and os.path.isfile(videoName):
-                os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
-                video_id = str(uuid.uuid4())
-                dest = os.path.join(SERVED_VIDEOS_DIR, f"{video_id}.mp4")
-                shutil.copy2(videoName, dest)
-                base = str(request.base_url).rstrip("/")
-                video_url = f"{base}/video/{video_id}"
-            if os.path.isfile(videoName):
-                try:
-                    os.remove(videoName)
-                except OSError:
-                    pass
         else:
             # Instagram (or other): download then upload file to Gemini
             ig_result = download_instagram_reel(url)
@@ -488,21 +513,10 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             creator_name = creator_name or ""
             if not videoName:
                 raise HTTPException(status_code=500, detail="Failed to download video")
+            local_video_path = videoName
             video_file = client.files.upload(file=videoName)
             video_file = await _wait_for_gemini_file_ready(client, video_file)
             response = _generate_content_with_retry(client, [current_prompt, video_file])
-            if user_is_pro and os.path.isfile(videoName):
-                os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
-                video_id = str(uuid.uuid4())
-                dest = os.path.join(SERVED_VIDEOS_DIR, f"{video_id}.mp4")
-                shutil.copy2(videoName, dest)
-                base = str(request.base_url).rstrip("/")
-                video_url = f"{base}/video/{video_id}"
-            if os.path.isfile(videoName):
-                try:
-                    os.remove(videoName)
-                except OSError:
-                    pass
     except InstagramBlockedError as e:
         raise HTTPException(
             status_code=429,
@@ -531,6 +545,9 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             yt_author = await youtube_oembed_author_name(url)
             if yt_author:
                 creator_name = yt_author
+        hero_seconds = float(normalize_dish_hero_timestamp_seconds(data))
+        if local_video_path and os.path.isfile(local_video_path):
+            thumbnail_url = _save_thumbnail_from_video(local_video_path, request, hero_seconds)
     except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=502,
@@ -541,6 +558,12 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             status_code=502,
             detail=f"Model response error: {e}. Raw (first 500 chars): {raw_text[:500]!r}",
         )
+    finally:
+        if local_video_path and os.path.isfile(local_video_path):
+            try:
+                os.remove(local_video_path)
+            except OSError:
+                pass
     # Ensure keys expected by RecipeResponse exist (RecipeResponse has recipe_name, description, ingredients, instructions)
     return RecipeResponse(
         recipe_name=data.get("recipe_name", "Untitled Recipe"),
@@ -550,7 +573,8 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
         prep_time=str(data.get("prep_time", "0")),
         ingredients=data.get("ingredients", []),
         instructions=data.get("instructions", []),
-        video_url=video_url,
+        video_url=None,
+        thumbnail_url=thumbnail_url,
         dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
 
@@ -569,10 +593,9 @@ async def analyze_video_upload(
         raise HTTPException(status_code=500, detail="Gemini API key not configured")
 
     await verify_ai_quota(request)
-    user_is_pro = await is_pro_user(request)
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(language)
-    video_url = None
+    thumbnail_url = None
     creator_name = ""
 
     suffix = _upload_suffix(file.filename or "")
@@ -597,13 +620,6 @@ async def analyze_video_upload(
         video_file = client.files.upload(file=tmp_path)
         video_file = await _wait_for_gemini_file_ready(client, video_file)
         response = _generate_content_with_retry(client, [current_prompt, video_file])
-        if user_is_pro and tmp_path and os.path.isfile(tmp_path):
-            os.makedirs(SERVED_VIDEOS_DIR, exist_ok=True)
-            video_id = str(uuid.uuid4())
-            dest = os.path.join(SERVED_VIDEOS_DIR, f"{video_id}.mp4")
-            shutil.copy2(tmp_path, dest)
-            base = str(request.base_url).rstrip("/")
-            video_url = f"{base}/video/{video_id}"
     except genai_errors.ServerError as e:
         raise HTTPException(
             status_code=503,
@@ -625,6 +641,9 @@ async def analyze_video_upload(
     try:
         data = extract_json_from_response(raw_text)
         creator_name = creator_name or str(data.get("creator", "") or "")
+        hero_seconds = float(normalize_dish_hero_timestamp_seconds(data))
+        if tmp_path and os.path.isfile(tmp_path):
+            thumbnail_url = _save_thumbnail_from_video(tmp_path, request, hero_seconds)
     except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=502,
@@ -644,7 +663,8 @@ async def analyze_video_upload(
         prep_time=str(data.get("prep_time", "0")),
         ingredients=data.get("ingredients", []),
         instructions=data.get("instructions", []),
-        video_url=video_url,
+        video_url=None,
+        thumbnail_url=thumbnail_url,
         dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
 

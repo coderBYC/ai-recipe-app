@@ -6,3 +6,4 @@ google-genai
 instaloader
 httpx
 python-dotenv
+opencv-python-headless
