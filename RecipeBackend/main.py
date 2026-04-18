@@ -105,7 +105,7 @@ def build_prompt(language: str) -> str:
     1. If specific quantities are not mentioned, use "As needed".
     2. Ensure the output is valid JSON only, with no introductory or concluding text.
     3. Try add some icons to each ingredient in the front.
-    4. Make sure each step is short and concise.
+    4. Make sure each step is concise, don't include timestamps.
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
     6. Make sure the creator name is right if it's a youtube video.
     7. Use language code {lang} for all user-facing text values (keys must stay in English).
