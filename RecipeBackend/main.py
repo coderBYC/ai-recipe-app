@@ -20,6 +20,7 @@ from typing import Optional
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 import httpx
 import cv2
+from datetime import datetime, timezone
 load_dotenv()
 
 app = FastAPI()
@@ -72,6 +73,14 @@ class RecipeResponse(BaseModel):
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+FREE_IMPORTS_PER_DAY = 3
+FREE_INSTAGRAM_COOLDOWN_SECONDS = 10 * 60
+
+# In-memory rate state for free users (per backend instance/process).
+# If you run multiple replicas, move this to shared storage (e.g. Redis/Postgres).
+_free_daily_import_usage: dict[str, tuple[str, int]] = {}
+_free_last_instagram_import_at: dict[str, float] = {}
 
 
 def build_prompt(language: str) -> str:
@@ -298,6 +307,53 @@ def is_tiktok_url(url: str) -> bool:
     return "tiktok.com" in u or "vt.tiktok.com" in u
 
 
+def is_instagram_url(url: str) -> bool:
+    """Return True if the URL is an Instagram link."""
+    u = (url or "").lower().strip()
+    return "instagram.com" in u or "instagr.am" in u
+
+
+async def enforce_free_import_limits(request: Request, source_kind: str) -> None:
+    """
+    Free users:
+      1) max 3 imports per UTC day
+      2) Instagram imports: at most once every 10 minutes
+    """
+    if await is_pro_user(request):
+        return
+
+    user_id = _require_user_id(request)
+    now = datetime.now(timezone.utc).timestamp()
+    day_key = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    stored_day, used = _free_daily_import_usage.get(user_id, (day_key, 0))
+    if stored_day != day_key:
+        used = 0
+
+    if used >= FREE_IMPORTS_PER_DAY:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Free plan limit reached: {FREE_IMPORTS_PER_DAY} imports per day.",
+        )
+
+    if source_kind == "instagram":
+        last_at = _free_last_instagram_import_at.get(user_id)
+        if last_at is not None:
+            elapsed = now - last_at
+            if elapsed < FREE_INSTAGRAM_COOLDOWN_SECONDS:
+                remaining = int(FREE_INSTAGRAM_COOLDOWN_SECONDS - elapsed)
+                mins = max(1, remaining // 60)
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Free plan Instagram cooldown: try again in about {mins} minute(s).",
+                )
+
+    # Record successful reservation of this import slot.
+    _free_daily_import_usage[user_id] = (day_key, used + 1)
+    if source_kind == "instagram":
+        _free_last_instagram_import_at[user_id] = now
+
+
 def normalize_dish_hero_timestamp_seconds(data: dict) -> str:
     """Coerce model output to a non-negative seconds string for the API response."""
     raw = data.get("dish_hero_timestamp_seconds")
@@ -478,6 +534,12 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
 
     # Verify AI usage with Supabase before calling Gemini (if configured).
     await verify_ai_quota(request)
+    source_kind = "instagram"
+    if is_youtube_url(url):
+        source_kind = "youtube"
+    elif is_tiktok_url(url):
+        source_kind = "tiktok"
+    await enforce_free_import_limits(request, source_kind)
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(req.language)
     thumbnail_url = None
@@ -593,6 +655,7 @@ async def analyze_video_upload(
         raise HTTPException(status_code=500, detail="Gemini API key not configured")
 
     await verify_ai_quota(request)
+    await enforce_free_import_limits(request, "upload")
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(language)
     thumbnail_url = None
