@@ -16,13 +16,14 @@ import time
 import json
 import re
 import os
-import shutil
 import uuid
 import tempfile
-from typing import Optional
+from typing import Any, Callable, Optional, TypeVar
 from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
 import httpx
 import cv2
+from supabase import create_client  # pyright: ignore[reportMissingImports]
+from postgrest.exceptions import APIError  # pyright: ignore[reportMissingImports]
 from datetime import datetime, timezone
 load_dotenv()
 
@@ -55,6 +56,35 @@ async def healthz():
     """Lightweight check for load balancers (e.g. Render)."""
     return {"status": "ok"}
 
+@app.post("/import")
+async def enqueue_import(url: str, user_id: str):
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
+
+    def _insert() -> Any:
+        return (
+            sb.table("import_jobs")
+            .insert(
+                {
+                    "url": url,
+                    "user_id": user_id,
+                    "source_type": "instagram" if "instagram.com" in url else "other",
+                    "status": "pending",
+                }
+            )
+            .execute()
+        )
+
+    try:
+        job = await asyncio.to_thread(_insert)
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=f"Supabase insert failed: {e.message}") from e
+    rows = getattr(job, "data", None) or []
+    if not rows:
+        raise HTTPException(status_code=500, detail="Supabase insert returned no row.")
+    return {"job_id": rows[0]["id"], "message": "Queue success"}
+
 
 class AnalyzeRequest(BaseModel):
     url: str
@@ -77,6 +107,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMe
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
+_supabase_client: Any = None
+
 FREE_IMPORTS_PER_DAY = 3
 FREE_INSTAGRAM_COOLDOWN_SECONDS = 5 * 60
 
@@ -84,6 +116,37 @@ FREE_INSTAGRAM_COOLDOWN_SECONDS = 5 * 60
 # If you run multiple replicas, move this to shared storage (e.g. Redis/Postgres).
 _free_daily_import_usage: dict[str, tuple[str, int]] = {}
 _free_last_instagram_import_at: dict[str, float] = {}
+
+T = TypeVar("T")
+
+
+def _get_supabase() -> Optional[Any]:
+    """Lazily create a Supabase client with the service role key (server-side only)."""
+    global _supabase_client
+    print(f"SUPABASE_URL: {SUPABASE_URL}")
+    print(f"SUPABASE_SERVICE_KEY: {SUPABASE_SERVICE_KEY}")
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return None
+    if _supabase_client is None:
+        _supabase_client = create_client(
+            SUPABASE_URL.strip().rstrip("/"),
+            SUPABASE_SERVICE_KEY.strip(),
+        )
+    return _supabase_client
+
+
+async def _supabase_call(fn: Callable[[], T]) -> T:
+    """Run sync supabase-py calls in a thread pool (FastAPI async routes)."""
+    return await asyncio.to_thread(fn)
+
+
+def _api_error_detail(exc: APIError) -> str:
+    parts = [exc.message or "Supabase error"]
+    if exc.details:
+        parts.append(str(exc.details))
+    if exc.hint:
+        parts.append(str(exc.hint))
+    return " — ".join(parts)
 
 
 def build_prompt(language: str) -> str:
@@ -133,64 +196,40 @@ def _require_user_id(request: Request) -> str:
 
 
 async def supabase_rpc_use_export_once(user_id: str) -> None:
-    """
-    Calls Postgres RPC `use_export_once` (increment / enforce export quota) using the service role.
-    No-op if Supabase env is not configured.
-    """
-    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    sb = _get_supabase()
+    if not sb:
         return
 
-    rpc_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/rpc/use_export_once"
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post(
-            rpc_url,
-            headers={
-                "apikey": SUPABASE_SERVICE_KEY,
-                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            json={"user_id": user_id},
-        )
-    if resp.status_code >= 400:
-        try:
-            detail = resp.json()
-        except Exception:
-            detail = resp.text
+    def _rpc() -> None:
+        sb.rpc("use_export_once", {"user_id": user_id}).execute()
+
+    try:
+        print(f"supabase_rpc_use_export_once: {user_id}")
+        await _supabase_call(_rpc)
+        
+    except APIError as e:
         raise HTTPException(
             status_code=429,
-            detail=f"Export usage limit reached or not allowed: {detail}",
-        )
+            detail=f"Export usage limit reached or not allowed: {_api_error_detail(e)}",
+        ) from e
 
 
 async def supabase_update_profile_plan(user_id: str, plan_type: str) -> None:
     """PATCH `profiles.plan_type` for the given user (service role). No-op if Supabase is not configured."""
-    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    sb = _get_supabase()
+    if not sb:
         return
 
-    profiles_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/profiles"
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.patch(
-            profiles_url,
-            params={"id": f"eq.{user_id}"},
-            headers={
-                "apikey": SUPABASE_SERVICE_KEY,
-                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Prefer": "return=minimal",
-            },
-            json={"plan_type": plan_type},
-        )
-    if resp.status_code >= 400:
-        try:
-            detail = resp.json()
-        except Exception:
-            detail = resp.text
+    def _patch() -> None:
+        sb.table("profiles").update({"plan_type": plan_type}).eq("id", user_id).execute()
+
+    try:
+        await _supabase_call(_patch)
+    except APIError as e:
         raise HTTPException(
             status_code=400,
-            detail=f"Could not update subscription plan: {detail}",
-        )
+            detail=f"Could not update subscription plan: {_api_error_detail(e)}",
+        ) from e
 
 
 class PlanUpdateRequest(BaseModel):
@@ -208,7 +247,8 @@ async def verify_ai_quota(request: Request) -> None:
     - Increment ai_usage_count if allowed
     - Raise an error if the limit is reached
     """
-    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    sb = _get_supabase()
+    if not sb:
         return
 
     user_id = request.headers.get("X-User-Id")
@@ -216,28 +256,16 @@ async def verify_ai_quota(request: Request) -> None:
         # No user id; treat as anonymous free user – you can choose to block or allow.
         raise HTTPException(status_code=401, detail="Missing X-User-Id for AI usage tracking.")
 
-    rpc_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/rpc/use_ai_once"
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.post(
-            rpc_url,
-            headers={
-                "apikey": SUPABASE_SERVICE_KEY,
-                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            json={"user_id": user_id},
-        )
-    if resp.status_code >= 400:
-        # Surface a friendly error to the client.
-        try:
-            detail = resp.json()
-        except Exception:
-            detail = resp.text
+    def _rpc() -> None:
+        sb.rpc("use_ai_once", {"user_id": user_id}).execute()
+
+    try:
+        await _supabase_call(_rpc)
+    except APIError as e:
         raise HTTPException(
             status_code=429,
-            detail=f"AI usage limit reached or not allowed: {detail}",
-        )
+            detail=f"AI usage limit reached or not allowed: {_api_error_detail(e)}",
+        ) from e
 
 
 async def is_pro_user(request: Request) -> bool:
@@ -252,31 +280,23 @@ async def is_pro_user(request: Request) -> bool:
     if header_plan:
         return header_plan in {"true", "1", "pro", "premium", "yes"}
 
-    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    sb = _get_supabase()
+    if not sb:
         return False
 
     user_id = request.headers.get("X-User-Id")
     if not user_id:
         return False
 
-    profiles_url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/profiles"
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(
-                profiles_url,
-                params={"id": f"eq.{user_id}", "select": "plan_type"},
-                headers={
-                    "apikey": SUPABASE_SERVICE_KEY,
-                    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-                    "Accept": "application/json",
-                },
-            )
-        if resp.status_code >= 400:
-            return False
-        rows = resp.json()
+    def _fetch_plan() -> str:
+        res = sb.table("profiles").select("plan_type").eq("id", user_id).limit(1).execute()
+        rows = getattr(res, "data", None) or []
         if not rows:
-            return False
-        plan = str((rows[0] or {}).get("plan_type") or "").strip().lower()
+            return ""
+        return str((rows[0] or {}).get("plan_type") or "").strip().lower()
+
+    try:
+        plan = await _supabase_call(_fetch_plan)
         return plan == "pro"
     except Exception:
         return False
@@ -504,6 +524,7 @@ async def usage_export_once(request: Request):
     Records one recipe export/share against the user's quota (Supabase RPC `use_export_once`).
     """
     user_id = _require_user_id(request)
+    print(f"usage_export_once: {user_id}")
     await supabase_rpc_use_export_once(user_id)
     return {"ok": True}
 
