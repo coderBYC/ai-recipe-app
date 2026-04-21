@@ -1,13 +1,16 @@
 from pathlib import Path
-
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile  # pyright: ignore[reportMissingImports]
 from fastapi.middleware.cors import CORSMiddleware  # pyright: ignore[reportMissingImports]
 from fastapi.responses import FileResponse  # pyright: ignore[reportMissingImports]
 from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 from google import genai
-from google.genai import types  # pyright: ignore[reportMissingImports]
 from google.genai import errors as genai_errors  # pyright: ignore[reportMissingImports]
-from download import download_instagram_reel, download_tiktok_video, InstagramBlockedError
+from download import (
+    download_instagram_reel,
+    download_tiktok_video,
+    download_youtube_video,
+    InstagramBlockedError,
+)
 import asyncio
 import time
 import json
@@ -75,7 +78,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 FREE_IMPORTS_PER_DAY = 3
-FREE_INSTAGRAM_COOLDOWN_SECONDS = 10 * 60
+FREE_INSTAGRAM_COOLDOWN_SECONDS = 5 * 60
 
 # In-memory rate state for free users (per backend instance/process).
 # If you run multiple replicas, move this to shared storage (e.g. Redis/Postgres).
@@ -545,13 +548,28 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     thumbnail_url = None
     # Some platforms block creator metadata; keep it optional.
     creator_name = ""
+    instagram_caption = ""
     local_video_path: Optional[str] = None
 
     try:
         if is_youtube_url(url):
-            # YouTube: send the link to Gemini directly (no download)
-            video_part = types.Part.from_uri(file_uri=url, mime_type="video/mp4")
-            response = _generate_content_with_retry(client, [current_prompt, video_part])
+            # YouTube page URLs are not valid Gemini fileUri targets (blobstore/DMA errors).
+            # Download with yt-dlp and upload via Files API like TikTok/Instagram.
+            yt_result = download_youtube_video(url)
+            if not yt_result:
+                raise HTTPException(
+                    status_code=502,
+                    detail=(
+                        "Failed to download this YouTube video (often HTTP 403 from Google). "
+                        "Try: pip install -U yt-dlp; set YOUTUBE_COOKIES_FILE to a Netscape cookies.txt from a logged-in browser; "
+                        "or YOUTUBE_PLAYER_CLIENT=web_embedded (see RecipeBackend/download.py)."
+                    ),
+                )
+            local_video_path, yt_uploader = yt_result
+            creator_name = yt_uploader or creator_name
+            video_file = client.files.upload(file=local_video_path)
+            video_file = await _wait_for_gemini_file_ready(client, video_file)
+            response = _generate_content_with_retry(client, [current_prompt, video_file])
         elif is_tiktok_url(url):
             # TikTok: download via tiktok-api-dl then upload file to Gemini
             tk_result = download_tiktok_video(url)
@@ -571,14 +589,23 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             ig_result = download_instagram_reel(url)
             if not ig_result:
                 raise HTTPException(status_code=500, detail="Failed to download video")
-            videoName, creator_name = ig_result
+            videoName, creator_name, instagram_caption = ig_result
             creator_name = creator_name or ""
             if not videoName:
                 raise HTTPException(status_code=500, detail="Failed to download video")
             local_video_path = videoName
             video_file = client.files.upload(file=videoName)
             video_file = await _wait_for_gemini_file_ready(client, video_file)
-            response = _generate_content_with_retry(client, [current_prompt, video_file])
+            extra_caption_context = (
+                f"Instagram caption context (may include ingredients or steps):\n{instagram_caption}"
+                if instagram_caption
+                else ""
+            )
+            contents = [current_prompt]
+            if extra_caption_context:
+                contents.append(extra_caption_context)
+            contents.append(video_file)
+            response = _generate_content_with_retry(client, contents)
     except InstagramBlockedError as e:
         raise HTTPException(
             status_code=429,

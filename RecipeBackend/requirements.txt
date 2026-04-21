@@ -7,3 +7,5 @@ instaloader
 httpx
 python-dotenv
 opencv-python-headless
+yt-dlp
+supabase>=2.4.0

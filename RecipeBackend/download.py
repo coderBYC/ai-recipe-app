@@ -8,8 +8,14 @@ import subprocess
 import uuid
 import traceback
 import shutil
-from typing import Optional
+from typing import Any, Optional, Tuple
 #import pyktok as pyk # pyright: ignore[reportMissingImports]
+
+import yt_dlp  # pyright: ignore[reportMissingImports]
+from yt_dlp.utils import DownloadError  # pyright: ignore[reportMissingImports]
+
+# Keep in sync with RecipeBackend/main.py MAX_VIDEO_UPLOAD_BYTES for Gemini uploads.
+_MAX_YOUTUBE_DOWNLOAD_BYTES = 200 * 1024 * 1024
 
 
 class InstagramBlockedError(Exception):
@@ -79,13 +85,119 @@ def download_tiktok_video(url, target_dir="downloads"):
         return None
 
 
+def _youtube_cookiefile() -> Optional[str]:
+    """Netscape cookies.txt from a logged-in browser export; helps when PO-token / bot checks 403."""
+    p = os.environ.get("YOUTUBE_COOKIES_FILE", "").strip()
+    if p and os.path.isfile(p):
+        return p
+    return None
+
+
+def _youtube_extractor_strategies() -> list[Optional[dict[str, Any]]]:
+    """
+    YouTube often 403s stream URLs for one InnerTube client while another works.
+    Order: optional env override, defaults, then common fallbacks (see yt-dlp wiki / GitHub issues).
+    """
+    strategies: list[Optional[dict[str, Any]]] = []
+    env_pc = os.environ.get("YOUTUBE_PLAYER_CLIENT", "").strip()
+    if env_pc:
+        clients = [c.strip() for c in env_pc.split(",") if c.strip()]
+        if clients:
+            strategies.append({"youtube": {"player_client": clients}})
+    strategies.extend(
+        [
+            None,  # yt-dlp default client mix (keep updating: pip install -U yt-dlp)
+            {"youtube": {"player_client": ["web_embedded"]}},
+            {"youtube": {"player_client": ["tv"]}},
+            {"youtube": {"player_client": ["ios", "web"]}},
+            {"youtube": {"player_client": ["web"]}},
+            {"youtube": {"player_client": ["mweb"]}},
+            {"youtube": {"player_client": ["android", "web"]}},
+        ]
+    )
+    return strategies
+
+
+def _cleanup_youtube_attempt_files(target_dir: str, stem: str) -> None:
+    for path in glob.glob(os.path.join(target_dir, stem + "*")):
+        if not os.path.isfile(path):
+            continue
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+def download_youtube_video(url: str, target_dir: str = "downloads") -> Optional[Tuple[str, str]]:
+    """
+    Download a YouTube video or Short with yt-dlp, then upload via Gemini Files API (not from_uri).
+    Returns (local_video_path, uploader_name) on success, or None on failure.
+    """
+    os.makedirs(target_dir, exist_ok=True)
+    stem = f"youtube_{uuid.uuid4().hex[:12]}"
+    out_template = os.path.join(target_dir, f"{stem}.%(ext)s")
+    cookiefile = _youtube_cookiefile()
+    base_opts: dict[str, Any] = {
+        "outtmpl": out_template,
+        # Single-file formats only (no audio+video merge → no ffmpeg required on the server).
+        "format": "best[ext=mp4]/best",
+        "max_filesize": _MAX_YOUTUBE_DOWNLOAD_BYTES,
+        "quiet": True,
+        "no_warnings": True,
+        "socket_timeout": 120,
+        "retries": 2,
+        "fragment_retries": 2,
+        "noprogress": True,
+        "noplaylist": True,
+    }
+    if cookiefile:
+        base_opts["cookiefile"] = cookiefile
+
+    last_err: Optional[BaseException] = None
+    for attempt, extractor_args in enumerate(_youtube_extractor_strategies()):
+        if attempt:
+            _cleanup_youtube_attempt_files(target_dir, stem)
+        ydl_opts = dict(base_opts)
+        if extractor_args is not None:
+            ydl_opts["extractor_args"] = extractor_args
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                if not info:
+                    continue
+                if info.get("entries"):
+                    continue
+                path = ydl.prepare_filename(info)
+                creator = (info.get("uploader") or info.get("channel") or "").strip()
+            if not path or not os.path.isfile(path):
+                matches = glob.glob(os.path.join(target_dir, f"{stem}.*"))
+                matches = [p for p in matches if os.path.isfile(p) and not p.endswith(".part")]
+                path = max(matches, key=os.path.getmtime) if matches else ""
+            if path and os.path.isfile(path) and os.path.getsize(path) > 0:
+                return path, creator
+        except DownloadError as e:
+            last_err = e
+            msg = str(e).split("\n", 1)[0]
+            print(f"⚠️ YouTube download attempt {attempt + 1} failed ({extractor_args!r}): {msg}")
+            continue
+        except Exception as e:
+            last_err = e
+            print(f"⚠️ YouTube download attempt {attempt + 1} error: {e}")
+            traceback.print_exc()
+            continue
+
+    if last_err:
+        print(f"❌ Error in download_youtube_video after all strategies: {last_err}")
+    return None
+
+
 _IPHONE_UA = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
     "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 )
 
 
-def download_instagram_reel(url, target_dir="downloads"):
+def download_instagram_reel(url, target_dir="downloads") -> Optional[Tuple[str, str, str]]:
     # Optional courtesy delay before hitting Instagram (was 2–5s random). Set INSTAGRAM_PRE_FETCH_DELAY_SEC=0 to skip.
     try:
         delay = float(os.environ.get("INSTAGRAM_PRE_FETCH_DELAY_SEC", "0.5").strip())
@@ -114,6 +226,9 @@ def download_instagram_reel(url, target_dir="downloads"):
         shortcode = url.split("/")[-2]
         post = instaloader.Post.from_shortcode(L.context, shortcode)
         author = post.owner_profile.full_name
+        caption = (post.caption or "").strip()
+        if len(caption) > 2000:
+            caption = caption[:2000]
         print(shortcode)
         # Download the reel
         L.download_post(post, target=target_dir)
@@ -126,7 +241,7 @@ def download_instagram_reel(url, target_dir="downloads"):
         if os.path.exists(new_file):
             os.remove(new_file)
         os.rename(old_file, new_file)
-        return new_file, author
+        return new_file, author, caption
     except Exception as e:
         print(f"❌ Error in download_instagram_reel: {e}")
         traceback.print_exc()
