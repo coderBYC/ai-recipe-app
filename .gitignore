@@ -3,6 +3,9 @@ node_modules
 RecipeBackend/.env
 RecipeBackend/.venv/
 .DS_Store
+RecipeBackend/served_thumbnails/
+RecipeBackend/served_videos/
+RecipeBackend/downloads/
 
 # API keys (see Config/AppSecrets.local.xcconfig.example)
 Config/AppSecrets.local.xcconfig
