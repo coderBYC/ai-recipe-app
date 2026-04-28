@@ -17,6 +17,8 @@ private struct EditableLine: Identifiable, Equatable {
 /// Edit Page: X discards changes, checkmark saves. Draft copies recipe until save.
 struct RecipeEditView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.isOnboardingWalkthrough) private var isOnboardingWalkthrough
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
 
@@ -162,18 +164,20 @@ struct RecipeEditView: View {
                     .listRowBackground(AppTheme.surface)
 
                     Section {
-                        TextEditor(text: $draftNotes)
-                            .appFont(.body)
-                            .frame(minHeight: 72)
-                            .scrollContentBackground(.hidden)
-                            .padding(12)
-                            .boxStyle()
-                            .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
-                            .listRowBackground(AppTheme.surface)
-                    } header: {
-                        Text("Notes")
-                            .appFont(.headlineBold)
-                            .foregroundStyle(AppTheme.textSecondary)
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Notes")
+                                .appFont(.headlineBold)
+                                .foregroundStyle(AppTheme.textSecondary)
+                            TextEditor(text: $draftNotes)
+                                .appFont(.notes)
+                                .foregroundStyle(AppTheme.textPrimary)
+                                .frame(minHeight: 72)
+                                .scrollContentBackground(.hidden)
+                                .padding(12)
+                                .boxStyle()
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
+                        .listRowBackground(AppTheme.surface)
                     }
                 }
                 .listStyle(.plain)
@@ -189,7 +193,7 @@ struct RecipeEditView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.callout)
+                            .appFont(.callout)
                             .foregroundStyle(AppTheme.textPrimary)
                     }
                 }
@@ -208,15 +212,17 @@ struct RecipeEditView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         applyDraftToRecipe()
+                        try? modelContext.save()
                         onDismiss()
                         dismiss()
                     } label: {
                         Image(systemName: "checkmark")
-                            .font(.callout)
+                            .appFont(.callout)
                             .foregroundStyle(.black)
                             .frame(width: 34, height: 34)
                             .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
                     }
+                    .onboardingSaveEditsTip(isOnboardingWalkthrough)
                 }
             }
             .onAppear {
@@ -250,7 +256,7 @@ struct RecipeEditView: View {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
                     Image(systemName: "minus.circle.fill")
-                        .font(.title3)
+                        .appFont(.title3)
                         .foregroundStyle(.red.opacity(0.85))
                 }
                 .buttonStyle(.plain)
@@ -266,7 +272,7 @@ struct RecipeEditView: View {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title3)
+                        .appFont(.title3)
                         .foregroundStyle(.green.opacity(0.9))
                 }
                 .buttonStyle(.plain)
@@ -293,7 +299,7 @@ struct RecipeEditView: View {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             } label: {
                 Image(systemName: line.wrappedValue.isFieldEditing ? "pencil.circle.fill" : "pencil.circle")
-                    .font(.title3)
+                    .appFont(.title3)
                     .foregroundStyle(line.wrappedValue.isFieldEditing ? AppTheme.primary : AppTheme.textSecondary)
             }
             .buttonStyle(.plain)
@@ -320,7 +326,7 @@ struct RecipeEditView: View {
 
             Button(action: onDelete) {
                 Image(systemName: "minus.circle.fill")
-                    .font(.title3)
+                    .appFont(.title3)
                     .foregroundStyle(.red)
             }
             .buttonStyle(.plain)

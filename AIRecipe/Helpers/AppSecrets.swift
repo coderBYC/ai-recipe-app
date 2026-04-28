@@ -65,11 +65,6 @@ enum AppSecrets {
         resolvedString(for: "REVENUECAT_API_KEY")
     }
 
-    /// Raw URL of `backend_config.json` in a **public** GitHub Gist (Instagram → Mac tunnel discovery).
-    static var backendConfigGistRawURL: String {
-        resolvedString(for: "BACKEND_CONFIG_GIST_RAW_URL")
-    }
-
     static let configurationHint = """
         Missing or invalid API configuration. Fix all of the following, then Clean Build Folder and build again:
         • Copy Config/AppSecrets.local.xcconfig.example to Config/AppSecrets.local.xcconfig (gitignored).

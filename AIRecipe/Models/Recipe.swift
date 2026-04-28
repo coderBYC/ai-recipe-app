@@ -5,6 +5,8 @@ enum RecipeSource: String, Codable, CaseIterable, Identifiable {
     case youtube = "YouTube"
     case instagram = "Instagram"
     case tiktok = "TikTok"
+    /// Saved video from the user’s photo library (e.g. downloaded from another app).
+    case photos = "Photos"
     
     var id: String { rawValue }
     
@@ -13,6 +15,7 @@ enum RecipeSource: String, Codable, CaseIterable, Identifiable {
         case .youtube: return "play.rectangle.fill"
         case .instagram: return "camera.fill"
         case .tiktok: return "music.note"
+        case .photos: return "photo.on.rectangle.angled"
         }
     }
     
@@ -22,11 +25,13 @@ enum RecipeSource: String, Codable, CaseIterable, Identifiable {
         case .youtube: return "YouTubeIcon"
         case .instagram: return "InstagramIcon"
         case .tiktok: return "TikTokIcon"
+        case .photos: return nil
         }
     }
     
     static func inferred(from urlString: String) -> RecipeSource {
         let lower = urlString.lowercased()
+        if lower.hasPrefix("photos://") { return .photos }
         if lower.contains("instagram") { return .instagram }
         if lower.contains("tiktok") { return .tiktok }
         if lower.contains("youtube") || lower.contains("youtu.be") { return .youtube }
@@ -53,6 +58,8 @@ final class Recipe: Identifiable {
     var rating: Int
     /// URL to the downloaded video (served by backend) for in-app playback. Empty for YouTube (use sourceURL embed instead).
     var downloadedVideoURL: String
+    /// Seconds from video start where the finished dish is clearest (from analyze JSON); used with AVAssetImageGenerator for IG/TikTok preview.
+    var dishHeroTimestampSeconds: Double
     /// Newline-separated step descriptions for circle-line timeline.
     var stepsContent: String
     /// Comma-separated "1" or "0" for each ingredient line (checked or not).
@@ -73,6 +80,7 @@ final class Recipe: Identifiable {
         stepsContent: String = "",
         ingredientCheckmarks: String = "",
         downloadedVideoURL: String = "",
+        dishHeroTimestampSeconds: Double = 1,
         rating: Int = 0
     ) {
         self.id = UUID()
@@ -88,6 +96,7 @@ final class Recipe: Identifiable {
         self.triedBefore = triedBefore
         self.notes = notes
         self.downloadedVideoURL = downloadedVideoURL
+        self.dishHeroTimestampSeconds = dishHeroTimestampSeconds
         self.stepsContent = stepsContent
         self.ingredientCheckmarks = ingredientCheckmarks
         self.createdAt = Date()

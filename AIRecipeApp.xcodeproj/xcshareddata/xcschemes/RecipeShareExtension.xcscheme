@@ -71,9 +71,6 @@
             ReferencedContainer = "container:AIRecipeApp.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <StoreKitConfigurationFileReference
-         identifier = "../../AIRecipe/Views/Payment/Products.storekit">
-      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

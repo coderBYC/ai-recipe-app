@@ -57,7 +57,7 @@ private extension LegalDocumentKind {
     }
 
     static let termsOfServiceMarkdown = """
-    Last updated: March 28, 2026
+    Last updated: April 9, 2026
 
     These Terms of Service (“Terms”) govern your use of the mobile application Let Him Cook (“App”), offered by the developer based in Taiwan (“we,” “us,” “our”). By downloading, accessing, or using the App, you agree to these Terms. If you do not agree, do not use the App.
 
@@ -71,7 +71,7 @@ private extension LegalDocumentKind {
     You agree not to: (a) misuse, reverse engineer, or attempt to gain unauthorized access to the App or our systems; (b) interfere with the App’s operation or other users; (c) use the App for unlawful purposes or to infringe others’ rights; (d) submit content you do not have the right to use. We may suspend or terminate access for violations.
 
     4. User content and third-party links
-    You may submit URLs (e.g. to videos) and other inputs. You represent that you have the right to submit them and that doing so complies with the relevant platform’s terms. Third-party sites and content are not controlled by us; your use of third-party services is at your own risk.
+    You may submit URLs (e.g. to videos), **select videos from your photo library** for upload and analysis, and other inputs. You represent that you have the right to submit them and that doing so complies with the relevant platform’s terms. Third-party sites and content are not controlled by us; your use of third-party services is at your own risk.
 
     5. Subscriptions and payments
     Paid features may be offered via Apple’s In-App Purchase system and related tools. Pricing, renewal, cancellation, and refunds are subject to Apple’s terms and policies and the disclosures shown in the App at purchase. Subscription benefits are described in the App before you buy.
@@ -101,7 +101,7 @@ private extension LegalDocumentKind {
     """
 
     static let privacyAndAIMarkdown = """
-    Last updated: March 28, 2026
+    Last updated: April 9, 2026
 
     This Privacy & AI Policy describes how **Let Him Cook** (“App”), offered by the developer based in **Taiwan** (“we,” “us”), collects, uses, and shares information when you use the App.
 
@@ -111,6 +111,7 @@ private extension LegalDocumentKind {
     2. Information we collect
     • **Account and sign-in:** Identifiers and contact information needed to create or access an account (e.g. email), depending on the sign-in methods we offer.
     • **Content you provide:** URLs you submit for recipe extraction, recipes you save or edit, notes, and similar content you enter in the App.
+    • **Photo library (optional):** If you allow access, the App may read **Photos** to detect **recently added videos** so we can suggest building a recipe (for example after you save a clip from another app), and to let you **choose a video** to send to our servers for recipe extraction. We do not upload your entire library—only files you explicitly select are sent for processing, and the suggestion feature uses limited metadata/time-window checks as described in the App.
     • **Usage and device data:** App interactions, subscription or entitlement status, diagnostics, app version, and device/OS information needed to operate and secure the service.
     • **Purchase data:** Information from Apple and our subscription partners to verify purchases and entitlements.
 
@@ -123,7 +124,7 @@ private extension LegalDocumentKind {
     Where the **Personal Data Protection Act** and related laws apply, we process personal data based on: performance of a contract with you; our **legitimate interests** (security, fraud prevention, service improvement); **consent** where required (e.g. optional analytics or marketing); and **legal obligations**.
 
     5. AI and automated processing
-    **What happens:** When you submit a supported link, our systems—including **third-party AI or cloud services**—may process the text, metadata, or related content needed to generate or organize recipe information in the App.
+    **What happens:** When you submit a supported link or a **video you choose from Photos**, our systems—including **third-party AI or cloud services**—may process the text, metadata, or related content (including video) needed to generate or organize recipe information in the App.
 
     **Accuracy:** AI-assisted output may be **wrong, incomplete, or unsuitable** (e.g. ingredients, steps, times, allergens). You must verify information, especially for allergies, medical diets, or food safety.
 

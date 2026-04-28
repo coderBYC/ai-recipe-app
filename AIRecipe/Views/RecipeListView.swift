@@ -16,7 +16,7 @@ struct RecipeListView: View {
     private let contentInset: CGFloat = 16
     private var shadowPad: CGFloat { AppTheme.boxShadowOffset }
 
-    private let recipeTags = ["All", "YouTube", "Instagram", "TikTok", "Done", "Recent", "Rating ↓", "Rating ↑"]
+    private let recipeTags = ["All", "YouTube", "Instagram", "TikTok", "Photos", "Done", "Recent", "Rating ↓", "Rating ↑"]
     
     var filteredRecipes: [Recipe] {
         var list = recipes
@@ -32,7 +32,7 @@ struct RecipeListView: View {
                 list = list.filter { $0.triedBefore || $0.rating > 0 }
             } else if tag == "Recent" {
                 list = Array(list.prefix(10))
-            } else if tag == "YouTube" || tag == "Instagram" || tag == "TikTok" {
+            } else if tag == "YouTube" || tag == "Instagram" || tag == "TikTok" || tag == "Photos" {
                 list = list.filter { $0.source == tag }
             } else if tag == "Rating ↓" {
                 list = list.sorted {
@@ -80,8 +80,7 @@ struct RecipeListView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Home")
                         .appFont(.largeTitle)
-                        .fontDesign(.serif)
-                        .fontWeight(.semibold)
+                        .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
             }
@@ -133,6 +132,8 @@ struct RecipeListView: View {
                                 SourceIconView(source: .instagram)
                             case "TikTok":
                                 SourceIconView(source: .tiktok)
+                            case "Photos":
+                                SourceIconView(source: .photos)
                             default:
                                 Text(tag)
                                     .appFont(.callout)
@@ -173,7 +174,7 @@ struct RecipeListView: View {
                 addSheet = .addLink
             }
             .padding(.horizontal,14)
-            .padding(.vertical,10)
+            .padding(.vertical,5)
             .buttonStyle(PlainButtonStyle()).boxStyle(cornerRadius: 8)
             .tint(AppTheme.primary)
             .appFont(.callout)
@@ -206,25 +207,23 @@ struct RecipeListView: View {
     private func addSheetContent(_ sheet: AddRecipeSheet) -> some View {
         switch sheet {
         case .addLink:
-            PasteLinkView(prefillURL: nil) { recipe in
+            PasteLinkView(prefillURL: nil) {
                 addSheet = nil
-                selectedRecipe = recipe
-                openEditWhenRecipeOpens = true
             }
         case .addLinkWithURL(let url):
-            PasteLinkView(prefillURL: url) { recipe in
+            PasteLinkView(prefillURL: url) {
                 addSheet = nil
-                selectedRecipe = recipe
-                openEditWhenRecipeOpens = true
             }
         case .addLinkWithURLAutoProcess(let url):
-            PasteLinkView(prefillURL: url, autoProcessOnAppear: true) { recipe in
+            PasteLinkView(prefillURL: url, autoProcessOnAppear: true) {
                 addSheet = nil
-                selectedRecipe = recipe
-                openEditWhenRecipeOpens = true
             }
         case .manualRecipe:
             AddRecipeView()
+        case .photoLibraryVideo:
+            PhotoLibraryVideoImportView {
+                addSheet = nil
+            }
         }
     }
 }
@@ -235,7 +234,7 @@ struct RecipeRowView: View {
     let recipe: Recipe
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.title.isEmpty ? "Untitled recipe" : recipe.title)
                     .appFont(.headline)
@@ -262,15 +261,18 @@ struct RecipeRowView: View {
                     HStack(spacing: 2) {
                         ForEach(1...5, id: \.self) { star in
                             Image(systemName: star <= recipe.rating ? "star.fill" : "star")
-                                .font(.caption2)
+                                .appFont(.caption2)
                                 .foregroundStyle(star <= recipe.rating ? AppTheme.primary : AppTheme.textSecondary.opacity(0.4))
                         }
                     }
                 }
             }
-            .frame(maxWidth: .greatestFiniteMagnitude, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            RecipeListThumbnailView(recipe: recipe)
+
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .appFont(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
         }
         .padding(14)
@@ -280,7 +282,7 @@ struct RecipeRowView: View {
 
 #Preview("Recipe list") {
     RecipeListView(addSheet: .constant(nil))
-        .modelContainer(for: Recipe.self, inMemory: true)
+        .modelContainer(for: Recipe.self, inMemory: false)
 }
 
 #Preview("Recipe row") {
@@ -299,12 +301,14 @@ enum AddRecipeSheet: Identifiable {
     case addLinkWithURL(String)
     case addLinkWithURLAutoProcess(String)
     case manualRecipe
+    case photoLibraryVideo
     var id: String {
         switch self {
         case .addLink: return "addLink"
         case .addLinkWithURL(let u): return "addLink-\(u)"
         case .addLinkWithURLAutoProcess(let u): return "addLink-auto-\(u)"
         case .manualRecipe: return "manualRecipe"
+        case .photoLibraryVideo: return "photoLibraryVideo"
         }
     }
 }

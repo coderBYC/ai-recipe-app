@@ -27,11 +27,8 @@ struct AuthView: View {
 
       if let result {
         Section {
-          switch result {
-          case .success:
+          if case .success = result {
             Text("Check your inbox.")
-          case .failure(let error):
-            Text(error.localizedDescription).foregroundStyle(.red)
           }
         }
       }
@@ -45,6 +42,15 @@ struct AuthView: View {
         }
       }
     })
+    .errorPopup(message: Binding(
+      get: {
+        guard case .failure(let error) = result else { return nil }
+        return error.localizedDescription
+      },
+      set: { newValue in
+        if newValue == nil { result = nil }
+      }
+    ))
   }
 
   func signInButtonTapped() {

@@ -1,0 +1,142 @@
+{
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/RestorePurchasesAlert.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/RestorePurchasesAlert.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/RestorePurchasesAlert.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/RestorePurchasesAlert.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/RestorePurchasesAlert.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/RestorePurchasesAlert.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/ScrollViewSection.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewSection.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewSection.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewSection.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewSection.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewSection.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/ScrollViewWithOSBackground.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewWithOSBackground.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewWithOSBackground.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewWithOSBackground.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewWithOSBackground.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/ScrollViewWithOSBackground.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/SubscriptionDetailView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/SubscriptionDetailView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/SubscriptionDetailView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/SubscriptionDetailView.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/SubscriptionDetailView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/SubscriptionDetailView.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/TintedProgressView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TintedProgressView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TintedProgressView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TintedProgressView.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TintedProgressView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TintedProgressView.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/UIKit Compatibility/CustomerCenterViewController.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewController.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewController.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewController.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewController.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewController.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/UIKit Compatibility/CustomerCenterViewControllerDelegate.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewControllerDelegate.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewControllerDelegate.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewControllerDelegate.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewControllerDelegate.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerCenterViewControllerDelegate.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/Virtual Currencies/VirtualCurrenciesScrollViewWithOSBackgroundSection.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrenciesScrollViewWithOSBackgroundSection.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrenciesScrollViewWithOSBackgroundSection.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrenciesScrollViewWithOSBackgroundSection.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrenciesScrollViewWithOSBackgroundSection.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrenciesScrollViewWithOSBackgroundSection.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/Virtual Currencies/VirtualCurrencyBalanceListRow.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalanceListRow.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalanceListRow.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalanceListRow.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalanceListRow.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalanceListRow.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/Virtual Currencies/VirtualCurrencyBalancesScreen.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalancesScreen.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalancesScreen.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalancesScreen.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalancesScreen.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/VirtualCurrencyBalancesScreen.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/Constants.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Constants.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Constants.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Constants.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Constants.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Constants.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/CustomPaywallVariables.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomPaywallVariables.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomPaywallVariables.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomPaywallVariables.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomPaywallVariables.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomPaywallVariables.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/CustomerInfoFixtures.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerInfoFixtures.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerInfoFixtures.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerInfoFixtures.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerInfoFixtures.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/CustomerInfoFixtures.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/Errors/PaywallError.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/PaywallError.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/PaywallError.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/PaywallError.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/PaywallError.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/PaywallError.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/Errors/TemplateError.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TemplateError.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TemplateError.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TemplateError.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TemplateError.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TemplateError.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/IntroEligibility/IntroEligibilityViewModel.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/IntroEligibilityViewModel.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/IntroEligibilityViewModel.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/IntroEligibilityViewModel.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/IntroEligibilityViewModel.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/IntroEligibilityViewModel.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/IntroEligibility/TrialOrIntroEligibilityChecker+TestData.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker+TestData.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker+TestData.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker+TestData.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker+TestData.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker+TestData.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/IntroEligibility/TrialOrIntroEligibilityChecker.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/TrialOrIntroEligibilityChecker.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/Localization.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Localization.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Localization.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Localization.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Localization.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/Localization.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Data/LocalizedAlertError.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/LocalizedAlertError.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/LocalizedAlertError.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/LocalizedAlertError.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/LocalizedAlertError.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCatUI.build/Objects-normal/arm64/LocalizedAlertError.swiftdeps"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/PasteLinkView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "https://...",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add from link",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paste a YouTube, Instagram, or TikTok link below.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Process video",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paste from clipboard",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Processing video…",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 173
+        }
+      }
+    ]
+  },
+  "version": 1
+}

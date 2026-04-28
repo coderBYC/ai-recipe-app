@@ -1,0 +1,96 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/AddRecipeView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "New Recipe",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g. Viral feta pasta",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Platform",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paste video URL",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Channel or creator name",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g. 2:30 or 0:45",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g. 30",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g. 6",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "I've already made this recipe",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 130
+        }
+      }
+    ]
+  },
+  "version": 1
+}

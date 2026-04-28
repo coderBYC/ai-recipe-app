@@ -1,0 +1,170 @@
+{
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/HTTPClient/HTTPResponseBody.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPResponseBody.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPResponseBody.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPResponseBody.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPResponseBody.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPResponseBody.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/HTTPClient/HTTPStatusCode.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPStatusCode.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPStatusCode.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPStatusCode.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPStatusCode.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HTTPStatusCode.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/HTTPClient/NetworkError.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkError.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkError.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkError.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkError.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkError.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/HTTPClient/RedirectLoggerTaskDelegate.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/RedirectLoggerTaskDelegate.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/RedirectLoggerTaskDelegate.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/RedirectLoggerTaskDelegate.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/RedirectLoggerTaskDelegate.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/RedirectLoggerTaskDelegate.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/HTTPClient/SimpleNetworkServiceType.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/SimpleNetworkServiceType.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/SimpleNetworkServiceType.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/SimpleNetworkServiceType.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/SimpleNetworkServiceType.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/SimpleNetworkServiceType.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/IdentityAPI.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/IdentityAPI.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/IdentityAPI.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/IdentityAPI.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/IdentityAPI.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/IdentityAPI.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/InternalAPI.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/InternalAPI.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/InternalAPI.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/InternalAPI.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/InternalAPI.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/InternalAPI.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/OfferingsAPI.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfferingsAPI.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfferingsAPI.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfferingsAPI.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfferingsAPI.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfferingsAPI.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/OfflineEntitlementsAPI.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsAPI.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsAPI.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsAPI.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsAPI.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsAPI.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetCustomerCenterConfigOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerCenterConfigOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerCenterConfigOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerCenterConfigOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerCenterConfigOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerCenterConfigOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetCustomerInfoOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerInfoOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerInfoOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerInfoOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerInfoOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetCustomerInfoOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetIntroEligibilityOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetIntroEligibilityOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetIntroEligibilityOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetIntroEligibilityOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetIntroEligibilityOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetIntroEligibilityOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetOfferingsOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetOfferingsOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetOfferingsOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetOfferingsOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetOfferingsOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetOfferingsOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetProductEntitlementMappingOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetProductEntitlementMappingOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetProductEntitlementMappingOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetProductEntitlementMappingOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetProductEntitlementMappingOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetProductEntitlementMappingOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetVirtualCurrenciesOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetVirtualCurrenciesOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetVirtualCurrenciesOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetVirtualCurrenciesOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetVirtualCurrenciesOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetVirtualCurrenciesOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetWebBillingProductsOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebBillingProductsOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebBillingProductsOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebBillingProductsOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebBillingProductsOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebBillingProductsOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/GetWebOfferingProductsOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebOfferingProductsOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebOfferingProductsOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebOfferingProductsOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebOfferingProductsOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/GetWebOfferingProductsOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/Handling/CustomerInfoResponseHandler.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfoResponseHandler.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfoResponseHandler.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfoResponseHandler.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfoResponseHandler.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfoResponseHandler.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/HealthOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/HealthReportAvailabilityOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportAvailabilityOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportAvailabilityOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportAvailabilityOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportAvailabilityOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportAvailabilityOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/HealthReportOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/HealthReportOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/LogInOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/LogInOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/LogInOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/LogInOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/LogInOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/LogInOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/NetworkOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/NetworkOperation.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Networking/Operations/PostAdServicesTokenOperation.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PostAdServicesTokenOperation.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PostAdServicesTokenOperation.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PostAdServicesTokenOperation.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PostAdServicesTokenOperation.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PostAdServicesTokenOperation.swiftdeps"
+  }
+}

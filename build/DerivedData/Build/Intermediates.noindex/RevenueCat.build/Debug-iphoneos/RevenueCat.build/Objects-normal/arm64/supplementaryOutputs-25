@@ -1,0 +1,170 @@
+{
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/CustomerInfo+OfflineEntitlements.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfo+OfflineEntitlements.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfo+OfflineEntitlements.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfo+OfflineEntitlements.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfo+OfflineEntitlements.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/CustomerInfo+OfflineEntitlements.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/OfflineCustomerInfoCreator.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineCustomerInfoCreator.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineCustomerInfoCreator.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineCustomerInfoCreator.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineCustomerInfoCreator.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineCustomerInfoCreator.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/OfflineEntitlementsManager.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsManager.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsManager.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsManager.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsManager.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/OfflineEntitlementsManager.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/ProductEntitlementMapping.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMapping.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMapping.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMapping.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMapping.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMapping.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/ProductEntitlementMappingFetcher.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMappingFetcher.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMappingFetcher.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMappingFetcher.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMappingFetcher.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ProductEntitlementMappingFetcher.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/PurchasedProductsFetcher.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedProductsFetcher.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedProductsFetcher.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedProductsFetcher.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedProductsFetcher.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedProductsFetcher.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/OfflineEntitlements/PurchasedSK2Product.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedSK2Product.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedSK2Product.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedSK2Product.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedSK2Product.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PurchasedSK2Product.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/Background.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Background.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Background.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Background.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Background.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Background.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/Border.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Border.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Border.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Border.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Border.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Border.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/ComponentOverrides.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ComponentOverrides.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ComponentOverrides.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ComponentOverrides.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ComponentOverrides.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/ComponentOverrides.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/Dimension.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Dimension.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Dimension.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Dimension.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Dimension.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/Dimension.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/PaywallComponentBase.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentBase.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentBase.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentBase.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentBase.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentBase.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/PaywallComponentLocalization.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentLocalization.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentLocalization.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentLocalization.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentLocalization.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentLocalization.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/Common/PaywallComponentPropertyTypes.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentPropertyTypes.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentPropertyTypes.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentPropertyTypes.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentPropertyTypes.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallComponentPropertyTypes.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallButtonComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallButtonComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallButtonComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallButtonComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallButtonComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallButtonComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallCarouselComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCarouselComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCarouselComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCarouselComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCarouselComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCarouselComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallCountdownComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCountdownComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCountdownComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCountdownComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCountdownComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallCountdownComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallIconComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallIconComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallIconComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallIconComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallIconComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallIconComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallImageComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallImageComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallImageComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallImageComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallImageComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallImageComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallPackageComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPackageComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPackageComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPackageComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPackageComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPackageComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallPurchaseButtonComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPurchaseButtonComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPurchaseButtonComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPurchaseButtonComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPurchaseButtonComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallPurchaseButtonComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallStackComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStackComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStackComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStackComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStackComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStackComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallStickyFooterComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStickyFooterComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStickyFooterComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStickyFooterComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStickyFooterComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallStickyFooterComponent.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/Sources/Paywalls/Components/PaywallTabsComponent.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallTabsComponent.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallTabsComponent.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallTabsComponent.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallTabsComponent.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/RevenueCat.build/Debug-iphoneos/RevenueCat.build/Objects-normal/arm64/PaywallTabsComponent.swiftdeps"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/CookModeView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%lld / %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "-10s",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pause",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "+10s",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 123
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,40 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Templates/V2/Components/Video/VideoPlayerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "No controls or loop",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "No controls, w/ loop",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 164
+        }
+      },
+      {
+        "comment": "",
+        "key": "Controls, no loop",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Loop + controls",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 190
+        }
+      }
+    ]
+  },
+  "version": 1
+}

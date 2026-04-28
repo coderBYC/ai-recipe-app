@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Templates/V2/ViewHelpers/BackgroundStyle.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Text",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 178
+        }
+      }
+    ]
+  },
+  "version": 1
+}

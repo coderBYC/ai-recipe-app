@@ -2,48 +2,53 @@ import SwiftUI
 import Auth
 import AuthenticationServices
 
-struct LoginView: View{
+struct LoginView: View {
     let onSignedIn: (ASAuthorizationAppleIDCredential) -> Void
     let onError: (Error) -> Void
     @State private var email = ""
     @State private var password: String = ""
     @Environment(AuthManager.self) private var authManager
+
+    private var authErrorMessage: Binding<String?> {
+        Binding(
+            get: { authManager.error?.localizedDescription },
+            set: { if $0 == nil { authManager.error = nil } }
+        )
+    }
+
     var body: some View {
         NavigationStack {
             VStack {
                 Spacer()
                 Text("Let Him Cook")
-                    .font(.largeTitle)
-                    .bold()
-                    .fontDesign(Font.Design.serif)
+                    .appFont(.largeTitle)
+                    .fontWeight(.bold)
                 Text("Viral Reels To Recipe")
-                    .font(.title2)
-                    .fontDesign(Font.Design.serif)
+                    .appFont(.title2)
                     .padding(.bottom,60)
                    
-                VStack(spacing:8){
+                VStack(spacing: 8) {
                     TextField("Enter your email", text: $email)
                         .autocapitalization(.none)
-                        .font(.subheadline)
+                        .appFont(.body)
                         .padding(12)
                         .background(Color(.systemGray6))
                         .boxStyle(cornerRadius: 10)
                         .cornerRadius(10)
                         .padding(.horizontal,24)
                     
-                    SecureField("Enter your password", text:$password)
-                        .font(.subheadline)
+                    SecureField("Enter your password", text: $password)
+                        .appFont(.body)
                         .padding(12)
                         .background(Color(.systemGray6))
                         .boxStyle(cornerRadius: 10)
                         .cornerRadius(10)
                         .padding(.horizontal,24)
                 }
-                Button {signIn()} label: {
+                Button { signIn() } label: {
                     Text("Login")
-                        .frame(width:300,height:54)
-                        .font(.title2)
-                        .fontDesign(.serif)
+                        .frame(width: 300, height: 54)
+                        .appFont(.title2)
                         .background(Color.white)
                         .boxStyle(cornerRadius: 10)
                         .cornerRadius(8)
@@ -60,63 +65,67 @@ struct LoginView: View{
                             case .success(let authorization):
                                 if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
                                    let idToken = appleIDCredential.identityToken.flatMap({ String(data: $0, encoding: .utf8) }) {
-                                    
                                     try await SupabaseService.shared.client.auth.signInWithIdToken(
                                         credentials: .init(provider: .apple, idToken: idToken)
                                     )
-                                    
+
                                     // Apple only sends fullName on the very first login
                                     if let name = appleIDCredential.fullName {
                                         let firstName = name.givenName ?? ""
                                         let lastName = name.familyName ?? ""
-                                        
+
                                         let attributes = UserAttributes(
                                             data: [
                                                 "first_name": .string(firstName),
                                                 "last_name": .string(lastName)
                                             ]
                                         )
-                                        
+
                                         try await SupabaseService.shared.client.auth.update(user: attributes)
                                     }
-                                    
+
                                     await authManager.getAuthState()
                                 }
                             case .failure(let error):
-                                print("Apple Auth failed: \(error.localizedDescription)")
+                                authManager.error = error
+                                onError(error)
                             }
                         } catch {
-                            print("Apple Sign-In error: \(error.localizedDescription)")
+                            authManager.error = error
+                            onError(error)
                         }
                     }
                 }
-                .frame(width:300,height:54)
-                
-                        Spacer()
-                        
-                        Divider()
-                        
-                        NavigationLink {
-                            RegistrationView()
-                                .navigationBarBackButtonHidden(true)
-                        } label: {
-                            HStack(spacing: 3) {
-                                Text("Don't have an account?")
-                                Text("Sign Up")
-                                    .fontWeight(.semibold)
-                            }
-                            .font(.subheadline)
-                        }
-                        .padding(.vertical, 16)
-                    }
-                }
-            }
-        }
+                .frame(width: 300, height: 54)
 
-private extension LoginView{
-    func signIn(){
-        Task{
-            await authManager.login(withEmail:email, password: password)
+                Spacer()
+
+                Divider()
+
+                NavigationLink {
+                    RegistrationView()
+                        .navigationBarBackButtonHidden(true)
+                } label: {
+                    HStack(spacing: 3) {
+                        Text("Don't have an account?")
+                        Text("Sign Up")
+                            .fontWeight(.semibold)
+                    }
+                    .appFont(.body)
+                }
+                .padding(.vertical, 16)
+            }
+            .errorPopup(message: authErrorMessage)
+        }
+        .onChange(of: email) { _, _ in authManager.error = nil }
+        .onChange(of: password) { _, _ in authManager.error = nil }
+    }
+}
+
+private extension LoginView {
+    func signIn() {
+        Task {
+            await authManager.login(withEmail: email, password: password)
         }
     }
 }
@@ -125,6 +134,3 @@ private extension LoginView{
     LoginView(onSignedIn: { _ in }, onError: { _ in })
         .environment(AuthManager(service: SupabaseService()))
 }
-
-   
-    

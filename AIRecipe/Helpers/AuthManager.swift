@@ -12,6 +12,9 @@ final class AuthManager: ObservableObject {
     func login(withEmail email: String, password: String) async {
         do {
             self.authState = try await service.login(withEmail: email, password: password)
+            if self.authState == .authenticated {
+                await SubscriptionManager.shared.syncRevenueCatWithAuthenticatedUser()
+            }
         } catch {
             self.error = error
             print("Error: \(error)")
@@ -21,6 +24,9 @@ final class AuthManager: ObservableObject {
     func signup(withEmail email: String, password: String) async {
         do {
             self.authState = try await service.signUp(withEmail: email, password: password)
+            if self.authState == .authenticated {
+                await SubscriptionManager.shared.syncRevenueCatWithAuthenticatedUser()
+            }
         } catch {
             self.error = error
             print("Error: \(error)")
@@ -31,6 +37,7 @@ final class AuthManager: ObservableObject {
         do {
             try await service.signOut()
             self.authState = .notAuthenticated
+            await SubscriptionManager.shared.signOutRevenueCat()
         } catch {
             print("Error: \(error)")
         }
@@ -40,11 +47,17 @@ final class AuthManager: ObservableObject {
     func deleteAccount() async throws {
         try await service.deleteAccount()
         self.authState = .notAuthenticated
+        await SubscriptionManager.shared.signOutRevenueCat()
     }
 
     func getAuthState() async {
         do {
             self.authState = try await service.getAuthState()
+            if self.authState == .authenticated {
+                await SubscriptionManager.shared.syncRevenueCatWithAuthenticatedUser()
+            } else {
+                await SubscriptionManager.shared.signOutRevenueCat()
+            }
         } catch {
             print("Error: \(error)")
         }

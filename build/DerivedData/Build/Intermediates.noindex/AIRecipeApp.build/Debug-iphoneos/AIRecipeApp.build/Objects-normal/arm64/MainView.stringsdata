@@ -1,0 +1,280 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/MainView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Add Recipe",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upload video link",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "Video from Photos",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manual recipe",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 171
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose how to add a recipe",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wanna Build Recipe?",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pick a video you saved to Photos and turn it into a recipe.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cook Book",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cook Book",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your saved cookbook collections will appear here.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete your account?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 574
+        }
+      },
+      {
+        "comment": "",
+        "key": "Recipe Settings",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subscription Plan",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 362
+        }
+      },
+      {
+        "comment": "",
+        "key": "App Guidelines",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 416
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact support",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 446
+        }
+      },
+      {
+        "comment": "",
+        "key": "Account",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "language",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "PREMIUM PLAN🔥",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 364
+        }
+      },
+      {
+        "comment": "",
+        "key": "Free version",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 370
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change Your Plan",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upgrade to Premium",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manage subscription",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 390
+        }
+      },
+      {
+        "comment": "",
+        "key": "Terms of Service",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 420
+        }
+      },
+      {
+        "comment": "",
+        "key": "Privacy & AI Policy",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 435
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact Me",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "General Questions",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 450
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Out",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 478
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete account",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 506
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 538
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete account",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 578
+        }
+      },
+      {
+        "comment": "",
+        "key": "Removes your login and profile on our servers and deletes local recipes on this device. For manual cleanup in Supabase, see Supabase/delete_account.sql.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 580
+        }
+      },
+      {
+        "comment": "",
+        "key": "General Questions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 638
+        }
+      }
+    ]
+  },
+  "version": 1
+}

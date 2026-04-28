@@ -1,0 +1,309 @@
+{
+  "" : {
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp-primary.dia",
+    "emit-module-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp-primary-emit-module.dia",
+    "pch" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp-primary.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/AIRecipeApp.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/AppSecrets.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppSecrets~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/AuthManager.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/BoxStyle.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/BoxStyle~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/CookModeVoiceController.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeVoiceController~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/PhotoLibraryRecipeNotifier.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryRecipeNotifier~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/RecipeBackendService.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeBackendService~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/SourceIconView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SourceIconView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/SubscriptionManager.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/SupabaseService.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SupabaseService~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/VideoThumbnailView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/VideoThumbnailView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Model/AuthState.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthState~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Models/PlannedMeal.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PlannedMeal~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Models/Recipe.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/Recipe~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Theme/AppTheme.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppTheme~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/AddRecipeView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AddRecipeView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/Auth View/AppView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AppView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/Auth View/AuthView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/Auth View/SwiftUIView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SwiftUIView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/CookModeView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/CookModeView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/LegalDocuments.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/LegalDocuments~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/MainView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MainView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/MealPlanView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/MealPlanView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/OnBoardingView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/OnBoardingView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/PasteLinkView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PasteLinkView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/PhotoLibraryVideoImportView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/PhotoLibraryVideoImportView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/RecipeEditView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeEditView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/RecipeListView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipeListView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/RecipePageView.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/RecipePageView~partial.swiftmodule"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

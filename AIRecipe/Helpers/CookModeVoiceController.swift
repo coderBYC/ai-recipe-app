@@ -25,6 +25,8 @@ final class CookModeVoiceController: ObservableObject {
     private let audioEngine = AVAudioEngine()
 
     private var lastCommandAt: Date = .distantPast
+    /// Full transcript already consumed for command detection.
+    private var lastProcessedText: String = ""
     private let commandCooldown: TimeInterval = 1.25
 
     func requestPermissionsAndStart() {
@@ -72,6 +74,7 @@ final class CookModeVoiceController: ObservableObject {
 
     private func beginListening() {
         stopInternal()
+        lastProcessedText = ""
 
         guard let recognizer = speechRecognizer, recognizer.isAvailable else { return }
 
@@ -159,53 +162,81 @@ final class CookModeVoiceController: ObservableObject {
     @MainActor
     private func handleTranscript(_ fullText: String) {
         let lower = fullText.lowercased()
-        /// Recent tail so the latest spoken phrase wins when the buffer still has older words.
-        let tail = String(lower.suffix(96))
+        // Only process the NEW part since the last command we handled.
+        // SFSpeech partial results frequently include older words repeatedly.
+        let newPart: String
+        if lower.hasPrefix(lastProcessedText) {
+            newPart = String(lower.dropFirst(lastProcessedText.count))
+        } else {
+            // Recognizer likely reset/rewrote transcript; treat full text as new baseline.
+            newPart = lower
+        }
+        let candidate = newPart.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !candidate.isEmpty else { return }
+
         let now = Date()
         guard now.timeIntervalSince(lastCommandAt) >= commandCooldown else { return }
 
-        // 1) Set timer from spoken minutes (scan whole string; last match = most recent).
-        if let mins = Self.extractMinutes(from: lower), mins > 0, mins <= 180 {
-            lastCommandAt = now
-            issuedCommand = .setMinutes(mins)
-            return
+        var detectedCommand: CookVoiceCommand = .none
+        if let mins = Self.extractMinutes(from: candidate), mins > 0, mins <= 180 {
+            detectedCommand = .setMinutes(mins)
+        } else if Self.containsWord(candidate, word: "pause") {
+            detectedCommand = .pauseTimer
+        } else if Self.containsWord(candidate, word: "start") || Self.containsWord(candidate, word: "resume") {
+            detectedCommand = .resumeTimer
+        } else if Self.containsWord(candidate, word: "back") || Self.containsWord(candidate, word: "previous") {
+            detectedCommand = .back
+        } else if Self.containsWord(candidate, word: "next") {
+            detectedCommand = .next
         }
 
-        // 2) Timer transport (tail so “… please pause” still matches).
-        if Self.containsWord(tail, word: "pause") {
+        if detectedCommand != .none {
             lastCommandAt = now
-            issuedCommand = .pauseTimer
-            return
-        }
-
-        if Self.containsWord(tail, word: "start") || Self.containsWord(tail, word: "resume") {
-            lastCommandAt = now
-            issuedCommand = .resumeTimer
-            return
-        }
-
-        // 3) Step navigation — check back before next so phrases like “next go back” favor back.
-        if Self.containsWord(tail, word: "back") || Self.containsWord(tail, word: "previous") {
-            lastCommandAt = now
-            issuedCommand = .back
-            return
-        }
-
-        if Self.containsWord(tail, word: "next") {
-            lastCommandAt = now
-            issuedCommand = .next
-            return
+            issuedCommand = detectedCommand
+            // Mark everything spoken up to this point as consumed.
+            lastProcessedText = lower
         }
     }
 
     private static func extractMinutes(from text: String) -> Int? {
-        let pattern = #"(\d+)\s*[-–—]*\s*minutes?"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return nil }
-        let range = NSRange(text.startIndex..., in: text)
-        let matches = regex.matches(in: text, range: range)
-        guard let last = matches.last, last.numberOfRanges > 1,
-              let r = Range(last.range(at: 1), in: text) else { return nil }
-        return Int(text[r])
+        // numeric form: "5 minutes", "5 min", "5 mins"
+        let numericPattern = #"(\d+)\s*[-–—]?\s*(?:minutes?|mins?|min)\b"#
+        if let regex = try? NSRegularExpression(pattern: numericPattern, options: .caseInsensitive) {
+            let range = NSRange(text.startIndex..., in: text)
+            let matches = regex.matches(in: text, range: range)
+            if let last = matches.last, last.numberOfRanges > 1,
+               let r = Range(last.range(at: 1), in: text),
+               let v = Int(text[r]) {
+                return v
+            }
+        }
+
+        // word form: "five minutes", "ten min"
+        let words: [String: Int] = [
+            "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+            "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
+            "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20,
+            "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90
+        ]
+        let tokens = text
+            .replacingOccurrences(of: "-", with: " ")
+            .split { !$0.isLetter }
+            .map { String($0).lowercased() }
+
+        guard !tokens.isEmpty else { return nil }
+        for i in stride(from: tokens.count - 1, through: 0, by: -1) {
+            let t = tokens[i]
+            guard t == "minute" || t == "minutes" || t == "min" || t == "mins" else { continue }
+            if i > 0, let v = words[tokens[i - 1]] {
+                // support "twenty five minutes"
+                if i > 1, let tens = words[tokens[i - 2]], tens >= 20, tens % 10 == 0, v < 10 {
+                    return tens + v
+                }
+                return v
+            }
+        }
+        return nil
     }
 
     private static func containsWord(_ text: String, word: String) -> Bool {

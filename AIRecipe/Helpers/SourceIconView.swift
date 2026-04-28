@@ -12,7 +12,7 @@ struct SourceIconView: View {
                 .frame(width: 22, height: 22)
         } else {
             Image(systemName: source.iconName)
-                .font(.body)
+                .appFont(.body)
         }
     }
 }

@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Templates/V2/Components/Button/BottomSheetView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "This view will have a sheet over it",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 187
+        }
+      }
+    ]
+  },
+  "version": 1
+}

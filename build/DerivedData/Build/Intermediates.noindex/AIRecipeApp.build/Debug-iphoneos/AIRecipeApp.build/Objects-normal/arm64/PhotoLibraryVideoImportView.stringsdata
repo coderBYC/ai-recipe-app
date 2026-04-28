@@ -1,0 +1,40 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/PhotoLibraryVideoImportView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "Video from Photos",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose a video you saved (for example from Instagram or TikTok) to turn it into a recipe.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose video",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 127
+        }
+      }
+    ]
+  },
+  "version": 1
+}

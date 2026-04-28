@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A03F7A92F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */; };
+		1A03F7AA2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */; };
+		1A03F7AB2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */; };
 		1A81B1322F7B05D3000923E5 /* OnBoardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */; };
 		1A9211932F7C696C005252F5 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1A9211892F7C696C005252F5 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */; };
@@ -41,7 +44,13 @@
 		B0010014 /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010014 /* MealPlanView.swift */; };
 		B0010015 /* AppSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010015 /* AppSecrets.swift */; };
 		B0010016 /* CookModeVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010017 /* CookModeVoiceController.swift */; };
-		B0010018 /* BackendConfigDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010020 /* BackendConfigDiscovery.swift */; };
+		B0010017 /* PhotoLibraryRecipeNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010018 /* PhotoLibraryRecipeNotifier.swift */; };
+		B0010018 /* PhotoLibraryVideoImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010019 /* PhotoLibraryVideoImportView.swift */; };
+		B0010019 /* Fredoka-VF.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F001001A /* Fredoka-VF.ttf */; };
+		B0010020 /* RecipeImportSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001B /* RecipeImportSubmission.swift */; };
+		B0010021 /* RecipeImportProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001C /* RecipeImportProcessor.swift */; };
+		B0010022 /* OnboardingTips.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001D /* OnboardingTips.swift */; };
+		B0010023 /* OnboardingEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001E /* OnboardingEnvironment.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +85,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Bitter-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnBoardingView.swift; sourceTree = "<group>"; };
 		1A9211892F7C696C005252F5 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
@@ -109,7 +119,13 @@
 		F0010015 /* AppSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSecrets.swift; sourceTree = "<group>"; };
 		F0010016 /* AppSecrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppSecrets.xcconfig; sourceTree = "<group>"; };
 		F0010017 /* CookModeVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeVoiceController.swift; sourceTree = "<group>"; };
-		F0010020 /* BackendConfigDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendConfigDiscovery.swift; sourceTree = "<group>"; };
+		F0010018 /* PhotoLibraryRecipeNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryRecipeNotifier.swift; sourceTree = "<group>"; };
+		F0010019 /* PhotoLibraryVideoImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryVideoImportView.swift; sourceTree = "<group>"; };
+		F001001A /* Fredoka-VF.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fredoka-VF.ttf"; sourceTree = "<group>"; };
+		F001001B /* RecipeImportSubmission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportSubmission.swift; sourceTree = "<group>"; };
+		F001001C /* RecipeImportProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportProcessor.swift; sourceTree = "<group>"; };
+		F001001D /* OnboardingTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTips.swift; sourceTree = "<group>"; };
+		F001001E /* OnboardingEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingEnvironment.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -174,6 +190,7 @@
 		G0010000 = {
 			isa = PBXGroup;
 			children = (
+				1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */,
 				G0010001 /* AIRecipe */,
 				G0010008 /* Config */,
 				1A92118A2F7C696C005252F5 /* ShareExtension */,
@@ -221,6 +238,7 @@
 				F0010005 /* RecipePageView.swift */,
 				1A9F40292F6114E400DFA8EF /* Auth View */,
 				F0010008 /* PasteLinkView.swift */,
+				F0010019 /* PhotoLibraryVideoImportView.swift */,
 				1A9F403A2F62254400DFA8EF /* CookModeView.swift */,
 				1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */,
 			);
@@ -231,15 +249,18 @@
 			isa = PBXGroup;
 			children = (
 				F0010015 /* AppSecrets.swift */,
-				F0010020 /* BackendConfigDiscovery.swift */,
 				F0010009 /* VideoThumbnailView.swift */,
 				1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */,
 				1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */,
 				F001000A /* BoxStyle.swift */,
 				F001000E /* RecipeBackendService.swift */,
+				F001001C /* RecipeImportProcessor.swift */,
 				1A9F403C2F62436D00DFA8EF /* AuthManager.swift */,
 				1A9F41A12F6F79F500DFA8EF /* SubscriptionManager.swift */,
 				F0010017 /* CookModeVoiceController.swift */,
+				F0010018 /* PhotoLibraryRecipeNotifier.swift */,
+				F001001D /* OnboardingTips.swift */,
+				F001001E /* OnboardingEnvironment.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -257,6 +278,7 @@
 			children = (
 				F001000C /* Recipe.swift */,
 				F0010013 /* PlannedMeal.swift */,
+				F001001B /* RecipeImportSubmission.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -264,6 +286,7 @@
 		G0010007 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
+				F001001A /* Fredoka-VF.ttf */,
 				F0010010 /* README.md */,
 			);
 			path = Fonts;
@@ -398,6 +421,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A03F7AB2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,6 +429,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A03F7A92F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,6 +438,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B001000D /* Assets.xcassets in Resources */,
+				B0010019 /* Fredoka-VF.ttf in Resources */,
+				1A03F7AA2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,7 +474,6 @@
 				B0010005 /* RecipePageView.swift in Sources */,
 				1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */,
 				B0010015 /* AppSecrets.swift in Sources */,
-				B0010018 /* BackendConfigDiscovery.swift in Sources */,
 				B0010016 /* CookModeVoiceController.swift in Sources */,
 				B0010008 /* PasteLinkView.swift in Sources */,
 				B0010011 /* MainView.swift in Sources */,
@@ -461,6 +487,12 @@
 				B001000E /* RecipeBackendService.swift in Sources */,
 				B001000B /* AppTheme.swift in Sources */,
 				B001000C /* Recipe.swift in Sources */,
+				B0010020 /* RecipeImportSubmission.swift in Sources */,
+				B0010021 /* RecipeImportProcessor.swift in Sources */,
+				B0010017 /* PhotoLibraryRecipeNotifier.swift in Sources */,
+				B0010018 /* PhotoLibraryVideoImportView.swift in Sources */,
+				B0010022 /* OnboardingTips.swift in Sources */,
+				B0010023 /* OnboardingEnvironment.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -740,6 +772,9 @@
 				INFOPLIST_FILE = AIRecipe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cook mode can listen for short commands like “next,” “back,” and timer phrases so you can move through steps hands-free.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -778,6 +813,9 @@
 				INFOPLIST_FILE = AIRecipe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cook mode can listen for short commands like “next,” “back,” and timer phrases so you can move through steps hands-free.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

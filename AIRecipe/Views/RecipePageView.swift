@@ -3,6 +3,7 @@ import SwiftData
 import UIKit
 struct RecipePageView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.isOnboardingWalkthrough) private var isOnboardingWalkthrough
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
@@ -30,10 +31,12 @@ struct RecipePageView: View {
                         estimateTimeSection
                         ingredientsSection
                         stepsSection
+                        NoteSection
                         ratingSection
                         if !recipe.sourceURL.isEmpty {
                             openLinkSection
                         }
+                        
                     }
                     .padding(16)
                 }
@@ -43,7 +46,7 @@ struct RecipePageView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { onDismiss() } label: {
                         Image(systemName: "xmark")
-                            .font(.callout)
+                            .appFont(.callout)
                             .foregroundStyle(AppTheme.textPrimary)
                     }
                 }
@@ -52,7 +55,7 @@ struct RecipePageView: View {
                         exportRecipe()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
-                            .font(.callout)
+                            .appFont(.callout)
                             .foregroundStyle(AppTheme.textPrimary)
                     }
                 }
@@ -61,12 +64,18 @@ struct RecipePageView: View {
                 RecipeEditView(recipe: recipe, onDismiss: { showingEdit = false })
             }
             .sheet(isPresented: $showingImport) {
-                PasteLinkView(prefillURL: recipe.sourceURL) { _ in
+                PasteLinkView(prefillURL: recipe.sourceURL) {
                     showingImport = false
                 }
             }
+            // Share-extension / auto-import flow stacks: dismiss PasteLink sheet → present this sheet → open Edit.
+            // Presenting the edit sheet synchronously in `onAppear` often breaks hit testing (pencil / toolbar taps).
             .onAppear {
-                if openEditOnAppear { showingEdit = true }
+                guard openEditOnAppear else { return }
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 450_000_000)
+                    showingEdit = true
+                }
             }
             .fullScreenCover(isPresented: $showCookMode) {
                 CookModeView(recipe: recipe)
@@ -74,35 +83,27 @@ struct RecipePageView: View {
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(activityItems: [recipe.shareableExportText])
             }
-            .alert("Export", isPresented: Binding(
-                get: { exportError != nil },
-                set: { if !$0 { exportError = nil } }
-            )) {
-                Button("OK") { exportError = nil }
-            } message: {
-                if let err = exportError { Text(err) }
-            }
+            .errorPopup(message: $exportError)
             .task {
                 await subManager.checkStatus()
             }
         }
     }
 
-    /// Free users: hide the whole video block for Instagram/TikTok (no embed, no placeholder).
+    /// YouTube always; Instagram/TikTok/Photos show backend-generated thumbnail (or placeholder).
     private var shouldShowVideoPreview: Bool {
-        switch recipe.sourceEnum {
-        case .youtube:
-            return true
-        case .instagram, .tiktok:
-            return subManager.isPremium
-        }
+        true
     }
 
     private func exportRecipe() {
         Task { @MainActor in
             exportError = nil
             do {
-                try await SupabaseService.shared.useExportOnce()
+                guard let userId = await SupabaseService.shared.currentUserIdString() else {
+                    exportError = "Not signed in."
+                    return
+                }
+                try await RecipeBackendService.shared.recordExportUsage(userId: userId)
                 showShareSheet = true
             } catch {
                 exportError = error.localizedDescription
@@ -121,12 +122,13 @@ struct RecipePageView: View {
                 showingEdit = true
             } label: {
                 Image(systemName: "pencil")
-                    .font(.callout)
+                    .appFont(.callout)
                     .foregroundStyle(.black)
                     .frame(width: 36, height: 36)
                     .background(Color.white, in: RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
                     .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
             }
+            .onboardingRecipeEditTip(isOnboardingWalkthrough)
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
@@ -136,9 +138,10 @@ struct RecipePageView: View {
         VideoThumbnailView(
             sourceURL: recipe.sourceURL,
             downloadedVideoURL: recipe.downloadedVideoURL,
-            source: recipe.sourceEnum
+            source: recipe.sourceEnum,
+            dishHeroTimestampSeconds: recipe.dishHeroTimestampSeconds
         )
-        .frame(height: 230)
+        .frame(height: 280)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
@@ -190,7 +193,7 @@ struct RecipePageView: View {
                 toggleCheckmark(at: index, linesCount: linesCount)
             } label: {
                 Image(systemName: checked ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .appFont(.title3)
                     .foregroundStyle(checked ? AppTheme.triedBadge : AppTheme.textSecondary)
             }
             .buttonStyle(.plain)
@@ -264,6 +267,24 @@ struct RecipePageView: View {
         }
     }
     
+    private var NoteSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Notes", systemImage: "note.text")
+                .appFont(.headlineBold)
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(recipe.notes)
+                .appFont(.notes)
+                .foregroundStyle(AppTheme.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(minHeight: 72)
+                .padding(12)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .boxStyle()
+    }
+    
     private var ratingSection: some View {
         HStack(spacing: 10) {
             Text("Rate this recipe")
@@ -297,7 +318,7 @@ struct RecipePageView: View {
                     .appFont(.headlineBold)
                     .foregroundStyle(.black)
                 Image(systemName: "arrow.up.right")
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundStyle(.black)
             }
             .frame(maxWidth: .infinity)
@@ -311,7 +332,7 @@ struct RecipePageView: View {
     }
 }
 
-// MARK: - Share sheet (wraps UIActivityViewController; triggers useExportOnce in caller)
+// MARK: - Share sheet (wraps UIActivityViewController; export quota via RecipeBackendService before present)
 
 struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]

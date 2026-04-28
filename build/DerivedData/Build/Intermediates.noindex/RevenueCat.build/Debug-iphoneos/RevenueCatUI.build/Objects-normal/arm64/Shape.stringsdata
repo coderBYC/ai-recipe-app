@@ -1,0 +1,56 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Templates/V2/ViewHelpers/Shape.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hello",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hello",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 638
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hello",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 653
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hello",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 670
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hello",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 688
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hello",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 705
+        }
+      }
+    ]
+  },
+  "version": 1
+}

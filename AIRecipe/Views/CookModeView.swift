@@ -1,8 +1,11 @@
 import SwiftUI
+import TipKit
 
 struct CookModeView: View {
-    
+
     @Bindable var recipe: Recipe
+    /// When true, shows tappable shortcuts that mirror voice timer commands (onboarding).
+    var onboardingVoiceShortcuts: Bool = false
     @Environment(\.dismiss) private var dismiss
     @StateObject private var voice = CookModeVoiceController()
     @State private var stepIndex: Int = 0
@@ -37,16 +40,16 @@ struct CookModeView: View {
                 HStack {
                     if voice.isListening {
                         Image(systemName: "mic.fill")
-                            .font(.caption)
+                            .appFont(.caption)
                             .foregroundStyle(.green)
                     } else if voice.authorizationDenied {
                         Image(systemName: "mic.slash.fill")
-                            .font(.caption)
+                            .appFont(.caption)
                             .foregroundStyle(.orange.opacity(0.9))
                     }
                     if !voice.statusText.isEmpty {
                         Text(voice.statusText)
-                            .font(.caption2)
+                            .appFont(.caption2)
                             .foregroundStyle(.white.opacity(0.65))
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
@@ -56,12 +59,13 @@ struct CookModeView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "checkmark")
-                            .font(.callout)
+                            .appFont(.callout)
                             .foregroundStyle(.white)
                             .frame(width: 34, height: 34)
                             .background(Color.black, in: RoundedRectangle(cornerRadius: 8))
                     }
-                    
+                    .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingFinishCookTip(), edge: .bottom)
+
                 }
                 .padding()
                 
@@ -81,11 +85,11 @@ struct CookModeView: View {
                 // Step text
                 if !steps.isEmpty {
                     Text(steps[stepIndex])
-                        .font(.largeTitle)
+                        .appFont(.largeTitle)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
-                        .fontDesign(.serif)
+                        .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingCookVoiceTip(), edge: .top)
                 }
                 
                 Spacer()
@@ -93,9 +97,40 @@ struct CookModeView: View {
                 // Timer controls
                 VStack(spacing: 8) {
                     Text(timeString(from: timerSeconds))
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(AppTheme.bitterFont(size: 32, weight: .bold))
                         .foregroundStyle(.white)
-                    
+                        .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingTimerVoiceTip(), edge: .bottom)
+
+                    if onboardingVoiceShortcuts {
+                        VStack(spacing: 6) {
+                            Text("Or tap to practice the same commands")
+                                .appFont(.caption2)
+                                .foregroundStyle(.white.opacity(0.75))
+                            HStack(spacing: 10) {
+                                Button("5 minutes") {
+                                    handleIssuedCommand(.setMinutes(5))
+                                    voice.resetIssuedCommand()
+                                }
+                                .appFont(.caption)
+                                .foregroundStyle(.black)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.white, in: Capsule())
+
+                                Button("Pause") {
+                                    handleIssuedCommand(.pauseTimer)
+                                    voice.resetIssuedCommand()
+                                }
+                                .appFont(.caption)
+                                .foregroundStyle(.black)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.white, in: Capsule())
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+
                     HStack(spacing: 16) {
                         Button {
                             if timerSeconds >= 10 { timerSeconds -= 10 }
@@ -116,6 +151,7 @@ struct CookModeView: View {
                                 .padding(.vertical, 10)
                                 .background(Color.white, in: Capsule())
                         }
+                        .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingPauseTimerTip(), edge: .top)
                         
                         Button {
                             timerSeconds += 10
@@ -127,6 +163,7 @@ struct CookModeView: View {
                                 .background(Color.white, in: Capsule())
                         }
                     }
+                    .appFont(.body)
                 }
                 .padding(.bottom, 16)
                 
@@ -162,31 +199,33 @@ struct CookModeView: View {
             voice.stop()
         }
         .onChange(of: voice.issuedCommand) { _, cmd in
-            switch cmd {
-            case .none:
-                break
-            case .next:
-                nextStep()
-                voice.resetIssuedCommand()
-            case .back:
-                previousStep()
-                voice.resetIssuedCommand()
-            case .setMinutes(let m):
-                timerSeconds = m * 60
-                isTimerRunning = true
-                voice.resetIssuedCommand()
-            case .pauseTimer:
-                isTimerRunning = false
-                voice.resetIssuedCommand()
-            case .resumeTimer:
-                if timerSeconds > 0 {
-                    isTimerRunning = true
-                }
+            handleIssuedCommand(cmd)
+            if cmd != .none {
                 voice.resetIssuedCommand()
             }
         }
     }
-    
+
+    private func handleIssuedCommand(_ cmd: CookVoiceCommand) {
+        switch cmd {
+        case .none:
+            break
+        case .next:
+            nextStep()
+        case .back:
+            previousStep()
+        case .setMinutes(let m):
+            timerSeconds = m * 60
+            isTimerRunning = true
+        case .pauseTimer:
+            isTimerRunning = false
+        case .resumeTimer:
+            if timerSeconds > 0 {
+                isTimerRunning = true
+            }
+        }
+    }
+
     func nextStep() {
         if stepIndex < steps.count - 1 {
             stepIndex += 1
@@ -204,6 +243,28 @@ struct CookModeView: View {
         let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
-    
+}
+
+// MARK: - TipKit (onboarding cook mode only)
+
+private struct OnboardingCookPopoverTipModifier<T: Tip>: ViewModifier {
+    let enabled: Bool
+    let tip: T
+    var edge: Edge = .top
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if enabled {
+            content.popoverTip(tip, arrowEdge: edge)
+        } else {
+            content
+        }
+    }
+}
+
+private extension View {
+    func onboardingCookTipIfNeeded<T: Tip>(_ enabled: Bool, tip: T, edge: Edge = .top) -> some View {
+        modifier(OnboardingCookPopoverTipModifier(enabled: enabled, tip: tip, edge: edge))
+    }
 }
 

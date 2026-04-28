@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/ButtonStyles.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Didn't receive purchase",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 222
+        }
+      }
+    ]
+  },
+  "version": 1
+}

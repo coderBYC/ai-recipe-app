@@ -1,0 +1,24 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/Virtual Currencies/VirtualCurrencyBalanceListRow.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%@ (%@)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unavailable on iOS <15.0",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 91
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,51 @@
+{
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/KEM/XWing.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/XWing.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/XWing.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/XWing.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/XWing.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/XWing.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/Key Agreement/BoringSSL/ECDH_boring.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH_boring.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH_boring.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH_boring.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH_boring.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH_boring.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/Key Agreement/DH.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/DH.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/DH.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/DH.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/DH.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/DH.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/Key Agreement/ECDH.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ECDH.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/Key Derivation/ANSIx963.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ANSIx963.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ANSIx963.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ANSIx963.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ANSIx963.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/ANSIx963.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/Key Derivation/HKDF.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/HKDF.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/HKDF.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/HKDF.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/HKDF.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/HKDF.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/swift-crypto/Sources/Crypto/Key Wrapping/AESWrap.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/AESWrap.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/AESWrap.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/AESWrap.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/AESWrap.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/swift-crypto.build/Debug-iphoneos/Crypto.build/Objects-normal/arm64/AESWrap.swiftdeps"
+  }
+}

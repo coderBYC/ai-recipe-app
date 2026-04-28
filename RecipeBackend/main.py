@@ -25,6 +25,7 @@ import cv2
 from supabase import create_client  # pyright: ignore[reportMissingImports]
 from postgrest.exceptions import APIError  # pyright: ignore[reportMissingImports]
 from datetime import datetime, timezone
+from worker import ImportQueueWorker
 load_dotenv()
 
 app = FastAPI()
@@ -42,6 +43,33 @@ async def _log_registered_upload_routes() -> None:
     print("[RecipeBackend] Registered upload routes:", lines if lines else "NONE (old code or import error?)")
 
 
+@app.on_event("startup")
+async def _start_import_worker() -> None:
+    global _import_worker
+    if _import_worker is not None:
+        return
+    _import_worker = ImportQueueWorker(
+        concurrency=_IMPORT_WORKER_CONCURRENCY,
+        poll_interval_sec=_IMPORT_POLL_INTERVAL_SEC,
+        scan_batch=_IMPORT_SCAN_BATCH,
+        retry_after_429_sec=_IMPORT_RETRY_AFTER_429_SEC,
+        local_api_base=_IMPORT_WORKER_LOCAL_API_BASE,
+        jobs_table=_IMPORT_JOBS_TABLE,
+        get_supabase=_get_supabase,
+        supabase_call=_supabase_call,
+    )
+    await _import_worker.start()
+
+
+@app.on_event("shutdown")
+async def _stop_import_worker() -> None:
+    global _import_worker
+    if _import_worker is None:
+        return
+    await _import_worker.stop()
+    _import_worker = None
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -50,45 +78,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/healthz")
-async def healthz():
-    """Lightweight check for load balancers (e.g. Render)."""
-    return {"status": "ok"}
-
-@app.post("/import")
-async def enqueue_import(url: str, user_id: str):
-    sb = _get_supabase()
-    if not sb:
-        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
-
-    def _insert() -> Any:
-        return (
-            sb.table("import_jobs")
-            .insert(
-                {
-                    "url": url,
-                    "user_id": user_id,
-                    "source_type": "instagram" if "instagram.com" in url else "other",
-                    "status": "pending",
-                }
-            )
-            .execute()
-        )
-
-    try:
-        job = await asyncio.to_thread(_insert)
-    except APIError as e:
-        raise HTTPException(status_code=400, detail=f"Supabase insert failed: {e.message}") from e
-    rows = getattr(job, "data", None) or []
-    if not rows:
-        raise HTTPException(status_code=500, detail="Supabase insert returned no row.")
-    return {"job_id": rows[0]["id"], "message": "Queue success"}
-
-
 class AnalyzeRequest(BaseModel):
     url: str
     language: str
+
+class ImportEnqueueRequest(BaseModel):
+    url: str
+    language: str = "en"
+
+class ImportBatchEnqueueRequest(BaseModel):
+    jobs: list[ImportEnqueueRequest]
+
+class ImportJobView(BaseModel):
+    id: str
+    url: str
+    user_id: str
+    source_type: str = "other"
+    status: str
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    error_log: Optional[str] = None
+    result_json: Optional[dict[str, Any]] = None
 
 class RecipeResponse(BaseModel):
     recipe_name: str
@@ -100,31 +110,35 @@ class RecipeResponse(BaseModel):
     instructions: list
     video_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
-    # Seconds into the video where the finished dish is clearest (for client-side frame grab).
     dish_hero_timestamp_seconds: str = "0"
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-
-_supabase_client: Any = None
-
-FREE_IMPORTS_PER_DAY = 3
-FREE_INSTAGRAM_COOLDOWN_SECONDS = 5 * 60
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
+FREE_IMPORTS_PER_DAY = 5
+FREE_INSTAGRAM_COOLDOWN_SECONDS = 1 * 60
 
 # In-memory rate state for free users (per backend instance/process).
 # If you run multiple replicas, move this to shared storage (e.g. Redis/Postgres).
 _free_daily_import_usage: dict[str, tuple[str, int]] = {}
 _free_last_instagram_import_at: dict[str, float] = {}
 
-T = TypeVar("T")
 
+_IMPORT_JOBS_TABLE = "import_jobs"
+_IMPORT_POLL_INTERVAL_SEC = max(1.0, float(os.getenv("IMPORT_POLL_INTERVAL_SEC", "2")))
+_IMPORT_SCAN_BATCH = max(1, int(os.getenv("IMPORT_SCAN_BATCH", "10")))
+_IMPORT_WORKER_CONCURRENCY = max(1, int(os.getenv("IMPORT_WORKER_CONCURRENCY", "2")))
+_IMPORT_RETRY_AFTER_429_SEC = max(5.0, float(os.getenv("IMPORT_RETRY_AFTER_429_SEC", "300")))
+_IMPORT_WORKER_LOCAL_API_BASE = os.getenv("IMPORT_WORKER_LOCAL_API_BASE", "http://127.0.0.1:8000").strip().rstrip("/")
+_ANALYZE_QUEUE_WAIT_TIMEOUT_SEC = max(5.0, float(os.getenv("ANALYZE_QUEUE_WAIT_TIMEOUT_SEC", "240")))
+_ANALYZE_QUEUE_WAIT_POLL_SEC = max(0.2, float(os.getenv("ANALYZE_QUEUE_WAIT_POLL_SEC", "1.0")))
+_import_worker: Optional["ImportQueueWorker"] = None
 
+_supabase_client: Any = None
 def _get_supabase() -> Optional[Any]:
     """Lazily create a Supabase client with the service role key (server-side only)."""
     global _supabase_client
-    print(f"SUPABASE_URL: {SUPABASE_URL}")
-    print(f"SUPABASE_SERVICE_KEY: {SUPABASE_SERVICE_KEY}")
     if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
         return None
     if _supabase_client is None:
@@ -134,7 +148,7 @@ def _get_supabase() -> Optional[Any]:
         )
     return _supabase_client
 
-
+T = TypeVar("T")
 async def _supabase_call(fn: Callable[[], T]) -> T:
     """Run sync supabase-py calls in a thread pool (FastAPI async routes)."""
     return await asyncio.to_thread(fn)
@@ -184,7 +198,7 @@ def build_prompt(language: str) -> str:
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
     6. Make sure the creator name is right if it's a youtube video.
     7. Use language code {lang} for all user-facing text values (keys must stay in English).
-    8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the moment the final prepared/plated dish is shown most clearly and in focus(usually at the beginning or end of the video). If it never appears, use "0"."""
+    8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the best moment the final dish is shown clearly and in focus. If you don't know, use the last second of the video."""
 
     
 def _require_user_id(request: Request) -> str:
@@ -339,7 +353,7 @@ def is_instagram_url(url: str) -> bool:
 async def enforce_free_import_limits(request: Request, source_kind: str) -> None:
     """
     Free users:
-      1) max 3 imports per UTC day
+      1) max 5 imports per UTC day
       2) Instagram imports: at most once every 10 minutes
     """
     if await is_pro_user(request):
@@ -512,7 +526,7 @@ def _save_thumbnail_from_video(video_path: str, request: Request, seconds: float
         out_path = os.path.join(SERVED_THUMBS_DIR, f"{thumb_id}.jpg")
         if not cv2.imwrite(out_path, frame):
             return None
-        base = str(request.base_url).rstrip("/")
+        base = PUBLIC_BASE_URL if PUBLIC_BASE_URL else str(request.base_url).rstrip("/")
         return f"{base}/thumbnail/{thumb_id}"
     finally:
         cap.release()
@@ -541,6 +555,212 @@ async def profile_update_plan(request: Request, body: PlanUpdateRequest):
     await supabase_update_profile_plan(user_id, raw)
     return {"ok": True}
 
+def _source_type_for_url(url: str) -> str:
+    u = (url or "").lower()
+    if "instagram.com" in u or "instagr.am" in u:
+        return "instagram"
+    if "tiktok.com" in u or "vt.tiktok.com" in u:
+        return "tiktok"
+    if "youtube.com" in u or "youtu.be" in u:
+        return "youtube"
+    return "other"
+
+
+async def _enqueue_import_job(*, user_id: str, url: str, language: str) -> dict[str, Any]:
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
+
+    def _insert() -> Any:
+        return (
+            sb.table(_IMPORT_JOBS_TABLE)
+            .insert(
+                {
+                    "url": url,
+                    "user_id": user_id,
+                    "source_type": _source_type_for_url(url),
+                    "status": "pending",
+                }
+            )
+            .execute()
+        )
+
+    try:
+        job = await _supabase_call(_insert)
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=f"Supabase insert failed: {e.message}") from e
+    rows = getattr(job, "data", None) or []
+    if not rows:
+        raise HTTPException(status_code=500, detail="Supabase insert returned no row.")
+    if _import_worker:
+        await _import_worker.nudge()
+    return rows[0]
+
+
+async def _wait_for_job_result(*, user_id: str, job_id: str, timeout_sec: float) -> dict[str, Any]:
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
+
+    async def _load_once() -> Optional[dict[str, Any]]:
+        def _q() -> Any:
+            return (
+                sb.table(_IMPORT_JOBS_TABLE)
+                .select("id,status,error_log,result_json")
+                .eq("id", job_id)
+                .eq("user_id", user_id)
+                .limit(1)
+                .execute()
+            )
+        try:
+            res = await _supabase_call(_q)
+        except APIError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Supabase job polling failed: {_api_error_detail(e)}",
+            ) from e
+        rows = getattr(res, "data", None) or []
+        if not rows:
+            return None
+        return rows[0] if isinstance(rows[0], dict) else None
+
+    deadline = time.monotonic() + timeout_sec
+    while time.monotonic() < deadline:
+        row = await _load_once()
+        if row:
+            status = str(row.get("status") or "").lower()
+            if status == "ready":
+                payload = row.get("result_json")
+                if isinstance(payload, dict):
+                    return payload
+                raise HTTPException(status_code=502, detail="Import finished without valid result_json.")
+            if status == "failed":
+                msg = row.get("error_log") or "Import failed."
+                raise HTTPException(status_code=502, detail=str(msg))
+        await asyncio.sleep(_ANALYZE_QUEUE_WAIT_POLL_SEC)
+    raise HTTPException(status_code=504, detail="Queued import timed out waiting for result.")
+
+
+@app.post("/import")
+async def enqueue_import(request: Request, body: ImportEnqueueRequest):
+    user_id = _require_user_id(request)
+    url = (body.url or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+    language = (body.language or "en").strip() or "en"
+    row = await _enqueue_import_job(user_id=user_id, url=url, language=language)
+    return {"job_id": row["id"], "status": "pending"}
+
+
+@app.post("/import/batch")
+async def enqueue_import_batch(request: Request, body: ImportBatchEnqueueRequest):
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
+    user_id = _require_user_id(request)
+    jobs = body.jobs or []
+    if not jobs:
+        raise HTTPException(status_code=400, detail="No jobs provided.")
+
+    rows_to_insert = [
+        {
+            "url": (job.url or "").strip(),
+            "user_id": user_id,
+            "source_type": _source_type_for_url(job.url),
+            "status": "pending",
+        }
+        for job in jobs
+        if (job.url or "").strip()
+    ]
+    if not rows_to_insert:
+        raise HTTPException(status_code=400, detail="All job URLs are empty.")
+
+    def _insert_many() -> Any:
+        return sb.table(_IMPORT_JOBS_TABLE).insert(rows_to_insert).execute()
+
+    try:
+        inserted = await _supabase_call(_insert_many)
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=f"Supabase insert failed: {_api_error_detail(e)}") from e
+
+    rows = getattr(inserted, "data", None) or []
+    if _import_worker:
+        await _import_worker.nudge()
+    return {
+        "count": len(rows),
+        "job_ids": [r.get("id") for r in rows if isinstance(r, dict)],
+        "status": "pending",
+    }
+
+
+@app.get("/import/jobs", response_model=list[ImportJobView])
+async def list_import_jobs(
+    request: Request,
+    status: Optional[str] = None,
+    limit: int = 50,
+):
+    """
+    Poll queue state for current user.
+    Supports optional status filter (`pending|processing|ready|failed`).
+    """
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
+    user_id = _require_user_id(request)
+    capped_limit = max(1, min(limit, 200))
+
+    def _query() -> Any:
+        q = (
+            sb.table(_IMPORT_JOBS_TABLE)
+            .select("id,url,user_id,source_type,status,created_at,updated_at,error_log,result_json")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(capped_limit)
+        )
+        if status:
+            q = q.eq("status", status.strip().lower())
+        return q.execute()
+
+    try:
+        res = await _supabase_call(_query)
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=f"Supabase query failed: {_api_error_detail(e)}") from e
+    rows = getattr(res, "data", None) or []
+    return [ImportJobView(**row) for row in rows if isinstance(row, dict)]
+
+
+@app.get("/import/jobs/{job_id}", response_model=ImportJobView)
+async def get_import_job(job_id: str, request: Request):
+    """
+    Fetch one job by id for the current user (includes `result_json` once ready).
+    """
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
+    user_id = _require_user_id(request)
+    rid = (job_id or "").strip()
+    if not rid:
+        raise HTTPException(status_code=400, detail="job_id is required")
+
+    def _query_one() -> Any:
+        return (
+            sb.table(_IMPORT_JOBS_TABLE)
+            .select("id,url,user_id,source_type,status,created_at,updated_at,error_log,result_json")
+            .eq("id", rid)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+
+    try:
+        res = await _supabase_call(_query_one)
+    except APIError as e:
+        raise HTTPException(status_code=400, detail=f"Supabase query failed: {_api_error_detail(e)}") from e
+    rows = getattr(res, "data", None) or []
+    if not rows:
+        raise HTTPException(status_code=404, detail="Import job not found")
+    return ImportJobView(**rows[0])
+
 
 @app.get("/thumbnail/{thumb_id}")
 async def serve_thumbnail(thumb_id: str):
@@ -550,8 +770,41 @@ async def serve_thumbnail(thumb_id: str):
         raise HTTPException(status_code=404, detail="Thumbnail not found")
     return FileResponse(path, media_type="image/jpeg")
 
-@app.post("/analyze_reel", response_model=RecipeResponse)
-async def analyze_reel(request: Request, req: AnalyzeRequest):
+@app.post("/analyze_reel")
+async def analyze_reel_enqueue(request: Request, req: AnalyzeRequest, wait: bool = True):
+    """
+    Queue-only entrypoint for app traffic.
+    Stores job in `import_jobs`; worker handles processing asynchronously.
+    """
+    user_id = _require_user_id(request)
+    url = (req.url or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+    language = (req.language or "en").strip() or "en"
+    row = await _enqueue_import_job(user_id=user_id, url=url, language=language)
+    if not wait:
+        return {"job_id": row["id"], "status": "pending"}
+    payload = await _wait_for_job_result(
+        user_id=user_id,
+        job_id=str(row["id"]),
+        timeout_sec=_ANALYZE_QUEUE_WAIT_TIMEOUT_SEC,
+    )
+    return RecipeResponse(
+        recipe_name=payload.get("recipe_name", "Untitled Recipe"),
+        description=payload.get("description", ""),
+        creator=payload.get("creator", ""),
+        estimated_cooking_time=str(payload.get("estimated_cooking_time", "0")),
+        prep_time=str(payload.get("prep_time", "0")),
+        ingredients=payload.get("ingredients", []),
+        instructions=payload.get("instructions", []),
+        video_url=payload.get("video_url"),
+        thumbnail_url=payload.get("thumbnail_url"),
+        dish_hero_timestamp_seconds=str(payload.get("dish_hero_timestamp_seconds", "0")),
+    )
+
+
+@app.post("/analyze_reel/process", response_model=RecipeResponse, include_in_schema=False)
+async def analyze_reel_process(request: Request, req: AnalyzeRequest):
     url = (req.url or "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
@@ -574,8 +827,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
 
     try:
         if is_youtube_url(url):
-            # YouTube page URLs are not valid Gemini fileUri targets (blobstore/DMA errors).
-            # Download with yt-dlp and upload via Files API like TikTok/Instagram.
+            # YouTube: include both URL context and uploaded video file for grounding.
             yt_result = download_youtube_video(url)
             if not yt_result:
                 raise HTTPException(
@@ -590,7 +842,14 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             creator_name = yt_uploader or creator_name
             video_file = client.files.upload(file=local_video_path)
             video_file = await _wait_for_gemini_file_ready(client, video_file)
-            response = _generate_content_with_retry(client, [current_prompt, video_file])
+            response = _generate_content_with_retry(
+                client,
+                [
+                    current_prompt,
+                    f"Original source URL: {url}",
+                    video_file,
+                ],
+            )
         elif is_tiktok_url(url):
             # TikTok: download via tiktok-api-dl then upload file to Gemini
             tk_result = download_tiktok_video(url)
@@ -604,7 +863,14 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
             local_video_path = videoName
             video_file = client.files.upload(file=videoName)
             video_file = await _wait_for_gemini_file_ready(client, video_file)
-            response = _generate_content_with_retry(client, [current_prompt, video_file])
+            response = _generate_content_with_retry(
+                client,
+                [
+                    current_prompt,
+                    f"Original source URL: {url}",
+                    video_file,
+                ],
+            )
         else:
             # Instagram (or other): download then upload file to Gemini
             ig_result = download_instagram_reel(url)
@@ -623,6 +889,7 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
                 else ""
             )
             contents = [current_prompt]
+            contents.append(f"Original source URL: {url}")
             if extra_caption_context:
                 contents.append(extra_caption_context)
             contents.append(video_file)
@@ -689,16 +956,36 @@ async def analyze_reel(request: Request, req: AnalyzeRequest):
     )
 
 
+# Keep alternate path variants for internal worker/proxy compatibility.
+app.add_api_route(
+    "/analyze_reel/process/",
+    analyze_reel_process,
+    methods=["POST"],
+    response_model=RecipeResponse,
+    include_in_schema=False,
+)
+app.add_api_route(
+    "/api/analyze_reel/process",
+    analyze_reel_process,
+    methods=["POST"],
+    response_model=RecipeResponse,
+    include_in_schema=False,
+)
+app.add_api_route(
+    "/api/analyze_reel/process/",
+    analyze_reel_process,
+    methods=["POST"],
+    response_model=RecipeResponse,
+    include_in_schema=False,
+)
+
+
 @app.post("/analyze_video_upload", response_model=RecipeResponse)
 async def analyze_video_upload(
     request: Request,
     file: UploadFile = File(...),
     language: str = Form(default="en"),
-):
-    """
-    Multipart upload of a local video file (e.g. saved from Photos after Instagram/TikTok download).
-    Same Gemini extraction as TikTok/Instagram; Pro users get a served MP4 URL like other sources.
-    """
+    ):
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=500, detail="Gemini API key not configured")
 
@@ -778,6 +1065,17 @@ async def analyze_video_upload(
         thumbnail_url=thumbnail_url,
         dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Same handler on alternate paths: trailing slash (avoids redirect/body issues) and /api for proxies.

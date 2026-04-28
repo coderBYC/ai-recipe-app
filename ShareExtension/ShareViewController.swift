@@ -42,7 +42,7 @@ final class ShareViewController: UIViewController {
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         statusLabel.textAlignment = .center
         statusLabel.numberOfLines = 0
-        statusLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        statusLabel.font = ShareExtensionFonts.bitter(size: 15, weight: .semibold)
         statusLabel.textColor = .black
         statusLabel.text = "Grabbing your link…"
 
@@ -50,7 +50,7 @@ final class ShareViewController: UIViewController {
 
         generateButton.translatesAutoresizingMaskIntoConstraints = false
         generateButton.setTitle("⚡️ GENERATE RECIPE", for: .normal)
-        generateButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .heavy)
+        generateButton.titleLabel?.font = ShareExtensionFonts.bitter(size: 17, weight: .heavy)
         generateButton.titleLabel?.adjustsFontSizeToFitWidth = true
         generateButton.titleLabel?.minimumScaleFactor = 0.75
         generateButton.backgroundColor = .black
@@ -66,6 +66,7 @@ final class ShareViewController: UIViewController {
 
         errorDismissButton.translatesAutoresizingMaskIntoConstraints = false
         errorDismissButton.setTitle("Dismiss", for: .normal)
+        errorDismissButton.titleLabel?.font = ShareExtensionFonts.bitter(size: 17, weight: .semibold)
         errorDismissButton.isHidden = true
         errorDismissButton.addAction(UIAction { [weak self] _ in
             self?.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)

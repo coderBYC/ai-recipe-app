@@ -13,17 +13,15 @@ struct RegistrationView: View {
         VStack {
             Spacer()
             Text("Let Him Cook")
-                .font(.largeTitle)
-                .bold()
-                .fontDesign(Font.Design.serif)
+                .appFont(.largeTitle)
+                .fontWeight(.bold)
             Text("Viral Reels To Recipe")
-                .font(.title2)
-                .fontDesign(Font.Design.serif)
+                .appFont(.title2)
                 .padding(.bottom,60)
             VStack(spacing:8){
                 TextField("Enter your email", text: $email)
                     .autocapitalization(.none)
-                    .font(.subheadline)
+                    .appFont(.body)
                     .padding(12)
                     .background(Color(.systemGray6))
                     .boxStyle(cornerRadius: 10)
@@ -31,7 +29,7 @@ struct RegistrationView: View {
                     .padding(.horizontal,24)
                 TextField("Enter your username", text: $username)
                     .autocapitalization(.none)
-                    .font(.subheadline)
+                    .appFont(.body)
                     .padding(12)
                     .background(Color(.systemGray6))
                     .boxStyle(cornerRadius: 10)
@@ -40,7 +38,7 @@ struct RegistrationView: View {
                     
                 ZStack(alignment: .trailing) {
                     SecureField("Enter your password", text: $password)
-                        .font(.subheadline)
+                        .appFont(.body)
                         .padding(12)
                         .background(Color(.systemGray6))
                         .boxStyle(cornerRadius: 10)
@@ -56,7 +54,7 @@ struct RegistrationView: View {
                 
                 ZStack(alignment: .trailing) {
                     SecureField("Confirm your password", text: $confirmedPassword)
-                        .font(.subheadline)
+                        .appFont(.body)
                         .padding(12)
                         .background(Color(.systemGray6))
                         .boxStyle(cornerRadius: 10)
@@ -76,20 +74,12 @@ struct RegistrationView: View {
             Button {signUp()} label: {
                 Text("Sign Up")
                     .frame(width:360,height:48)
-                    .font(.headline)
+                    .appFont(.headlineBold)
                     .background(Color.black)
                     .cornerRadius(8)
                     .foregroundColor(.white)
             }
             .padding(.vertical)
-            
-            if let error = authManager.error {
-                Text(error.localizedDescription)
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .padding(.horizontal, 24)
-                    .multilineTextAlignment(.center)
-            }
             
             Spacer()
             
@@ -101,10 +91,16 @@ struct RegistrationView: View {
                     Text("Sign In")
                         .fontWeight(.semibold)
                 }
-                .font(.subheadline)
+                        .appFont(.body)
             }
             .padding(.vertical, 16)
         }
+        .errorPopup(message: Binding(
+            get: { authManager.error?.localizedDescription },
+            set: { newValue in
+                if newValue == nil { authManager.error = nil }
+            }
+        ))
     }
 }
 

@@ -27,18 +27,79 @@ struct RecipeAnalyzeResponse: Codable {
     let ingredients: [RecipeIngredientItem]
     let instructions: [RecipeInstructionItem]
     let video_url: String?
+    let thumbnail_url: String?
+    let dish_hero_timestamp_seconds: String?
+}
+
+struct ImportEnqueueResponse: Codable {
+    let job_id: String
+    let status: String
+}
+
+struct RemoteImportJob: Codable {
+    let id: String
+    let url: String
+    let user_id: String
+    let source_type: String
+    let status: String
+    let created_at: String?
+    let updated_at: String?
+    let error_log: String?
+    let result_json: [String: JSONValue]?
+}
+
+enum JSONValue: Codable {
+    case string(String)
+    case number(Double)
+    case bool(Bool)
+    case object([String: JSONValue])
+    case array([JSONValue])
+    case null
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() { self = .null; return }
+        if let v = try? container.decode(Bool.self) { self = .bool(v); return }
+        if let v = try? container.decode(Double.self) { self = .number(v); return }
+        if let v = try? container.decode(String.self) { self = .string(v); return }
+        if let v = try? container.decode([String: JSONValue].self) { self = .object(v); return }
+        if let v = try? container.decode([JSONValue].self) { self = .array(v); return }
+        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported JSON value")
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .string(let v): try c.encode(v)
+        case .number(let v): try c.encode(v)
+        case .bool(let v): try c.encode(v)
+        case .object(let v): try c.encode(v)
+        case .array(let v): try c.encode(v)
+        case .null: try c.encodeNil()
+        }
+    }
 }
 
 // MARK: - Backend config
 
 enum RecipeBackendConfig {
-    /// Default base URL (YouTube, TikTok, or fallback). **Instagram** may override via `BackendConfigDiscovery` (gist + Cloudflare tunnel).
     static var baseURL: String {
         #if targetEnvironment(simulator)
         return "http://127.0.0.1:8000"
         #else
-        return "https://ai-recipe-app-1-h59j.onrender.com"
+        return "http://35.3.118.45:8000"
+        //return "https://ai-recipe-app-1-h59j.onrender.com"
         #endif
+    }
+
+    /// Absolute URL for an API path (e.g. `"analyze_reel"` or `"analyze_video_upload"`). Avoids `URL(relativeTo:)` edge cases with some base strings.
+    static func endpointURL(path: String) -> URL? {
+        var base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        while base.last == "/" { base.removeLast() }
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tail = trimmed.hasPrefix("/") ? String(trimmed.dropFirst()) : trimmed
+        guard !tail.isEmpty else { return URL(string: base) }
+        return URL(string: base + "/" + tail)
     }
 }
 
@@ -54,54 +115,22 @@ enum RecipeBackendError: Error {
 final class RecipeBackendService {
     static let shared = RecipeBackendService()
 
+    /// Default `URLSession` idles out (~60s) while the backend downloads video + runs Gemini with no response bytes. Use this for analyze calls only.
+    /// Note: Some hosts (e.g. free-tier proxies) still enforce their own max request duration.
+    private static let longRunningAnalyzeSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 900
+        config.timeoutIntervalForResource = 1800
+        config.waitsForConnectivity = true
+        return URLSession(configuration: config)
+    }()
+
     private init() {}
-
-    private static func isInstagramReelURL(_ raw: String) -> Bool {
-        let u = raw.lowercased()
-        return u.contains("instagram.com") || u.contains("instagr.am")
-    }
-
-    /// Base URL for `/analyze_reel` — Instagram uses the gist-published tunnel when configured.
-    private static func analysisBaseURL(forReelURL reelURL: String) async -> String {
-        guard isInstagramReelURL(reelURL) else { return RecipeBackendConfig.baseURL }
-        await BackendConfigDiscovery.shared.refreshFromGistIfConfigured()
-        if let relay = BackendConfigDiscovery.shared.currentRelayBaseURL() {
-            if await isRelayReachable(relay) {
-            #if DEBUG
-                print("Instagram request routed to relay: \(relay)")
-            #endif
-                return relay
-            } else {
-#if DEBUG
-                print("Instagram relay unreachable, fallback to default backend: \(relay)")
-#endif
-            }
-        }
-        return RecipeBackendConfig.baseURL
-    }
-
-    /// Probe relay health quickly to avoid failing Instagram requests on stale gist hostnames.
-    private static func isRelayReachable(_ relayBase: String) async -> Bool {
-        guard let base = URL(string: relayBase),
-              let url = URL(string: "/healthz", relativeTo: base) else { return false }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 4
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else { return false }
-            return (200...299).contains(http.statusCode)
-        } catch {
-            return false
-        }
-    }
 
     /// Sends the video URL (and language) to the backend and returns the analyzed recipe response.
     /// Pass `userId` (Supabase auth user UUID string) when your API enforces quota via `X-User-Id` + Supabase RPC.
     func analyzeReel(url: String, language: String, userId: String? = nil, isPro: Bool? = nil) async throws -> RecipeAnalyzeResponse {
-        let baseString = await Self.analysisBaseURL(forReelURL: url)
-        guard let base = URL(string: baseString),
-              let endpoint = URL(string: "/analyze_reel", relativeTo: base) else {
+        guard let endpoint = RecipeBackendConfig.endpointURL(path: "analyze_reel") else {
             throw RecipeBackendError.invalidURL
         }
 
@@ -118,7 +147,7 @@ final class RecipeBackendService {
 
         let (data, response): (Data, URLResponse)
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await Self.longRunningAnalyzeSession.data(for: request)
         } catch {
             throw RecipeBackendError.network(error)
         }
@@ -134,6 +163,165 @@ final class RecipeBackendService {
 
         let decoder = JSONDecoder()
         return try decoder.decode(RecipeAnalyzeResponse.self, from: data)
+    }
+
+    /// Queue a link import server-side and return backend job id.
+    func enqueueImport(url: String, language: String, userId: String) async throws -> ImportEnqueueResponse {
+        guard let endpoint = RecipeBackendConfig.endpointURL(path: "import") else {
+            throw RecipeBackendError.invalidURL
+        }
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        request.httpBody = try JSONEncoder().encode(AnalyzeReelRequest(url: url, language: language))
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw RecipeBackendError.network(error)
+        }
+        guard let http = response as? HTTPURLResponse else {
+            throw RecipeBackendError.invalidResponse
+        }
+        if http.statusCode != 200 {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
+        }
+        return try JSONDecoder().decode(ImportEnqueueResponse.self, from: data)
+    }
+
+    /// Poll import jobs for current user.
+    func fetchImportJobs(userId: String, status: String? = nil, limit: Int = 50) async throws -> [RemoteImportJob] {
+        guard var endpoint = RecipeBackendConfig.endpointURL(path: "import/jobs") else {
+            throw RecipeBackendError.invalidURL
+        }
+        if var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false) {
+            var items: [URLQueryItem] = [URLQueryItem(name: "limit", value: String(limit))]
+            if let status, !status.isEmpty {
+                items.append(URLQueryItem(name: "status", value: status))
+            }
+            components.queryItems = items
+            if let u = components.url { endpoint = u }
+        }
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw RecipeBackendError.network(error)
+        }
+        guard let http = response as? HTTPURLResponse else {
+            throw RecipeBackendError.invalidResponse
+        }
+        if http.statusCode != 200 {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
+        }
+        return try JSONDecoder().decode([RemoteImportJob].self, from: data)
+    }
+
+    /// Uploads a local video file (e.g. from Photos) for the same Gemini pipeline as TikTok/Instagram downloads.
+    func analyzeUploadedVideo(fileURL: URL, language: String, userId: String?, isPro: Bool? = nil) async throws -> RecipeAnalyzeResponse {
+        guard let endpoint = RecipeBackendConfig.endpointURL(path: "analyze_video_upload") else {
+            throw RecipeBackendError.invalidURL
+        }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let userId, !userId.isEmpty {
+            request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        }
+        if let isPro {
+            request.setValue(isPro ? "true" : "false", forHTTPHeaderField: "X-Is-Pro")
+        }
+
+        let fileData = try Data(contentsOf: fileURL)
+        let filename = fileURL.lastPathComponent.isEmpty ? "video.mp4" : fileURL.lastPathComponent
+        let ext = (filename as NSString).pathExtension.lowercased()
+        let mimeType: String
+        switch ext {
+        case "mov": mimeType = "video/quicktime"
+        case "m4v": mimeType = "video/x-m4v"
+        default: mimeType = "video/mp4"
+        }
+        var body = Data()
+        func append(_ string: String) {
+            body.append(Data(string.utf8))
+        }
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"language\"\r\n\r\n\(language)\r\n")
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
+        append("Content-Type: \(mimeType)\r\n\r\n")
+        body.append(fileData)
+        append("\r\n--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await Self.longRunningAnalyzeSession.data(for: request)
+        } catch {
+            throw RecipeBackendError.network(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw RecipeBackendError.invalidResponse
+        }
+
+        if http.statusCode != 200 {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
+        }
+
+        return try JSONDecoder().decode(RecipeAnalyzeResponse.self, from: data)
+    }
+
+    /// Server calls Supabase `use_export_once` with the service role (client only sends `X-User-Id`).
+    func recordExportUsage(userId: String) async throws {
+        try await postJSON(path: "usage/export_once", userId: userId, body: EmptyEncodable())
+    }
+
+    private struct EmptyEncodable: Encodable {}
+
+    private struct PlanUpdateBody: Encodable {
+        let plan_type: String
+    }
+
+    /// Server PATCHes `profiles.plan_type` (RevenueCat mirror).
+    func syncSubscriptionPlan(planType: String, userId: String) async throws {
+        try await postJSON(path: "profile/plan", userId: userId, body: PlanUpdateBody(plan_type: planType))
+    }
+
+    private func postJSON<Body: Encodable>(path: String, userId: String, body: Body) async throws {
+        guard let endpoint = RecipeBackendConfig.endpointURL(path: path) else {
+            throw RecipeBackendError.invalidURL
+        }
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw RecipeBackendError.network(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw RecipeBackendError.invalidResponse
+        }
+
+        if http.statusCode != 200 {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
+        }
     }
 }
 
@@ -151,6 +339,7 @@ extension RecipeAnalyzeResponse {
         let estimatedCookingMinutes = Self.parseMinutes(from: estimated_cooking_time)
         let prepMinutes = Self.parseMinutes(from: prep_time ?? "")
         let totalSteps = instructions.count
+        let heroSeconds = Self.parseHeroSeconds(from: dish_hero_timestamp_seconds)
 
         let recipe = Recipe(
             title: title.isEmpty ? "Imported recipe" : title,
@@ -165,10 +354,28 @@ extension RecipeAnalyzeResponse {
             triedBefore: false,
             notes: notes,
             stepsContent: stepsText,
-            downloadedVideoURL: video_url?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            downloadedVideoURL: (thumbnail_url ?? video_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+            dishHeroTimestampSeconds: heroSeconds
         )
         modelContext.insert(recipe)
         return recipe
+    }
+
+    /// Copies analyzed fields into a `RecipeImportSubmission` for the Imports queue (approve → `Recipe`).
+    func applyToPendingImport(_ submission: RecipeImportSubmission, finalSourceURL: String) {
+        let title = recipe_name.trimmingCharacters(in: .whitespacesAndNewlines)
+        submission.readyTitle = title.isEmpty ? "Imported recipe" : title
+        submission.readyCreator = creator.trimmingCharacters(in: .whitespacesAndNewlines)
+        submission.readyNotes = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        submission.readyIngredients = ingredients.map { "\($0.item) - \($0.amount)" }.joined(separator: "\n")
+        submission.readySteps = instructions.sorted(by: { $0.step < $1.step }).map(\.description).joined(separator: "\n")
+        submission.readyPrepMinutes = Self.parseMinutes(from: prep_time ?? "")
+        submission.readyCookMinutes = Self.parseMinutes(from: estimated_cooking_time)
+        submission.readyTotalSteps = instructions.count
+        submission.readySource = RecipeSource.inferred(from: finalSourceURL).rawValue
+        submission.readySourceURL = finalSourceURL
+        submission.readyDownloadedVideoURL = (thumbnail_url ?? video_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        submission.readyDishHeroSeconds = Self.parseHeroSeconds(from: dish_hero_timestamp_seconds)
     }
 
     private static func parseMinutes(from raw: String) -> Int {
@@ -180,5 +387,23 @@ extension RecipeAnalyzeResponse {
             return Int(s[match]) ?? 0
         }
         return Int(digits.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+    }
+
+    private static func parseHeroSeconds(from raw: String?) -> Double {
+        guard let raw, !raw.isEmpty else { return 0 }
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+        if let v = Double(s), v >= 0, v.isFinite { return v }
+        if let r = s.range(of: #"[\d.]+"#, options: .regularExpression), let v = Double(s[r]), v >= 0, v.isFinite {
+            return v
+        }
+        return 0
+    }
+}
+
+extension RemoteImportJob {
+    var parsedAnalyzeResponse: RecipeAnalyzeResponse? {
+        guard let result_json else { return nil }
+        guard let data = try? JSONEncoder().encode(result_json) else { return nil }
+        return try? JSONDecoder().decode(RecipeAnalyzeResponse.self, from: data)
     }
 }

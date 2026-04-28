@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/Auth View/AuthView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 12
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign in",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check your inbox.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 31
+        }
+      }
+    ]
+  },
+  "version": 1
+}

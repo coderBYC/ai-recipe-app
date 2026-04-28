@@ -1,0 +1,96 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/MealPlanView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Meal Plan",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "This Week",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add recipe",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose recipe",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 388
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search recipes",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 390
+        }
+      },
+      {
+        "comment": "",
+        "key": "No recipes yet",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save recipes from Home, then pick them here.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 393
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 399
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,80 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/Auth View/SwiftUIView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Let Him Cook",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 15
+        }
+      },
+      {
+        "comment": "",
+        "key": "Viral Reels To Recipe",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your email",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your username",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your password",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Confirm your password",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Up",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "Already have an account? ",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign In",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 93
+        }
+      }
+    ]
+  },
+  "version": 1
+}

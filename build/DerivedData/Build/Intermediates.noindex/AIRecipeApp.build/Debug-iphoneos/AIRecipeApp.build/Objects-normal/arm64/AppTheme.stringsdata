@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Theme/AppTheme.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Dismiss error",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 161
+        }
+      }
+    ]
+  },
+  "version": 1
+}

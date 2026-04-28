@@ -1,0 +1,48 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Views/FooterView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "All subscriptions",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Purchases restored successfully!",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore purchases",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 228
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 246
+        }
+      }
+    ]
+  },
+  "version": 1
+}

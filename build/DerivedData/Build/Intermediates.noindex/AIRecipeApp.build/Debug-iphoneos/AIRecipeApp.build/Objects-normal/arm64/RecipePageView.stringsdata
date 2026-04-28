@@ -1,0 +1,80 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Views/RecipePageView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Prep: %lld min • Cook: %lld min",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cook: %lld min",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "No ingredients listed",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ingredients",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 161
+        }
+      },
+      {
+        "comment": "",
+        "key": "No steps listed",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "Steps",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rate this recipe",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 262
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open in %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 289
+        }
+      }
+    ]
+  },
+  "version": 1
+}

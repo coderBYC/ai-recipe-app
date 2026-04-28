@@ -1,0 +1,23 @@
+{
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/AIRecipeApp.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AIRecipeApp.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/AuthManager.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/AuthManager.swiftdeps"
+  },
+  "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Helpers/SubscriptionManager.swift" : {
+    "const-values" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.swiftconstvalues",
+    "dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.d",
+    "diagnostics" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.dia",
+    "object" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.o",
+    "swift-dependencies" : "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/Build/Intermediates.noindex/AIRecipeApp.build/Debug-iphoneos/AIRecipeApp.build/Objects-normal/arm64/SubscriptionManager.swiftdeps"
+  }
+}

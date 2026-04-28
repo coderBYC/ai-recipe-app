@@ -2,14 +2,16 @@ import SwiftUI
 import SwiftData
 import StoreKit
 import UIKit
-import RevenueCat
 import RevenueCatUI
 
 /// Root view with iOS glass-style TabView: Home, Cook Book, Add, Meal Plan, Settings.
 struct MainView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedTab: AppTab = .home
     @State private var addSheet: AddRecipeSheet?
     @State private var showAddMenu = false
+    @State private var showSavedVideoSuggestionBanner = false
     /// When set with Settings tab, `SettingsView` presents the matching legal sheet.
     @State private var deepLinkLegalDocument: LegalDocumentKind?
     @Environment(AuthManager.self) private var authManager
@@ -25,6 +27,10 @@ struct MainView: View {
                     await authManager.getAuthState()
                     consumePendingSharedRecipeURL()
                     consumePendingDeepLink()
+                    consumePendingPhotoRecipeImport()
+                    if authManager.authState == .authenticated {
+                        await PhotoLibraryRecipeNotifier.shared.requestNeededPermissionsIfPossible()
+                    }
                 }
             } else {
                 OnboardingView(isFinished: $hasOnboard)
@@ -34,6 +40,7 @@ struct MainView: View {
             Task { @MainActor in
                 consumePendingSharedRecipeURL()
                 consumePendingDeepLink()
+                consumePendingPhotoRecipeImport()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .importSharedRecipeLink)) { _ in
@@ -45,10 +52,35 @@ struct MainView: View {
         .onChange(of: hasOnboard) { _, _ in
             consumePendingSharedRecipeURL()
             consumePendingDeepLink()
+            consumePendingPhotoRecipeImport()
         }
-        .onChange(of: authManager.authState) { _, _ in
+        .onChange(of: authManager.authState) { _, newState in
             consumePendingSharedRecipeURL()
             consumePendingDeepLink()
+            consumePendingPhotoRecipeImport()
+            if newState == .authenticated {
+                Task { await PhotoLibraryRecipeNotifier.shared.requestNeededPermissionsIfPossible() }
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, hasOnboard, authManager.authState == .authenticated else { return }
+            Task {
+                await PhotoLibraryRecipeNotifier.shared.scanForRecentSavedVideosAndNotify()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                try? modelContext.save()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openPhotoRecipeImport)) { _ in
+            consumePendingPhotoRecipeImport()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .savedVideoRecipeSuggestion)) { _ in
+            guard hasOnboard, authManager.authState == .authenticated else { return }
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                showSavedVideoSuggestionBanner = true
+            }
         }
     }
 
@@ -85,6 +117,14 @@ struct MainView: View {
         }
     }
 
+    /// Opens the Photos video import sheet after a notification tap or `airecipe://photo-recipe`.
+    private func consumePendingPhotoRecipeImport() {
+        guard hasOnboard, authManager.authState == .authenticated else { return }
+        guard PendingPhotoRecipeImport.takePending() else { return }
+        selectedTab = .home
+        addSheet = .photoLibraryVideo
+    }
+
     @ViewBuilder
     private var content: some View {
         switch authManager.authState {
@@ -98,28 +138,44 @@ struct MainView: View {
     }
 
     private var mainTabView: some View {
-        Group {
-            switch selectedTab {
-            case .home:
-                RecipeListView(addSheet: $addSheet)
-            case .cookbook:
-                CookBookView()
-            case .mealPlan:
-                MealPlanView()
-            case .settings:
-                SettingsView(deepLinkLegalDocument: $deepLinkLegalDocument)
+        ZStack(alignment: .top) {
+            Group {
+                switch selectedTab {
+                case .home:
+                    RecipeListView(addSheet: $addSheet)
+                case .cookbook:
+                    ImportView()
+                case .mealPlan:
+                    MealPlanView()
+                case .settings:
+                    SettingsView(deepLinkLegalDocument: $deepLinkLegalDocument)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if showSavedVideoSuggestionBanner {
+                savedVideoSuggestionBanner
+                    .padding(.horizontal, 16)
+                    .padding(.top, 6)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.keyboard)
         // Reserves space so lists/scroll views don’t sit under the tab bar; spacing clears the raised + button.
         .safeAreaInset(edge: .bottom, spacing: 48) {
             glassyTabBar
         }
+        .onReceive(NotificationCenter.default.publisher(for: .switchToImportsTab)) { _ in
+            selectedTab = .cookbook
+        }
         .confirmationDialog("Add Recipe", isPresented: $showAddMenu) {
             Button("Upload video link") {
                 selectedTab = .home
                 addSheet = .addLink
+            }
+            Button("Video from Photos") {
+                selectedTab = .home
+                addSheet = .photoLibraryVideo
             }
             Button("Manual recipe") {
                 selectedTab = .home
@@ -132,12 +188,62 @@ struct MainView: View {
             Text("Choose how to add a recipe")
         }
     }
+
+    private var savedVideoSuggestionBanner: some View {
+        ZStack(alignment: .topTrailing) {
+            Button {
+                showSavedVideoSuggestionBanner = false
+                selectedTab = .home
+                addSheet = .photoLibraryVideo
+            } label: {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Wanna Build Recipe?")
+                            .appFont(.headline)
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Text("Pick a video you saved to Photos and turn it into a recipe.")
+                            .appFont(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(AppTheme.bitterFont(size: 15, weight: .semibold))
+                        .foregroundStyle(AppTheme.primary)
+                }
+                .padding(14)
+                .padding(.trailing, 28)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppTheme.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
+                )
+                .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    showSavedVideoSuggestionBanner = false
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(AppTheme.bitterFont(size: 20, weight: .regular))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .padding(6)
+            .buttonStyle(.plain)
+        }
+    }
     
     var glassyTabBar: some View {
         HStack(spacing: 0) {
             // 左側按鈕
             tabButton(icon: "house.fill", title:"Home", tab: .home)
-            tabButton(icon: "book.closed.fill", title:"Cook Book", tab: .cookbook)
+            tabButton(icon: "square.and.arrow.up", title:"Imports", tab: .cookbook)
             
             // --- 特大加號按鈕 ---
             Button {
@@ -184,11 +290,11 @@ struct MainView: View {
         } label: {
             VStack(spacing: 4){
                 Image(systemName: icon)
-                    .font(.system(size: 22))
+                    .font(AppTheme.bitterFont(size: 22, weight: .regular))
                     .frame(maxWidth: .infinity)
                     .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(AppTheme.bitterFont(size: 10, weight: .medium))
                     .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
                     .fontWeight(.semibold)
             }
@@ -202,25 +308,251 @@ enum AppTab {
     case home, cookbook, mealPlan, settings
 }
 
-struct CookBookView: View {
+struct ImportReviewItem: Identifiable {
+    var id: UUID { submission.id }
+    let submission: RecipeImportSubmission
+}
+
+/// Full recipe detail from an in-memory `Recipe` (same UI as Home); user adds to library or discards the import.
+struct ImportRecipeReviewSheet: View {
+    @Environment(\.modelContext) private var mainModelContext
+    let submission: RecipeImportSubmission
+    let onDismiss: () -> Void
+    /// Called with the persisted `Recipe` after the user taps **Add to Home** (optional).
+    var onAddedToHome: ((Recipe) -> Void)? = nil
+
+    @State private var previewContainer: ModelContainer?
+    @State private var previewRecipe: Recipe?
+    @State private var previewLoadFailed = false
+
+    var body: some View {
+        Group {
+            if let previewContainer, let previewRecipe {
+                RecipePageView(recipe: previewRecipe, onDismiss: onDismiss)
+                    .modelContainer(previewContainer)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        reviewActionsBar
+                    }
+            } else if previewLoadFailed {
+                VStack(spacing: 16) {
+                    Text("Couldn’t load preview.")
+                        .appFont(.headline)
+                    Button("Close") { onDismiss() }
+                        .appFont(.body)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(AppTheme.surface)
+            } else {
+                VStack(spacing: 16) {
+                    ProgressView()
+                    Text("Loading preview…")
+                        .appFont(.callout)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(AppTheme.surface)
+            }
+        }
+        .task { await loadPreview() }
+    }
+
+    private var reviewActionsBar: some View {
+        HStack(spacing: 12) {
+            Button(role: .destructive) {
+                RecipeImportProcessor.removePendingVideoIfAny(relPath: submission.pendingVideoRelPath)
+                mainModelContext.delete(submission)
+                try? mainModelContext.save()
+                onDismiss()
+            } label: {
+                Text("Discard")
+                    .frame(maxWidth: .infinity)
+                    .appFont(.headline)
+            }
+            .buttonStyle(.bordered)
+
+            Button {
+                let recipe = RecipeImportProcessor.approveSubmission(submission, modelContext: mainModelContext)
+                onAddedToHome?(recipe)
+                onDismiss()
+            } label: {
+                Text("Add to Home")
+                    .frame(maxWidth: .infinity)
+                    .appFont(.headline)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(AppTheme.primary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(AppTheme.surface)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(AppTheme.shadow)
+                .frame(height: 1)
+        }
+    }
+
+    @MainActor
+    private func loadPreview() async {
+        guard previewContainer == nil else { return }
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: Recipe.self, configurations: config)
+            let ctx = ModelContext(container)
+            let recipe = RecipeImportProcessor.makeRecipe(from: submission)
+            ctx.insert(recipe)
+            try ctx.save()
+            previewContainer = container
+            previewRecipe = recipe
+        } catch {
+            previewContainer = nil
+            previewRecipe = nil
+            previewLoadFailed = true
+        }
+    }
+}
+
+struct ImportView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \RecipeImportSubmission.createdAt, order: .reverse) private var submissions: [RecipeImportSubmission]
+    @State private var importReview: ImportReviewItem?
+    /// Optional hook when user completes **Add to Home** from the import preview (e.g. onboarding).
+    var onTutorialAddedRecipe: ((Recipe) -> Void)? = nil
+    @State private var forcePollTick: Int = 0
+
+    private var hasProcessingRows: Bool {
+        submissions.contains { $0.status == .processing && $0.importKind == "link" }
+    }
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                Image(systemName: "book.closed")
-                    .font(.system(size: 38))
-                    .foregroundStyle(AppTheme.primary)
-                Text("Cook Book")
-                    .appFont(.title2)
-                    .foregroundStyle(AppTheme.textPrimary)
-                Text("Your saved cookbook collections will appear here.")
-                    .appFont(.callout)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .multilineTextAlignment(.center)
+            Group {
+                if submissions.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(AppTheme.bitterFont(size: 38, weight: .regular))
+                            .foregroundStyle(AppTheme.primary)
+                        Text("My Imports")
+                            .appFont(.title2)
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Text("Add a link or video from Home — progress shows here.")
+                            .appFont(.callout)
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(AppTheme.surface.ignoresSafeArea())
+                } else {
+                    List {
+                        ForEach(submissions) { submission in
+                            ImportSubmissionRow(
+                                submission: submission,
+                                onReadyRowTap: submission.status == .ready
+                                    ? { importReview = ImportReviewItem(submission: submission) }
+                                    : nil
+                            )
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        deleteSubmission(submission)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(AppTheme.surface.ignoresSafeArea())
+                }
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppTheme.surface.ignoresSafeArea())
-            .navigationTitle("Cook Book")
+            .navigationTitle("Imports")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Imports")
+                        .appFont(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundStyle(AppTheme.primary)
+                }
+            }
+            .sheet(item: $importReview) { item in
+                ImportRecipeReviewSheet(
+                    submission: item.submission,
+                    onDismiss: { importReview = nil },
+                    onAddedToHome: onTutorialAddedRecipe
+                )
+            }
+            .task {
+                await RecipeImportProcessor.syncRemoteLinkJobs(container: modelContext.container)
+            }
+            .task(id: hasProcessingRows ? forcePollTick : -1) {
+                guard hasProcessingRows else { return }
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    await RecipeImportProcessor.syncRemoteLinkJobs(container: modelContext.container)
+                    if !hasProcessingRows { break }
+                }
+            }
+            .refreshable {
+                await RecipeImportProcessor.syncRemoteLinkJobs(container: modelContext.container)
+            }
+        }
+    }
+
+    private func deleteSubmission(_ submission: RecipeImportSubmission) {
+        RecipeImportProcessor.removePendingVideoIfAny(relPath: submission.pendingVideoRelPath)
+        modelContext.delete(submission)
+        try? modelContext.save()
+        forcePollTick += 1
+    }
+}
+
+private struct ImportSubmissionRow: View {
+    @Environment(\.modelContext) private var modelContext
+    let submission: RecipeImportSubmission
+    var onReadyRowTap: (() -> Void)?
+
+    var body: some View {
+        Group {
+            switch submission.status {
+            case .ready:
+                RecipeRowView(recipe: RecipeImportProcessor.makeRecipe(from: submission))
+                    .onTapGesture { onReadyRowTap?() }
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            RecipeImportProcessor.removePendingVideoIfAny(relPath: submission.pendingVideoRelPath)
+                            modelContext.delete(submission)
+                            try? modelContext.save()
+                        } label: {
+                            Label("Delete import", systemImage: "trash")
+                        }
+                    }
+            case .processing, .failed:
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(submission.sourceURL)
+                            .appFont(.headline)
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .lineLimit(2)
+                        Text(submission.status == .processing ? "Processing…" : (submission.errorMessage.isEmpty ? "Failed" : submission.errorMessage))
+                            .appFont(.caption)
+                            .foregroundStyle(submission.status == .failed ? Color.red : AppTheme.textSecondary)
+                            .lineLimit(submission.status == .failed ? 4 : 2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if submission.status == .processing {
+                        ProgressView()
+                            .tint(AppTheme.primary)
+                    }
+                }
+                .padding(14)
+                .boxStyle(cornerRadius: 10)
+            }
         }
     }
 }
@@ -265,8 +597,6 @@ struct SettingsView: View {
                 Section("Subscription Plan"){
                     if subManager.isPremium {
                         Text("PREMIUM PLAN🔥")
-                            .fontDesign(Font.Design.serif)
-                            .font(Font.title)
                             .appFont(.body)
                             .listRowSeparator(.hidden)
                     } else {
@@ -383,7 +713,7 @@ struct SettingsView: View {
                                 .padding(10)
                                 .appFont(.body)
                             Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .font(.system(size: 18))
+                                .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                                 .foregroundStyle(Color.red)
                         }
                     }
@@ -411,7 +741,7 @@ struct SettingsView: View {
                                 .padding(10)
                                 .appFont(.body)
                             Image(systemName: "trash.fill")
-                                .font(.system(size: 18))
+                                .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                                 .foregroundStyle(Color.red)
                         }
                     }
@@ -440,8 +770,7 @@ struct SettingsView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
                         .appFont(.largeTitle)
-                        .fontDesign(.serif)
-                        .fontWeight(.semibold)
+                        .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
             }
@@ -467,6 +796,7 @@ struct SettingsView: View {
                         }
                     }
             }
+            .appFont(.titleBold)
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 Task { @MainActor in
@@ -482,14 +812,7 @@ struct SettingsView: View {
             } message: {
                 Text("Removes your login and profile on our servers and deletes local recipes on this device. For manual cleanup in Supabase, see Supabase/delete_account.sql.")
             }
-            .alert("Could not delete account", isPresented: Binding(
-                get: { deleteAccountError != nil },
-                set: { if !$0 { deleteAccountError = nil } }
-            )) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(deleteAccountError ?? "")
-            }
+            .errorPopup(message: $deleteAccountError)
         }
     }
 
@@ -505,7 +828,6 @@ struct SettingsView: View {
         defer { isDeletingAccount = false }
         do {
             try await authManager.deleteAccount()
-            try await Purchases.shared.logOut()
             try modelContext.delete(model: Recipe.self)
             try modelContext.delete(model: PlannedMeal.self)
             try modelContext.save()

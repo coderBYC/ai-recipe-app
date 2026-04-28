@@ -65,27 +65,6 @@ final class SupabaseService {
         return userId.uuidString
     }
     
-    func useAIOnce() async throws {
-        guard let userId = try? await client.auth.session.user.id else {
-            throw SupabaseUsageError.notAuthenticated
-        }
-        struct Params: Encodable { let user_id: UUID }
-        _ = try await client
-            .rpc("use_ai_once", params: Params(user_id: userId))
-            .execute()
-    }
-
-    /// Call the `use_export_once` RPC in Supabase to check and increment export usage.
-    func useExportOnce() async throws {
-        guard let userId = try? await client.auth.session.user.id else {
-            throw SupabaseUsageError.notAuthenticated
-        }
-        struct Params: Encodable { let user_id: UUID }
-        _ = try await client
-            .rpc("use_export_once", params: Params(user_id: userId))
-            .execute()
-    }
-
     /// Deletes the signed-in user via GoTrue `DELETE /auth/v1/user` (removes `auth.users` and cascades to `profiles` if FK is set).
     func deleteAccount() async throws {
         let session: Session
@@ -134,23 +113,6 @@ final class SupabaseService {
             .value
 
         return row.ai_usage_count ?? 0
-    }
-
-    /// Update the user's subscription plan in the `profiles` table.
-    func updatePlan(to plan: String) async throws {
-        guard let userId = try? await client.auth.session.user.id else {
-            throw SupabaseUsageError.notAuthenticated
-        }
-
-        struct ProfileUpdate: Encodable {
-            let plan_type: String
-        }
-
-        _ = try await client
-            .from("profiles")
-            .update(ProfileUpdate(plan_type: plan))
-            .eq("id", value:userId)
-            .execute()
     }
 }
 

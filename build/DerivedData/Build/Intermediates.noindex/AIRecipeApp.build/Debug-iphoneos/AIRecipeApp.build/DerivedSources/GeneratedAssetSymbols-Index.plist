@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>colors</key>
+	<array>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACColorNameAccentColor</string>
+			<key>relativePath</key>
+			<string>./AccentColor.colorset</string>
+			<key>swiftSymbol</key>
+			<string>accent</string>
+		</dict>
+	</array>
+	<key>images</key>
+	<array>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameInstagramIcon</string>
+			<key>relativePath</key>
+			<string>./InstagramIcon.imageset</string>
+			<key>swiftSymbol</key>
+			<string>instagramIcon</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameLoadingMeme</string>
+			<key>relativePath</key>
+			<string>./LoadingMeme.imageset</string>
+			<key>swiftSymbol</key>
+			<string>loadingMeme</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameTikTokIcon</string>
+			<key>relativePath</key>
+			<string>./TikTokIcon.imageset</string>
+			<key>swiftSymbol</key>
+			<string>tikTokIcon</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/bryanumich/Desktop/Desktop/AIRecipeApp/AIRecipe/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameYouTubeIcon</string>
+			<key>relativePath</key>
+			<string>./YouTubeIcon.imageset</string>
+			<key>swiftSymbol</key>
+			<string>youTubeIcon</string>
+		</dict>
+	</array>
+	<key>symbols</key>
+	<array/>
+</dict>
+</plist>

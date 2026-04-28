@@ -1,75 +1,50 @@
 import SwiftUI
-import AVKit
 import WebKit
 
-/// Recipe video preview: plays downloaded video URL, YouTube embed, or shows thumbnail/placeholder.
+/// Recipe media:
+/// - YouTube: embed player
+/// - Instagram/TikTok/Photos: backend-generated thumbnail image URL
 struct VideoThumbnailView: View {
     let sourceURL: String
     let downloadedVideoURL: String
     let source: RecipeSource
-    @State private var resolvedDownloadedURL: URL?
+    let dishHeroTimestampSeconds: Double
 
-    init(sourceURL: String, downloadedVideoURL: String = "", source: RecipeSource) {
+    init(
+        sourceURL: String,
+        downloadedVideoURL: String = "",
+        source: RecipeSource,
+        dishHeroTimestampSeconds: Double = 0
+    ) {
         self.sourceURL = sourceURL
         self.downloadedVideoURL = downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
         self.source = source
+        self.dishHeroTimestampSeconds = dishHeroTimestampSeconds
     }
 
     var body: some View {
         Group {
-            if let url = playableDownloadedURL {
-                ResolvedVideoPlayer(url: url)
-            } else if source == .youtube, let embedURL = Recipe.youtubeEmbedURL(from: sourceURL) {
-                YouTubeEmbedView(embedURL: embedURL)
-            } else {
-                placeholderView
+            switch source {
+            case .youtube:
+                if let embedURL = Recipe.youtubeEmbedURL(from: sourceURL) {
+                    YouTubeEmbedView(embedURL: embedURL)
+                } else {
+                    placeholderView
+                }
+            case .instagram, .tiktok, .photos:
+                thumbnailImageView
             }
         }
-        .task(id: downloadedVideoURL) {
-            await refreshResolvedVideoURLIfNeeded()
-        }
-        .frame(height: 230)
+        .frame(height: 280)
         .clipped()
     }
 
     private var playableDownloadedURL: URL? {
-        if let resolvedDownloadedURL { return resolvedDownloadedURL }
-        guard !downloadedVideoURL.isEmpty, let url = URL(string: downloadedVideoURL) else { return nil }
-        return url
-    }
-
-    /// For Instagram/TikTok premium previews, rewrite stale `/video/{id}` links to the latest relay host.
-    @MainActor
-    private func refreshResolvedVideoURLIfNeeded() async {
-        guard !downloadedVideoURL.isEmpty, let original = URL(string: downloadedVideoURL) else {
-            resolvedDownloadedURL = nil
-            return
-        }
-        guard source == .instagram || source == .tiktok else {
-            resolvedDownloadedURL = original
-            return
-        }
-        // Only rewrite backend-served paths; leave arbitrary absolute URLs untouched.
-        guard original.path.hasPrefix("/video/") else {
-            resolvedDownloadedURL = original
-            return
-        }
-
-        await BackendConfigDiscovery.shared.refreshFromGistIfConfigured()
-        guard let relay = BackendConfigDiscovery.shared.currentRelayBaseURL(),
-              let relayBase = URL(string: relay) else {
-            resolvedDownloadedURL = original
-            return
-        }
-
-        var components = URLComponents()
-        components.scheme = relayBase.scheme
-        components.host = relayBase.host
-        components.port = relayBase.port
-        components.path = original.path
-        components.query = original.query
-        components.fragment = original.fragment
-        resolvedDownloadedURL = components.url ?? original
+        let s = downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty else { return nil }
+        if s.lowercased().hasPrefix("file://"), let u = URL(string: s) { return u }
+        if s.hasPrefix("/") { return URL(fileURLWithPath: s) }
+        return URL(string: s)
     }
 
     private var placeholderView: some View {
@@ -77,32 +52,114 @@ struct VideoThumbnailView: View {
             .fill(AppTheme.primary.opacity(0.15))
             .overlay {
                 Image(systemName: source.iconName)
-                    .font(.system(size: 48))
+                    .font(AppTheme.bitterFont(size: 48, weight: .regular))
                     .foregroundStyle(AppTheme.primary.opacity(0.5))
             }
     }
+
+    private var thumbnailImageView: some View {
+        Group {
+            if let url = playableDownloadedURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    case .failure:
+                        placeholderView
+                    case .empty:
+                        ZStack {
+                            placeholderView
+                            ProgressView()
+                        }
+                    @unknown default:
+                        placeholderView
+                    }
+                }
+            } else {
+                placeholderView
+            }
+        }
+    }
 }
 
-private struct ResolvedVideoPlayer: View {
-    let url: URL
-    @State private var player = AVPlayer()
+// MARK: - Recipe list row thumbnail (right side)
+
+struct RecipeListThumbnailView: View {
+    let recipe: Recipe
+    /// Square list thumbnail; fits beside title in `RecipeRowView`.
+    private let side: CGFloat = 72
 
     var body: some View {
-        VideoPlayer(player: player)
-            .task(id: url) {
-                let item = AVPlayerItem(url: url)
-                player.replaceCurrentItem(with: item)
-                // Start immediately; user still has native controls to pause/seek.
-                player.play()
+        Group {
+            if recipe.sourceEnum == .youtube, let thumb = Recipe.youtubeThumbnailURL(from: recipe.sourceURL) {
+                AsyncImage(url: thumb) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        placeholder
+                    case .empty:
+                        ZStack {
+                            placeholder
+                            ProgressView()
+                                .scaleEffect(0.85)
+                        }
+                    @unknown default:
+                        placeholder
+                    }
+                }
+            } else if let url = Self.playableDownloadedURL(recipe) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        placeholder
+                    case .empty:
+                        ZStack {
+                            placeholder
+                            ProgressView()
+                                .scaleEffect(0.85)
+                        }
+                    @unknown default:
+                        placeholder
+                    }
+                }
+            } else {
+                placeholder
             }
-            .onDisappear {
-                player.pause()
+        }
+        .frame(width: side, height: side)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
+                .stroke(AppTheme.textSecondary.opacity(0.28), lineWidth: AppTheme.boxBorderWidth)
+        )
+    }
+
+    private var placeholder: some View {
+        Rectangle()
+            .fill(AppTheme.primary.opacity(0.12))
+            .overlay {
+                SourceIconView(source: recipe.sourceEnum)
             }
+    }
+
+    private static func playableDownloadedURL(_ recipe: Recipe) -> URL? {
+        let s = recipe.downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty else { return nil }
+        if s.lowercased().hasPrefix("file://"), let u = URL(string: s) { return u }
+        if s.hasPrefix("/") { return URL(fileURLWithPath: s) }
+        return URL(string: s)
     }
 }
 
 // MARK: - YouTube embed (WKWebView)
-// 使用 loadHTMLString + baseURL 避免錯誤 153（YouTube 要求正確的 Referer）
 
 struct YouTubeEmbedView: View {
     let embedURL: URL
@@ -137,7 +194,6 @@ private struct YouTubeWebView: UIViewRepresentable {
             webView.load(URLRequest(url: embedURL))
             return webView
         }
-        // html/body/iframe 100% height so no extra black block below; object-fit contain keeps aspect ratio inside frame
         let html = """
         <!DOCTYPE html>
         <html style="height:100%;margin:0;padding:0;">

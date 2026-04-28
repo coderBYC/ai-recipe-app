@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/SubscriptionDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Can't open URL",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "There's no email app in the simulator",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ok",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 197
+        }
+      }
+    ]
+  },
+  "version": 1
+}

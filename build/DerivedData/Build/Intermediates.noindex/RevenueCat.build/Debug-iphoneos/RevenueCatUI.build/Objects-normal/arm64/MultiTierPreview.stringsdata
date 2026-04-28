@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/Templates/V2/Previews/TemplateComponentsViewPreviews/MultiTierPreview.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Fallback paywall",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 407
+        }
+      }
+    ]
+  },
+  "version": 1
+}

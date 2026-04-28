@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bryanumich/Desktop/Desktop/AIRecipeApp/build/DerivedData/SourcePackages/checkouts/purchases-ios-spm/RevenueCatUI/CustomerCenter/Views/Virtual Currencies/VirtualCurrencyBalancesScreen.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "VirtualCurrencyBalancesSectionView is not available on this platform",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 148
+        }
+      }
+    ]
+  },
+  "version": 1
+}

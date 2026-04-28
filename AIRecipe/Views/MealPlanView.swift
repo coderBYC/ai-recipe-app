@@ -22,6 +22,7 @@ private extension Calendar {
 
 struct MealPlanView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.isOnboardingWalkthrough) private var isOnboardingWalkthrough
     @Query(sort: \PlannedMeal.weekStart) private var allPlanned: [PlannedMeal]
     @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
 
@@ -54,8 +55,7 @@ struct MealPlanView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Meal Plan")
                         .appFont(.largeTitle)
-                        .fontWeight(.semibold)
-                        .fontDesign(.serif)
+                        .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
             }
@@ -72,6 +72,7 @@ struct MealPlanView: View {
                     }
                 )
             }
+            .onboardingMealPlanTip(isOnboardingWalkthrough)
         }
     }
 
@@ -81,7 +82,7 @@ struct MealPlanView: View {
                 shiftWeek(by: -1)
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.title3.weight(.semibold))
+                    .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                     .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
@@ -112,7 +113,7 @@ struct MealPlanView: View {
                 shiftWeek(by: 1)
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.title3.weight(.semibold))
+                    .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                     .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
@@ -204,7 +205,7 @@ struct MealPlanView: View {
 
         return HStack(alignment: .center, spacing: 10) {
             Image(systemName: slot.iconName)
-                .font(.body)
+                .font(AppTheme.bitterFont(size: 15, weight: .regular))
                 .foregroundStyle(AppTheme.primary)
                 .frame(width: 28, alignment: .center)
 
@@ -344,7 +345,7 @@ private struct RecipePickerSheet: View {
                 if recipes.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "tray")
-                            .font(.largeTitle)
+                            .font(AppTheme.bitterFont(size: 28, weight: .semibold))
                             .foregroundStyle(AppTheme.textSecondary)
                         Text("No recipes yet")
                             .appFont(.headlineBold)
@@ -405,7 +406,7 @@ private struct RecipePickerSheet: View {
 }
 
 #Preview {
-    let schema = Schema([Recipe.self, PlannedMeal.self])
+    let schema = Schema([Recipe.self, PlannedMeal.self, RecipeImportSubmission.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: config)
     return MealPlanView()
