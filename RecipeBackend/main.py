@@ -8,7 +8,6 @@ from google.genai import errors as genai_errors  # pyright: ignore[reportMissing
 from download import (
     download_instagram_reel,
     download_tiktok_video,
-    download_youtube_video,
     InstagramBlockedError,
 )
 import asyncio
@@ -831,27 +830,16 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
 
     try:
         if is_youtube_url(url):
-            # YouTube: include both URL context and uploaded video file for grounding.
-            yt_result = download_youtube_video(url)
-            if not yt_result:
-                raise HTTPException(
-                    status_code=502,
-                    detail=(
-                        "Failed to download this YouTube video (often HTTP 403 from Google). "
-                        "Try: pip install -U yt-dlp; set YOUTUBE_COOKIES_FILE to a Netscape cookies.txt from a logged-in browser; "
-                        "or YOUTUBE_PLAYER_CLIENT=web_embedded (see RecipeBackend/download.py)."
-                    ),
-                )
-            local_video_path, yt_uploader = yt_result
-            creator_name = yt_uploader or creator_name
-            video_file = client.files.upload(file=local_video_path)
-            video_file = await _wait_for_gemini_file_ready(client, video_file)
+            # YouTube: pass the source URL as fileData.fileUri for stronger grounding.
             response = _generate_content_with_retry(
                 client,
                 [
                     current_prompt,
-                    f"Original source URL: {url}",
-                    video_file,
+                    {
+                        "fileData": {
+                            "fileUri": url,
+                        }
+                    },
                 ],
             )
         elif is_tiktok_url(url):
