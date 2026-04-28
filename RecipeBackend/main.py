@@ -130,7 +130,11 @@ _IMPORT_POLL_INTERVAL_SEC = max(1.0, float(os.getenv("IMPORT_POLL_INTERVAL_SEC",
 _IMPORT_SCAN_BATCH = max(1, int(os.getenv("IMPORT_SCAN_BATCH", "10")))
 _IMPORT_WORKER_CONCURRENCY = max(1, int(os.getenv("IMPORT_WORKER_CONCURRENCY", "2")))
 _IMPORT_RETRY_AFTER_429_SEC = max(5.0, float(os.getenv("IMPORT_RETRY_AFTER_429_SEC", "300")))
-_IMPORT_WORKER_LOCAL_API_BASE = os.getenv("IMPORT_WORKER_LOCAL_API_BASE", "http://127.0.0.1:8000").strip().rstrip("/")
+_LOCAL_PORT = (os.getenv("PORT") or "8000").strip() or "8000"
+_IMPORT_WORKER_LOCAL_API_BASE = os.getenv(
+    "IMPORT_WORKER_LOCAL_API_BASE",
+    f"http://127.0.0.1:{_LOCAL_PORT}",
+).strip().rstrip("/")
 _ANALYZE_QUEUE_WAIT_TIMEOUT_SEC = max(5.0, float(os.getenv("ANALYZE_QUEUE_WAIT_TIMEOUT_SEC", "240")))
 _ANALYZE_QUEUE_WAIT_POLL_SEC = max(0.2, float(os.getenv("ANALYZE_QUEUE_WAIT_POLL_SEC", "1.0")))
 _import_worker: Optional["ImportQueueWorker"] = None
