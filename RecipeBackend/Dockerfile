@@ -39,6 +39,7 @@ ENV PATH="/opt/venv/bin:/usr/bin:/usr/local/bin:/bin"
 
 # --- App code ---
 COPY main.py /app/main.py
+COPY worker.py /app/worker.py
 COPY download.py /app/download.py
 COPY download_tiktok.js /app/download_tiktok.js
 
