@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from contextlib import suppress
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Optional
@@ -154,11 +155,15 @@ class ImportQueueWorker:
 
         endpoint = f"{self.local_api_base}/analyze_reel/process"
         print(f"[ImportQueueWorker:{worker_index}] processing id={rid}")
+        headers = {"X-User-Id": user_id}
+        public_base = (os.getenv("PUBLIC_BASE_URL") or "").strip().rstrip("/")
+        if public_base:
+            headers["X-Public-Base-Url"] = public_base
         try:
             async with httpx.AsyncClient(timeout=1800) as client:
                 resp = await client.post(
                     endpoint,
-                    headers={"X-User-Id": user_id},
+                    headers=headers,
                     json={"url": url, "language": language},
                 )
             if resp.status_code == 429:

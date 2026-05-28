@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import instaloader  # pyright: ignore[reportMissingImports]
 import os
+import re
 import time
 import glob
 import subprocess
+import threading
 import uuid
 import traceback
 import shutil
@@ -22,6 +24,56 @@ class InstagramBlockedError(Exception):
     """Raised when Instagram throttles or blocks scraping requests."""
 
 
+class TikTokBlockedError(Exception):
+    """Raised when TikTok or the downloader API throttles or blocks requests."""
+
+
+_TIKTOK_DOWNLOAD_LOCK = threading.Lock()
+_last_global_tiktok_attempt_at: float = 0.0
+
+_TIKTOK_RATE_LIMIT_RE = re.compile(
+    r"(rate\s*limit|ratelimit|too\s+many|429|captcha|verify\s+you|"
+    r"blocked|try\s+again|ip\s*ban|forbidden|access\s+denied|"
+    r"api\s+limit|empty\s+response|temporarily\s+unavailable|"
+    r"service\s+unavailable|503|502|exceeded)",
+    re.IGNORECASE,
+)
+
+
+def _tiktok_output_looks_rate_limited(text: str) -> bool:
+    if not text or not text.strip():
+        return False
+    return bool(_TIKTOK_RATE_LIMIT_RE.search(text))
+
+
+def _tiktok_min_interval_seconds() -> float:
+    try:
+        return max(0.0, float(os.environ.get("TIKTOK_MIN_INTERVAL_SECONDS", "45").strip()))
+    except ValueError:
+        return 45.0
+
+
+def _tiktok_pre_fetch_delay_seconds() -> float:
+    try:
+        return max(0.0, float(os.environ.get("TIKTOK_PRE_FETCH_DELAY_SEC", "1").strip()))
+    except ValueError:
+        return 1.0
+
+
+def _acquire_global_tiktok_slot() -> None:
+    """Wait for minimum spacing since the last TikTok fetch (call while holding _TIKTOK_DOWNLOAD_LOCK)."""
+    global _last_global_tiktok_attempt_at
+    min_interval = _tiktok_min_interval_seconds()
+    if min_interval > 0 and _last_global_tiktok_attempt_at > 0:
+        elapsed = time.time() - _last_global_tiktok_attempt_at
+        if elapsed < min_interval:
+            time.sleep(min_interval - elapsed)
+    pre_delay = _tiktok_pre_fetch_delay_seconds()
+    if pre_delay > 0:
+        time.sleep(min(pre_delay, 120.0))
+    _last_global_tiktok_attempt_at = time.time()
+
+
 def _node_executable() -> Optional[str]:
     """Resolve Node for TikTok helper (Docker sets NODE_EXECUTABLE=/usr/bin/node)."""
     env_bin = os.environ.get("NODE_EXECUTABLE", "").strip()
@@ -37,11 +89,10 @@ def _node_executable() -> Optional[str]:
 def download_tiktok_video(url, target_dir="downloads"):
     """Download a TikTok video using @tobyg74/tiktok-api-dl.
     Returns (video_path, creator_name) on success, or None on failure.
+    Raises TikTokBlockedError when the downloader API appears rate-limited.
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(script_dir, "download_tiktok.js")
-    #metadata = pyk.get_tiktok_json(url)
-    #author = metadata.get('author', {}).get('nickname', '')
     if not os.path.isfile(script_path):
         print("❌ download_tiktok.js not found")
         return None
@@ -54,34 +105,51 @@ def download_tiktok_video(url, target_dir="downloads"):
         print("❌ Node.js not found (set NODE_EXECUTABLE or install node).")
         return None
     try:
-        result = subprocess.run(
-            [node_bin, script_path, url, os.path.abspath(out_path)],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            cwd=script_dir,
-        )
-        if result.returncode != 0:
-            print(f"❌ TikTok download failed: {result.stderr or result.stdout}")
+        with _TIKTOK_DOWNLOAD_LOCK:
+            _acquire_global_tiktok_slot()
+            result = subprocess.run(
+                [node_bin, script_path, url, os.path.abspath(out_path)],
+                capture_output=True,
+                text=True,
+                timeout=120,
+                cwd=script_dir,
+            )
+            combined_output = "\n".join(
+                part for part in (result.stderr or "", result.stdout or "") if part
+            )
+            if result.returncode != 0:
+                print(f"❌ TikTok download failed: {combined_output or '(no output)'}")
+                if _tiktok_output_looks_rate_limited(combined_output):
+                    raise TikTokBlockedError(
+                        combined_output.strip()[:500] or "TikTok downloader rate limited"
+                    )
+                return None
+            if result.stdout:
+                for line in result.stdout.splitlines():
+                    if line.startswith("CREATOR_NAME:"):
+                        creator_name = line.split("CREATOR_NAME:", 1)[1].strip()
+                        break
+            if os.path.isfile(out_path) and os.path.getsize(out_path) > 0:
+                return out_path, creator_name
+            if _tiktok_output_looks_rate_limited(combined_output):
+                raise TikTokBlockedError(
+                    combined_output.strip()[:500] or "TikTok downloader returned no video"
+                )
             return None
-        # Parse creator from JS output line like: CREATOR_NAME:<name>
-        if result.stdout:
-            for line in result.stdout.splitlines():
-                if line.startswith("CREATOR_NAME:"):
-                    creator_name = line.split("CREATOR_NAME:", 1)[1].strip()
-                    break
-        if os.path.isfile(out_path) and os.path.getsize(out_path) > 0:
-            return out_path, creator_name
-        return None
+    except TikTokBlockedError:
+        raise
     except subprocess.TimeoutExpired:
         print("❌ TikTok download timed out")
-        return None
+        raise TikTokBlockedError("TikTok download timed out (server may be throttled)")
     except FileNotFoundError:
         print("❌ Node.js not found. Install Node and run: npm install")
         return None
     except Exception as e:
         print(f"❌ Error in download_tiktok_video: {e}")
         traceback.print_exc()
+        msg = str(e)
+        if _tiktok_output_looks_rate_limited(msg):
+            raise TikTokBlockedError(msg) from e
         return None
 
 

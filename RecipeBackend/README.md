@@ -40,13 +40,20 @@ Create a `.env` file in `RecipeBackend` (same folder as `main.py`):
 # Required for video analysis
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Optional – for server-side AI usage limits (use_ai_once RPC)
+# Optional – Supabase (Pro plan sync; free tier uses in-process daily limits)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+# FREE_IMPORTS_PER_DAY=3
 ```
 
 - **GEMINI_API_KEY**: Get from [Google AI Studio](https://aistudio.google.com/apikey). Required for `/analyze_reel`.
+- **GEMINI_MODEL** / **GEMINI_MODEL_FALLBACKS**: When you see `503` or “high demand”, the server retries then tries fallback models (default: `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.5-pro`). Example:
+  ```env
+  GEMINI_MODEL=gemini-2.5-flash
+  GEMINI_MODEL_FALLBACKS=gemini-2.5-flash-lite,gemini-2.0-flash,gemini-2.5-pro
+  ```
 - **SUPABASE_URL** / **SUPABASE_SERVICE_KEY**: From Supabase Dashboard → **Settings** → **API**. Use the **service_role** key for the backend (never ship this in the iOS app). If omitted, AI quota checks are skipped.
+- **FREE_IMPORTS_PER_DAY**: Max link/photo imports per UTC day for free users (default **3**). Pro users are unlimited at this layer.
 
 ---
 
@@ -69,6 +76,8 @@ npm install @tobyg74/tiktok-api-dl --ignore-scripts
 ```
 
 Ensure `download_tiktok.js` exists in `RecipeBackend`; the Python code calls it via `node download_tiktok.js <url> <output_path>`.
+
+TikTok imports are serialized server-wide (`TIKTOK_MIN_INTERVAL_SECONDS`, default 45s between fetches). Free users also get a per-user cooldown (`FREE_TIKTOK_COOLDOWN_SECONDS`). Rate-limit responses return HTTP 429 so queued import jobs retry instead of failing immediately.
 
 ---
 

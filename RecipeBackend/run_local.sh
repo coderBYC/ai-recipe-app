@@ -15,5 +15,12 @@ pip install -r requirements.txt
 npm ci --omit=dev
 
 PORT="${PORT:-8000}"
-echo "API: http://127.0.0.1:${PORT}  (Simulator: use 127.0.0.1; device: use your Mac LAN IP + this port)"
+if [[ -z "${PUBLIC_BASE_URL:-}" ]]; then
+  LAN_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
+  if [[ -n "${LAN_IP}" ]]; then
+    export PUBLIC_BASE_URL="http://${LAN_IP}:${PORT}"
+    echo "PUBLIC_BASE_URL=${PUBLIC_BASE_URL} (thumbnail URLs for device + worker queue)"
+  fi
+fi
+echo "API: http://127.0.0.1:${PORT}  (Simulator: use 127.0.0.1; device: set RecipeBackend baseURL to PUBLIC_BASE_URL above)"
 exec uvicorn main:app --reload --host 0.0.0.0 --port "${PORT}"

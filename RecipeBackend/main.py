@@ -9,6 +9,7 @@ from download import (
     download_instagram_reel,
     download_tiktok_video,
     InstagramBlockedError,
+    TikTokBlockedError,
 )
 import asyncio
 import time
@@ -115,13 +116,15 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMe
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
-FREE_IMPORTS_PER_DAY = 5
-FREE_INSTAGRAM_COOLDOWN_SECONDS = 1 * 60
+FREE_IMPORTS_PER_DAY = max(1, int(os.getenv("FREE_IMPORTS_PER_DAY", "3")))
+FREE_INSTAGRAM_COOLDOWN_SECONDS = max(0, int(os.getenv("FREE_INSTAGRAM_COOLDOWN_SECONDS", "60")))
+FREE_TIKTOK_COOLDOWN_SECONDS = max(0, int(os.getenv("FREE_TIKTOK_COOLDOWN_SECONDS", "60")))
 
 # In-memory rate state for free users (per backend instance/process).
 # If you run multiple replicas, move this to shared storage (e.g. Redis/Postgres).
 _free_daily_import_usage: dict[str, tuple[str, int]] = {}
 _free_last_instagram_import_at: dict[str, float] = {}
+_free_last_tiktok_import_at: dict[str, float] = {}
 
 
 _IMPORT_JOBS_TABLE = "import_jobs"
@@ -210,6 +213,21 @@ def _require_user_id(request: Request) -> str:
     if not user_id:
         raise HTTPException(status_code=401, detail="Missing X-User-Id.")
     return user_id
+
+
+def _public_base_url_for_thumbnails(request: Request) -> str:
+    """
+    Base URL embedded in thumbnail links returned to the iOS app.
+
+    Import jobs are processed by the worker via loopback HTTP; without this, thumbnails
+    would be saved as http://127.0.0.1:8000/... while the phone uses a LAN or production host.
+    """
+    header = (request.headers.get("X-Public-Base-Url") or request.headers.get("X-Public-Base-URL") or "").strip()
+    if header:
+        return header.rstrip("/")
+    if PUBLIC_BASE_URL:
+        return PUBLIC_BASE_URL
+    return str(request.base_url).rstrip("/")
 
 
 async def supabase_rpc_use_export_once(user_id: str) -> None:
@@ -353,11 +371,19 @@ def is_instagram_url(url: str) -> bool:
     return "instagram.com" in u or "instagr.am" in u
 
 
+def _cooldown_http_detail(platform: str, remaining_sec: int) -> str:
+    if remaining_sec >= 60:
+        mins = max(1, remaining_sec // 60)
+        return f"Free plan {platform} cooldown: try again in about {mins} minute(s)."
+    return f"Free plan {platform} cooldown: try again in about {max(1, remaining_sec)} second(s)."
+
+
 async def enforce_free_import_limits(request: Request, source_kind: str) -> None:
     """
     Free users:
-      1) max 5 imports per UTC day
-      2) Instagram imports: at most once every 10 minutes
+      1) max FREE_IMPORTS_PER_DAY imports per UTC day (default 3)
+      2) Instagram imports: spacing between attempts (FREE_INSTAGRAM_COOLDOWN_SECONDS)
+      3) TikTok imports: spacing between attempts (FREE_TIKTOK_COOLDOWN_SECONDS)
     """
     if await is_pro_user(request):
         return
@@ -382,16 +408,28 @@ async def enforce_free_import_limits(request: Request, source_kind: str) -> None
             elapsed = now - last_at
             if elapsed < FREE_INSTAGRAM_COOLDOWN_SECONDS:
                 remaining = int(FREE_INSTAGRAM_COOLDOWN_SECONDS - elapsed)
-                mins = max(1, remaining // 60)
                 raise HTTPException(
                     status_code=429,
-                    detail=f"Free plan Instagram cooldown: try again in about {mins} minute(s).",
+                    detail=_cooldown_http_detail("Instagram", remaining),
+                )
+
+    if source_kind == "tiktok":
+        last_at = _free_last_tiktok_import_at.get(user_id)
+        if last_at is not None:
+            elapsed = now - last_at
+            if elapsed < FREE_TIKTOK_COOLDOWN_SECONDS:
+                remaining = int(FREE_TIKTOK_COOLDOWN_SECONDS - elapsed)
+                raise HTTPException(
+                    status_code=429,
+                    detail=_cooldown_http_detail("TikTok", remaining),
                 )
 
     # Record successful reservation of this import slot.
     _free_daily_import_usage[user_id] = (day_key, used + 1)
     if source_kind == "instagram":
         _free_last_instagram_import_at[user_id] = now
+    if source_kind == "tiktok":
+        _free_last_tiktok_import_at[user_id] = now
 
 
 def normalize_dish_hero_timestamp_seconds(data: dict) -> str:
@@ -436,25 +474,80 @@ def extract_json_from_response(raw: str) -> dict:
     return json.loads(text)
 
 
-def _generate_content_with_retry(client: genai.Client, contents, attempts: int = 3):
-    """Retry transient Gemini overload errors before failing."""
-    last_err = None
-    for idx in range(attempts):
-        try:
-            return client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=contents,
-            )
-        except genai_errors.ServerError as e:
-            last_err = e
-            # Typical transient: 503 UNAVAILABLE (high demand)
-            if idx < attempts - 1:
-                time.sleep(2 * (idx + 1))
-                continue
-            raise
-    if last_err:
-        raise last_err
-    raise RuntimeError("Gemini generation failed without an explicit error.")
+def _gemini_model_candidates() -> list[str]:
+    """Primary model plus fallbacks when Gemini returns high-demand / 503 errors."""
+    primary = (os.getenv("GEMINI_MODEL") or "gemini-2.5-flash").strip()
+    fallbacks_raw = os.getenv(
+        "GEMINI_MODEL_FALLBACKS",
+        "gemini-2.5-flash-lite,gemini-2.0-flash,gemini-2.5-pro",
+    )
+    ordered: list[str] = []
+    for name in [primary, *fallbacks_raw.split(",")]:
+        name = name.strip()
+        if name and name not in ordered:
+            ordered.append(name)
+    return ordered or ["gemini-2.5-flash"]
+
+
+def _is_transient_gemini_error(err: BaseException) -> bool:
+    """True for overload / capacity errors where another model or retry may work."""
+    if isinstance(err, genai_errors.ServerError):
+        return True
+    if isinstance(err, genai_errors.APIError):
+        code = getattr(err, "code", None)
+        if code in (429, 500, 503):
+            return True
+    msg = str(err).lower()
+    return any(
+        phrase in msg
+        for phrase in (
+            "high demand",
+            "unavailable",
+            "overloaded",
+            "resource exhausted",
+            "too many requests",
+            "503",
+            "429",
+        )
+    )
+
+
+def _generate_content_with_retry(
+    client: genai.Client,
+    contents,
+    attempts_per_model: int = 2,
+):
+    """Retry transient errors, then try fallback models (see GEMINI_MODEL_FALLBACKS)."""
+    models = _gemini_model_candidates()
+    errors: list[tuple[str, BaseException]] = []
+
+    for model in models:
+        for idx in range(attempts_per_model):
+            try:
+                print(
+                    f"[Gemini] generate_content model={model} "
+                    f"attempt={idx + 1}/{attempts_per_model}"
+                )
+                return client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                )
+            except Exception as e:
+                if not _is_transient_gemini_error(e):
+                    raise
+                errors.append((model, e))
+                if idx < attempts_per_model - 1:
+                    time.sleep(2 * (idx + 1))
+                    continue
+                print(
+                    f"[Gemini] model={model} still failing ({e!r}); "
+                    "trying next fallback model"
+                )
+                break
+
+    if errors:
+        raise errors[-1][1]
+    raise RuntimeError("Gemini generation failed: no models configured.")
 
 
 def _gemini_file_poll_interval_sec() -> float:
@@ -529,7 +622,7 @@ def _save_thumbnail_from_video(video_path: str, request: Request, seconds: float
         out_path = os.path.join(SERVED_THUMBS_DIR, f"{thumb_id}.jpg")
         if not cv2.imwrite(out_path, frame):
             return None
-        base = PUBLIC_BASE_URL if PUBLIC_BASE_URL else str(request.base_url).rstrip("/")
+        base = _public_base_url_for_thumbnails(request)
         return f"{base}/thumbnail/{thumb_id}"
     finally:
         cap.release()
@@ -812,14 +905,15 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
 
-    # Verify AI usage with Supabase before calling Gemini (if configured).
-    await verify_ai_quota(request)
     source_kind = "instagram"
     if is_youtube_url(url):
         source_kind = "youtube"
     elif is_tiktok_url(url):
         source_kind = "tiktok"
-    await enforce_free_import_limits(request, source_kind)
+    if await is_pro_user(request):
+        await verify_ai_quota(request)
+    else:
+        await enforce_free_import_limits(request, source_kind)
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(req.language)
     thumbnail_url = None
@@ -867,11 +961,11 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             # Instagram (or other): download then upload file to Gemini
             ig_result = download_instagram_reel(url)
             if not ig_result:
-                raise HTTPException(status_code=500, detail="Failed to download video")
+                raise HTTPException(status_code=429, detail="Failed to download video")
             videoName, creator_name, instagram_caption = ig_result
             creator_name = creator_name or ""
             if not videoName:
-                raise HTTPException(status_code=500, detail="Failed to download video")
+                raise HTTPException(status_code=429, detail="Failed to download video")
             local_video_path = videoName
             video_file = client.files.upload(file=videoName)
             video_file = await _wait_for_gemini_file_ready(client, video_file)
@@ -892,6 +986,14 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             detail=(
                 "Instagram temporarily blocked this server (rate limit/challenge). "
                 "Please wait a few minutes and retry, or use a logged-in Instaloader session."
+            ),
+        ) from e
+    except TikTokBlockedError as e:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "TikTok temporarily blocked or rate-limited this server. "
+                "Your import will retry automatically — please wait a few minutes."
             ),
         ) from e
     except genai_errors.ServerError as e:
@@ -948,30 +1050,6 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
     )
 
 
-# Keep alternate path variants for internal worker/proxy compatibility.
-app.add_api_route(
-    "/analyze_reel/process/",
-    analyze_reel_process,
-    methods=["POST"],
-    response_model=RecipeResponse,
-    include_in_schema=False,
-)
-app.add_api_route(
-    "/api/analyze_reel/process",
-    analyze_reel_process,
-    methods=["POST"],
-    response_model=RecipeResponse,
-    include_in_schema=False,
-)
-app.add_api_route(
-    "/api/analyze_reel/process/",
-    analyze_reel_process,
-    methods=["POST"],
-    response_model=RecipeResponse,
-    include_in_schema=False,
-)
-
-
 @app.post("/analyze_video_upload", response_model=RecipeResponse)
 async def analyze_video_upload(
     request: Request,
@@ -981,8 +1059,10 @@ async def analyze_video_upload(
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=500, detail="Gemini API key not configured")
 
-    await verify_ai_quota(request)
-    await enforce_free_import_limits(request, "upload")
+    if await is_pro_user(request):
+        await verify_ai_quota(request)
+    else:
+        await enforce_free_import_limits(request, "upload")
     client = genai.Client(api_key=GEMINI_API_KEY)
     current_prompt = build_prompt(language)
     thumbnail_url = None
@@ -1057,40 +1137,4 @@ async def analyze_video_upload(
         thumbnail_url=thumbnail_url,
         dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Same handler on alternate paths: trailing slash (avoids redirect/body issues) and /api for proxies.
-app.add_api_route(
-    "/analyze_video_upload/",
-    analyze_video_upload,
-    methods=["POST"],
-    response_model=RecipeResponse,
-    include_in_schema=False,
-)
-app.add_api_route(
-    "/api/analyze_video_upload",
-    analyze_video_upload,
-    methods=["POST"],
-    response_model=RecipeResponse,
-    include_in_schema=False,
-)
-app.add_api_route(
-    "/api/analyze_video_upload/",
-    analyze_video_upload,
-    methods=["POST"],
-    response_model=RecipeResponse,
-    include_in_schema=False,
-)
-
 
