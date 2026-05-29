@@ -47,10 +47,10 @@ SUPABASE_SERVICE_KEY=your_supabase_service_role_key
 ```
 
 - **GEMINI_API_KEY**: Get from [Google AI Studio](https://aistudio.google.com/apikey). Required for `/analyze_reel`.
-- **GEMINI_MODEL** / **GEMINI_MODEL_FALLBACKS**: When you see `503` or “high demand”, the server retries then tries fallback models (default: `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.5-pro`). Example:
+- **GEMINI_MODEL** / **GEMINI_MODEL_FALLBACKS**: When you see `503` or “high demand”, the server retries then tries fallback models (default primary: `gemini-3.1-pro-preview`). Example:
   ```env
-  GEMINI_MODEL=gemini-2.5-flash
-  GEMINI_MODEL_FALLBACKS=gemini-2.5-flash-lite,gemini-2.0-flash,gemini-2.5-pro
+  GEMINI_MODEL=gemini-3.1-pro-preview
+  GEMINI_MODEL_FALLBACKS=gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash
   ```
 - **SUPABASE_URL** / **SUPABASE_SERVICE_KEY**: From Supabase Dashboard → **Settings** → **API**. Use the **service_role** key for the backend (never ship this in the iOS app). If omitted, AI quota checks are skipped.
 - **FREE_IMPORTS_PER_DAY**: Max link/photo imports per UTC day for free users (default **3**). Pro users are unlimited at this layer.

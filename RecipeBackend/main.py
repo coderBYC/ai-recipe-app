@@ -26,7 +26,9 @@ from supabase import create_client  # pyright: ignore[reportMissingImports]
 from postgrest.exceptions import APIError  # pyright: ignore[reportMissingImports]
 from datetime import datetime, timezone
 from worker import ImportQueueWorker
-load_dotenv()
+_backend_dir = Path(__file__).resolve().parent
+load_dotenv(_backend_dir / ".env")
+load_dotenv(_backend_dir.parent / ".env")  # repo root .env when running ./run_local.sh
 
 app = FastAPI()
 
@@ -476,17 +478,17 @@ def extract_json_from_response(raw: str) -> dict:
 
 def _gemini_model_candidates() -> list[str]:
     """Primary model plus fallbacks when Gemini returns high-demand / 503 errors."""
-    primary = (os.getenv("GEMINI_MODEL") or "gemini-2.5-flash").strip()
+    primary = (os.getenv("GEMINI_MODEL") or "gemini-3.1-pro-preview").strip()
     fallbacks_raw = os.getenv(
         "GEMINI_MODEL_FALLBACKS",
-        "gemini-2.5-flash-lite,gemini-2.0-flash,gemini-2.5-pro",
+        "gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash",
     )
     ordered: list[str] = []
     for name in [primary, *fallbacks_raw.split(",")]:
         name = name.strip()
         if name and name not in ordered:
             ordered.append(name)
-    return ordered or ["gemini-2.5-flash"]
+    return ordered or ["gemini-3.1-pro-preview"]
 
 
 def _is_transient_gemini_error(err: BaseException) -> bool:
