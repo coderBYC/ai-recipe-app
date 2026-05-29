@@ -8,9 +8,11 @@ from google.genai import errors as genai_errors  # pyright: ignore[reportMissing
 from download import (
     download_instagram_reel,
     download_tiktok_video,
+    download_youtube_video,
     InstagramBlockedError,
     TikTokBlockedError,
 )
+from ai_video_analysis import analyze_video_with_openai, recipe_ai_provider
 import asyncio
 import time
 import json
@@ -115,6 +117,7 @@ class RecipeResponse(BaseModel):
     dish_hero_timestamp_seconds: str = "0"
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
+OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or "").strip()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
@@ -552,6 +555,50 @@ def _generate_content_with_retry(
     raise RuntimeError("Gemini generation failed: no models configured.")
 
 
+def _require_recipe_ai_configured() -> None:
+    if recipe_ai_provider() == "openai":
+        if not OPENAI_API_KEY:
+            raise HTTPException(status_code=500, detail="OPENAI_API_KEY not configured")
+        return
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not configured")
+
+
+async def _gemini_analyze_local_video(
+    client: genai.Client,
+    video_path: str,
+    prompt: str,
+    extra_context: Optional[list[str]] = None,
+):
+    video_file = client.files.upload(file=video_path)
+    video_file = await _wait_for_gemini_file_ready(client, video_file)
+    contents: list[Any] = [prompt]
+    if extra_context:
+        contents.extend(extra_context)
+    contents.append(video_file)
+    return _generate_content_with_retry(client, contents)
+
+
+async def _analyze_local_video_path(
+    video_path: str,
+    language: str,
+    extra_context: Optional[list[str]] = None,
+) -> str:
+    prompt = build_prompt(language)
+    if recipe_ai_provider() == "openai":
+        return await asyncio.to_thread(
+            analyze_video_with_openai,
+            video_path,
+            prompt,
+            extra_context,
+        )
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    response = await _gemini_analyze_local_video(
+        client, video_path, prompt, extra_context
+    )
+    return getattr(response, "text", None) or ""
+
+
 def _gemini_file_poll_interval_sec() -> float:
     """Poll Gemini Files API while uploaded video is PROCESSING (was 10s; default 3s)."""
     try:
@@ -916,30 +963,38 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
         await verify_ai_quota(request)
     else:
         await enforce_free_import_limits(request, source_kind)
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    current_prompt = build_prompt(req.language)
+    _require_recipe_ai_configured()
     thumbnail_url = None
     # Some platforms block creator metadata; keep it optional.
     creator_name = ""
     instagram_caption = ""
     local_video_path: Optional[str] = None
+    raw_text = ""
 
     try:
         if is_youtube_url(url):
-            # YouTube: pass the source URL as fileData.fileUri for stronger grounding.
-            response = _generate_content_with_retry(
-                client,
-                [
-                    current_prompt,
-                    {
-                        "fileData": {
-                            "fileUri": url,
-                        }
-                    },
-                ],
-            )
+            if recipe_ai_provider() == "openai":
+                yt_result = download_youtube_video(url)
+                if not yt_result:
+                    raise HTTPException(status_code=500, detail="Failed to download YouTube video")
+                local_video_path, creator_name = yt_result[0], yt_result[1] or ""
+                raw_text = await _analyze_local_video_path(
+                    local_video_path,
+                    req.language,
+                    [f"Original source URL: {url}"],
+                )
+            else:
+                client = genai.Client(api_key=GEMINI_API_KEY)
+                current_prompt = build_prompt(req.language)
+                response = _generate_content_with_retry(
+                    client,
+                    [
+                        current_prompt,
+                        {"fileData": {"fileUri": url}},
+                    ],
+                )
+                raw_text = getattr(response, "text", None) or ""
         elif is_tiktok_url(url):
-            # TikTok: download via tiktok-api-dl then upload file to Gemini
             tk_result = download_tiktok_video(url)
             if isinstance(tk_result, tuple):
                 videoName = tk_result[0] if len(tk_result) > 0 else None
@@ -949,18 +1004,12 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             if not videoName:
                 raise HTTPException(status_code=500, detail="Failed to download TikTok video")
             local_video_path = videoName
-            video_file = client.files.upload(file=videoName)
-            video_file = await _wait_for_gemini_file_ready(client, video_file)
-            response = _generate_content_with_retry(
-                client,
-                [
-                    current_prompt,
-                    f"Original source URL: {url}",
-                    video_file,
-                ],
+            raw_text = await _analyze_local_video_path(
+                videoName,
+                req.language,
+                [f"Original source URL: {url}"],
             )
         else:
-            # Instagram (or other): download then upload file to Gemini
             ig_result = download_instagram_reel(url)
             if not ig_result:
                 raise HTTPException(status_code=429, detail="Failed to download video")
@@ -969,19 +1018,12 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             if not videoName:
                 raise HTTPException(status_code=429, detail="Failed to download video")
             local_video_path = videoName
-            video_file = client.files.upload(file=videoName)
-            video_file = await _wait_for_gemini_file_ready(client, video_file)
-            extra_caption_context = (
-                f"Instagram caption context (may include ingredients or steps):\n{instagram_caption}"
-                if instagram_caption
-                else ""
-            )
-            contents = [current_prompt]
-            contents.append(f"Original source URL: {url}")
-            if extra_caption_context:
-                contents.append(extra_caption_context)
-            contents.append(video_file)
-            response = _generate_content_with_retry(client, contents)
+            extra: list[str] = [f"Original source URL: {url}"]
+            if instagram_caption:
+                extra.append(
+                    f"Instagram caption context (may include ingredients or steps):\n{instagram_caption}"
+                )
+            raw_text = await _analyze_local_video_path(videoName, req.language, extra)
     except InstagramBlockedError as e:
         raise HTTPException(
             status_code=429,
@@ -999,7 +1041,6 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             ),
         ) from e
     except genai_errors.ServerError as e:
-        # Avoid leaking as 500 when Gemini is overloaded/transiently unavailable.
         raise HTTPException(
             status_code=503,
             detail=f"Gemini temporarily unavailable. Please retry in a moment. ({e})",
@@ -1009,8 +1050,16 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             status_code=502,
             detail=f"Gemini API error: {e}",
         )
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception as e:
+        if recipe_ai_provider() == "openai":
+            raise HTTPException(
+                status_code=503,
+                detail=f"OpenAI temporarily unavailable. Please retry in a moment. ({e})",
+            ) from e
+        raise
 
-    raw_text = getattr(response, "text", None) or ""
     try:
         data = extract_json_from_response(raw_text)
         creator_name = creator_name or data.get("creator", "")
@@ -1058,20 +1107,18 @@ async def analyze_video_upload(
     file: UploadFile = File(...),
     language: str = Form(default="en"),
     ):
-    if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="Gemini API key not configured")
+    _require_recipe_ai_configured()
 
     if await is_pro_user(request):
         await verify_ai_quota(request)
     else:
         await enforce_free_import_limits(request, "upload")
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    current_prompt = build_prompt(language)
     thumbnail_url = None
     creator_name = ""
 
     suffix = _upload_suffix(file.filename or "")
     tmp_path: Optional[str] = None
+    raw_text = ""
     try:
         fd, tmp_path = tempfile.mkstemp(suffix=suffix)
         os.close(fd)
@@ -1089,9 +1136,7 @@ async def analyze_video_upload(
         if total == 0:
             raise HTTPException(status_code=400, detail="Empty upload")
 
-        video_file = client.files.upload(file=tmp_path)
-        video_file = await _wait_for_gemini_file_ready(client, video_file)
-        response = _generate_content_with_retry(client, [current_prompt, video_file])
+        raw_text = await _analyze_local_video_path(tmp_path, language)
     except genai_errors.ServerError as e:
         raise HTTPException(
             status_code=503,
@@ -1102,14 +1147,21 @@ async def analyze_video_upload(
             status_code=502,
             detail=f"Gemini API error: {e}",
         ) from e
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception as e:
+        if recipe_ai_provider() == "openai":
+            raise HTTPException(
+                status_code=503,
+                detail=f"OpenAI temporarily unavailable. Please retry in a moment. ({e})",
+            ) from e
+        raise
     finally:
         if tmp_path and os.path.isfile(tmp_path):
             try:
                 os.remove(tmp_path)
             except OSError:
                 pass
-
-    raw_text = getattr(response, "text", None) or ""
     try:
         data = extract_json_from_response(raw_text)
         creator_name = creator_name or str(data.get("creator", "") or "")

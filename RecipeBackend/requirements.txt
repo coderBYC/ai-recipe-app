@@ -3,6 +3,7 @@ python-multipart>=0.0.9
 uvicorn[standard]
 pydantic
 google-genai
+openai>=1.68.0
 instaloader
 httpx
 python-dotenv

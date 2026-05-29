@@ -37,7 +37,13 @@ pip install -r requirements.txt
 Create a `.env` file in `RecipeBackend` (same folder as `main.py`):
 
 ```env
-# Required for video analysis
+# Video analysis — GPT-5 via OpenAI Responses API (default when OPENAI_API_KEY is set)
+RECIPE_AI_PROVIDER=openai
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-5
+
+# Or Gemini instead:
+# RECIPE_AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional – Supabase (Pro plan sync; free tier uses in-process daily limits)
