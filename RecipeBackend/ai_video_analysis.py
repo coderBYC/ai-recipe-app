@@ -52,14 +52,14 @@ def recipe_ai_provider_chain() -> list[str]:
 
 
 def _openai_model_candidates() -> list[str]:
-    primary = clean_env("OPENAI_MODEL") or "gpt-5"
+    primary = clean_env("OPENAI_MODEL") or "gpt-5.5"
     fallbacks_raw = clean_env("OPENAI_MODEL_FALLBACKS") or "gpt-5-mini,gpt-4o"
     ordered: list[str] = []
     for name in [primary, *fallbacks_raw.split(",")]:
         name = name.strip()
         if name and name not in ordered:
             ordered.append(name)
-    return ordered or ["gpt-5"]
+    return ordered or ["gpt-5.5"]
 
 
 def _openai_max_frames() -> int:
