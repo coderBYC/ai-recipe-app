@@ -41,6 +41,7 @@ Create a `.env` file in `RecipeBackend` (same folder as `main.py`):
 RECIPE_AI_PROVIDER=openai
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-5
+# OpenAI Responses API cannot ingest raw mp4; the backend samples ~10 frames as images.
 
 # Or Gemini instead:
 # RECIPE_AI_PROVIDER=gemini

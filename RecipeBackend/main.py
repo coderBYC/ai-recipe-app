@@ -12,7 +12,12 @@ from download import (
     InstagramBlockedError,
     TikTokBlockedError,
 )
-from ai_video_analysis import analyze_video_with_openai, recipe_ai_provider
+from ai_video_analysis import (
+    analyze_video_with_openai,
+    clean_env,
+    recipe_ai_provider,
+    recipe_ai_provider_chain,
+)
 import asyncio
 import time
 import json
@@ -33,6 +38,16 @@ load_dotenv(_backend_dir / ".env")
 load_dotenv(_backend_dir.parent / ".env")  # repo root .env when running ./run_local.sh
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def _log_recipe_ai_config() -> None:
+    chain = recipe_ai_provider_chain()
+    print(
+        f"[RecipeAI] provider chain: {' → '.join(chain)} "
+        f"(openai_key={'yes' if OPENAI_API_KEY else 'no'}, "
+        f"gemini_key={'yes' if GEMINI_API_KEY else 'no'})"
+    )
 
 
 @app.on_event("startup")
@@ -116,8 +131,8 @@ class RecipeResponse(BaseModel):
     thumbnail_url: Optional[str] = None
     dish_hero_timestamp_seconds: str = "0"
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
-OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or "").strip()
+GEMINI_API_KEY = clean_env("GEMINI_API_KEY")  # pyright: ignore[reportOptionalMemberAccess]
+OPENAI_API_KEY = clean_env("OPENAI_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
@@ -585,18 +600,30 @@ async def _analyze_local_video_path(
     extra_context: Optional[list[str]] = None,
 ) -> str:
     prompt = build_prompt(language)
-    if recipe_ai_provider() == "openai":
-        return await asyncio.to_thread(
-            analyze_video_with_openai,
-            video_path,
-            prompt,
-            extra_context,
-        )
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    response = await _gemini_analyze_local_video(
-        client, video_path, prompt, extra_context
-    )
-    return getattr(response, "text", None) or ""
+    errors: list[tuple[str, BaseException]] = []
+
+    for provider in recipe_ai_provider_chain():
+        try:
+            print(f"[RecipeAI] analyzing video with provider={provider}")
+            if provider == "openai":
+                return await asyncio.to_thread(
+                    analyze_video_with_openai,
+                    video_path,
+                    prompt,
+                    extra_context,
+                )
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            response = await _gemini_analyze_local_video(
+                client, video_path, prompt, extra_context
+            )
+            return getattr(response, "text", None) or ""
+        except Exception as e:
+            errors.append((provider, e))
+            print(f"[RecipeAI] provider={provider} failed: {e!r}")
+
+    if errors:
+        raise errors[-1][1]
+    raise RuntimeError("No recipe AI provider configured")
 
 
 def _gemini_file_poll_interval_sec() -> float:
@@ -973,7 +1000,8 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
 
     try:
         if is_youtube_url(url):
-            if recipe_ai_provider() == "openai":
+            # OpenAI (and openai→gemini fallback) needs a local file; Gemini-only can use URL.
+            if "openai" in recipe_ai_provider_chain():
                 yt_result = download_youtube_video(url)
                 if not yt_result:
                     raise HTTPException(status_code=500, detail="Failed to download YouTube video")
@@ -1053,12 +1081,11 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     except Exception as e:
-        if recipe_ai_provider() == "openai":
-            raise HTTPException(
-                status_code=503,
-                detail=f"OpenAI temporarily unavailable. Please retry in a moment. ({e})",
-            ) from e
-        raise
+        chain = " → ".join(recipe_ai_provider_chain())
+        raise HTTPException(
+            status_code=503,
+            detail=f"Recipe AI failed (tried: {chain}). ({e})",
+        ) from e
 
     try:
         data = extract_json_from_response(raw_text)
@@ -1150,12 +1177,11 @@ async def analyze_video_upload(
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     except Exception as e:
-        if recipe_ai_provider() == "openai":
-            raise HTTPException(
-                status_code=503,
-                detail=f"OpenAI temporarily unavailable. Please retry in a moment. ({e})",
-            ) from e
-        raise
+        chain = " → ".join(recipe_ai_provider_chain())
+        raise HTTPException(
+            status_code=503,
+            detail=f"Recipe AI failed (tried: {chain}). ({e})",
+        ) from e
     finally:
         if tmp_path and os.path.isfile(tmp_path):
             try:
