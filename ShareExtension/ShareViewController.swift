@@ -9,22 +9,39 @@ import UniformTypeIdentifiers
 private enum ShareHandoffConstants {
     static let appGroupSuite = "group.com.airecipe.app"
     static let pendingURLKey = "pendingSharedRecipeURL"
+    /// Must match `PendingRecipeImport.presentationModeKey` in the main app.
+    static let presentationModeKey = "pendingSharedRecipePresentationMode"
+    /// Must match `PendingRecipeImport.silentImportQueueKey` in the main app.
+    static let silentImportQueueKey = "silentSharedImportURLQueue"
 }
 
 @objc(ShareViewController)
 final class ShareViewController: UIViewController {
     private let cardView = UIView()
     private let statusLabel = UILabel()
-    private let loadingBar = NeoBrutalistIndeterminateBar()
-    private let generateButton = UIButton(type: .custom)
+    private let loadingSpinner = UIActivityIndicatorView(style: .medium)
+    private let openAppButton = UIButton(type: .custom)
+    private let closeExtensionButton = UIButton(type: .custom)
     private let errorDismissButton = UIButton(type: .system)
+    private var fakeSuccessWorkItem: DispatchWorkItem?
 
     private var sharedURLString: String?
     private let urlLock = NSLock()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        if let sheet = self.sheetPresentationController {
+                // Defines the heights it can stop at (medium is roughly half the screen)
+                sheet.detents = [.medium()]
+                
+                // Optional: Allows users to see and scroll the app behind it
+                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                
+                // Optional: Shows a small grabber bar at the top of the sheet
+                sheet.prefersGrabberVisible = true
+            }
         view.backgroundColor = UIColor(white: 0.96, alpha: 1)
+        
 
         cardView.translatesAutoresizingMaskIntoConstraints = false
         cardView.backgroundColor = .white
@@ -46,22 +63,39 @@ final class ShareViewController: UIViewController {
         statusLabel.textColor = .black
         statusLabel.text = "Grabbing your link…"
 
-        loadingBar.translatesAutoresizingMaskIntoConstraints = false
+        loadingSpinner.translatesAutoresizingMaskIntoConstraints = false
+        loadingSpinner.hidesWhenStopped = true
 
-        generateButton.translatesAutoresizingMaskIntoConstraints = false
-        generateButton.setTitle("⚡️ GENERATE RECIPE", for: .normal)
-        generateButton.titleLabel?.font = ShareExtensionFonts.bitter(size: 17, weight: .heavy)
-        generateButton.titleLabel?.adjustsFontSizeToFitWidth = true
-        generateButton.titleLabel?.minimumScaleFactor = 0.75
-        generateButton.backgroundColor = .black
-        generateButton.setTitleColor(.white, for: .normal)
-        generateButton.layer.cornerRadius = 8
-        generateButton.layer.borderWidth = 2
-        generateButton.layer.borderColor = UIColor.black.cgColor
-        generateButton.contentEdgeInsets = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
-        generateButton.isHidden = true
-        generateButton.addAction(UIAction { [weak self] _ in
+        openAppButton.translatesAutoresizingMaskIntoConstraints = false
+        openAppButton.setTitle("View Import Progress In App", for: .normal)
+        openAppButton.titleLabel?.font = ShareExtensionFonts.bitter(size: 16, weight: .heavy)
+        openAppButton.titleLabel?.adjustsFontSizeToFitWidth = true
+        openAppButton.titleLabel?.minimumScaleFactor = 0.7
+        openAppButton.titleLabel?.numberOfLines = 2
+        openAppButton.titleLabel?.textAlignment = .center
+        openAppButton.backgroundColor = .black
+        openAppButton.setTitleColor(.white, for: .normal)
+        openAppButton.layer.cornerRadius = 8
+        openAppButton.layer.borderWidth = 2
+        openAppButton.layer.borderColor = UIColor.black.cgColor
+        openAppButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        openAppButton.isHidden = true
+        openAppButton.addAction(UIAction { [weak self] _ in
             self?.forceOpenHostApp()
+        }, for: .touchUpInside)
+
+        closeExtensionButton.translatesAutoresizingMaskIntoConstraints = false
+        closeExtensionButton.setTitle("Close", for: .normal)
+        closeExtensionButton.titleLabel?.font = ShareExtensionFonts.bitter(size: 16, weight: .semibold)
+        closeExtensionButton.backgroundColor = .white
+        closeExtensionButton.setTitleColor(.black, for: .normal)
+        closeExtensionButton.layer.cornerRadius = 8
+        closeExtensionButton.layer.borderWidth = 2
+        closeExtensionButton.layer.borderColor = UIColor.black.cgColor
+        closeExtensionButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+        closeExtensionButton.isHidden = true
+        closeExtensionButton.addAction(UIAction { [weak self] _ in
+            self?.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
         }, for: .touchUpInside)
 
         errorDismissButton.translatesAutoresizingMaskIntoConstraints = false
@@ -72,7 +106,7 @@ final class ShareViewController: UIViewController {
             self?.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
         }, for: .touchUpInside)
 
-        let innerStack = UIStackView(arrangedSubviews: [statusLabel, loadingBar, generateButton, errorDismissButton])
+        let innerStack = UIStackView(arrangedSubviews: [statusLabel, loadingSpinner, openAppButton, closeExtensionButton, errorDismissButton])
         innerStack.translatesAutoresizingMaskIntoConstraints = false
         innerStack.axis = .vertical
         innerStack.spacing = 18
@@ -94,10 +128,40 @@ final class ShareViewController: UIViewController {
             innerStack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -18),
             innerStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -22),
 
-            loadingBar.heightAnchor.constraint(equalToConstant: 22),
+            loadingSpinner.heightAnchor.constraint(equalToConstant: 28),
         ])
 
+        loadingSpinner.startAnimating()
         loadSharedURL()
+    }
+    
+    
+
+    deinit {
+        fakeSuccessWorkItem?.cancel()
+    }
+
+    private func appendToSilentImportQueue(_ raw: String) {
+        let suite = UserDefaults(suiteName: ShareHandoffConstants.appGroupSuite)
+        let key = ShareHandoffConstants.silentImportQueueKey
+        var arr = (suite?.array(forKey: key) as? [String]) ?? []
+        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return }
+        if !arr.contains(t) { arr.append(t) }
+        suite?.set(arr, forKey: key)
+    }
+
+    private func removeFromSilentImportQueue(_ raw: String) {
+        let suite = UserDefaults(suiteName: ShareHandoffConstants.appGroupSuite)
+        let key = ShareHandoffConstants.silentImportQueueKey
+        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        var arr = (suite?.array(forKey: key) as? [String]) ?? []
+        arr.removeAll { $0.trimmingCharacters(in: .whitespacesAndNewlines) == t }
+        if arr.isEmpty {
+            suite?.removeObject(forKey: key)
+        } else {
+            suite?.set(arr, forKey: key)
+        }
     }
 
     // MARK: - Host app handoff
@@ -106,6 +170,9 @@ final class ShareViewController: UIViewController {
     /// `extensionContext.open`. The responder chain rarely reaches `UIApplication` here—don’t rely on it first.
     private func forceOpenHostApp() {
         guard let raw = sharedURLString?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return }
+        removeFromSilentImportQueue(raw)
+        UserDefaults(suiteName: ShareHandoffConstants.appGroupSuite)?
+            .set("sheet", forKey: ShareHandoffConstants.presentationModeKey)
         persistToAppGroup(raw)
 
         guard let ctx = extensionContext else {
@@ -175,8 +242,12 @@ final class ShareViewController: UIViewController {
     }
 
     private func showHandoffFailed() {
+        fakeSuccessWorkItem?.cancel()
+        fakeSuccessWorkItem = nil
+        loadingSpinner.stopAnimating()
         statusLabel.text = "Couldn’t switch apps automatically. Your link is saved — open AI Recipe from the Home screen (or try again)."
-        generateButton.isHidden = true
+        openAppButton.isHidden = true
+        closeExtensionButton.isHidden = true
         errorDismissButton.isHidden = false
     }
 
@@ -270,12 +341,23 @@ final class ShareViewController: UIViewController {
             return
         }
         sharedURLString = candidate
-        persistToAppGroup(candidate)
+        appendToSilentImportQueue(candidate)
 
-        loadingBar.stopAnimating()
-        loadingBar.isHidden = true
-        statusLabel.text = "Ready. One tap to cook."
-        generateButton.isHidden = false
+        loadingSpinner.startAnimating()
+        statusLabel.text = "Sending Recipe to Let Him Cook ..."
+        openAppButton.isHidden = true
+        closeExtensionButton.isHidden = true
+
+        fakeSuccessWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.loadingSpinner.stopAnimating()
+            self.statusLabel.text = "Import Successful!"
+            self.openAppButton.isHidden = false
+            self.closeExtensionButton.isHidden = false
+        }
+        fakeSuccessWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: work)
     }
 
     private func persistToAppGroup(_ raw: String) {
@@ -283,10 +365,12 @@ final class ShareViewController: UIViewController {
     }
 
     private func showFailure(_ message: String) {
-        loadingBar.stopAnimating()
-        loadingBar.isHidden = true
+        fakeSuccessWorkItem?.cancel()
+        fakeSuccessWorkItem = nil
+        loadingSpinner.stopAnimating()
         statusLabel.text = message
-        generateButton.isHidden = true
+        openAppButton.isHidden = true
+        closeExtensionButton.isHidden = true
         errorDismissButton.isHidden = false
     }
 
@@ -307,80 +391,5 @@ final class ShareViewController: UIViewController {
         let range = NSRange(location: 0, length: (text as NSString).length)
         let match = detector?.firstMatch(in: text, options: [], range: range)
         return match?.url?.absoluteString
-    }
-}
-
-// MARK: - Neobrutalist loading bar
-
-private final class NeoBrutalistIndeterminateBar: UIView {
-    private let track = UIView()
-    private let fill = UIView()
-    private var displayLink: CADisplayLink?
-    private var phase: CGFloat = 0
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        track.translatesAutoresizingMaskIntoConstraints = false
-        track.backgroundColor = .white
-        track.layer.borderWidth = 2
-        track.layer.borderColor = UIColor.black.cgColor
-        track.layer.cornerRadius = 11
-        track.clipsToBounds = true
-
-        fill.backgroundColor = .black
-        fill.layer.cornerRadius = 6
-
-        addSubview(track)
-        track.addSubview(fill)
-        NSLayoutConstraint.activate([
-            track.topAnchor.constraint(equalTo: topAnchor),
-            track.leadingAnchor.constraint(equalTo: leadingAnchor),
-            track.trailingAnchor.constraint(equalTo: trailingAnchor),
-            track.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
-        startAnimating()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        updateFillFrame()
-    }
-
-    private func startAnimating() {
-        displayLink?.invalidate()
-        let link = CADisplayLink(target: self, selector: #selector(tick))
-        link.add(to: .main, forMode: .common)
-        displayLink = link
-    }
-
-    func stopAnimating() {
-        displayLink?.invalidate()
-        displayLink = nil
-    }
-
-    @objc private func tick() {
-        phase += 0.045
-        if phase > 1 { phase -= 1 }
-        updateFillFrame()
-    }
-
-    private func updateFillFrame() {
-        let w = track.bounds.width
-        let h = track.bounds.height
-        guard w > 0, h > 0 else { return }
-        let inset: CGFloat = 5
-        let innerW = w - inset * 2
-        let pulse = (sin(phase * .pi * 2) + 1) / 2
-        let fw = max(28, innerW * CGFloat(0.25 + 0.55 * pulse))
-        let x = inset + (innerW - fw) * phase
-        fill.frame = CGRect(x: x, y: inset, width: fw, height: h - inset * 2)
-    }
-
-    deinit {
-        stopAnimating()
     }
 }

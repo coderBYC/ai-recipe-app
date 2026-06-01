@@ -5,6 +5,8 @@ import AuthenticationServices
 struct LoginView: View {
     let onSignedIn: (ASAuthorizationAppleIDCredential) -> Void
     let onError: (Error) -> Void
+    /// When false, parent supplies navigation chrome (e.g. onboarding sign-in slide).
+    var embedInNavigationStack: Bool = true
     @State private var email = ""
     @State private var password: String = ""
     @Environment(AuthManager.self) private var authManager
@@ -17,8 +19,19 @@ struct LoginView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack {
+        Group {
+            if embedInNavigationStack {
+                NavigationStack { loginContent }
+            } else {
+                loginContent
+            }
+        }
+        .onChange(of: email) { _, _ in authManager.error = nil }
+        .onChange(of: password) { _, _ in authManager.error = nil }
+    }
+
+    private var loginContent: some View {
+        VStack {
                 Spacer()
                 Text("Let Him Cook")
                     .appFont(.largeTitle)
@@ -116,9 +129,6 @@ struct LoginView: View {
                 .padding(.vertical, 16)
             }
             .errorPopup(message: authErrorMessage)
-        }
-        .onChange(of: email) { _, _ in authManager.error = nil }
-        .onChange(of: password) { _, _ in authManager.error = nil }
     }
 }
 

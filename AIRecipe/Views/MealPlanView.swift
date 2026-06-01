@@ -21,15 +21,35 @@ private extension Calendar {
 // MARK: - Main
 
 struct MealPlanView: View {
+    /// Supabase Auth `user.id.uuidString`; meal picker only lists this user’s recipes.
+    let filterOwnerId: String
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.isOnboardingWalkthrough) private var isOnboardingWalkthrough
     @Query(sort: \PlannedMeal.weekStart) private var allPlanned: [PlannedMeal]
-    @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
+    @Query private var recipes: [Recipe]
 
     @State private var displayedWeekStart: Date = Calendar.mondayStart(of: Date())
     @State private var pickerTarget: MealPickerTarget?
 
+    init(filterOwnerId: String) {
+        self.filterOwnerId = filterOwnerId
+        _allPlanned = Query(sort: \PlannedMeal.weekStart)
+        let oid = filterOwnerId
+        _recipes = Query(
+            filter: #Predicate<Recipe> { r in
+                r.deletedAt == nil && r.ownerUserId == oid
+            },
+            sort: \Recipe.createdAt,
+            order: .reverse
+        )
+    }
+
     private let calendar = Calendar.mealPlanner
+
+    /// Hides a slot assignment if it points at another account’s recipe (e.g. after switching users).
+    private func recipeForCurrentOwner(in planned: PlannedMeal?) -> Recipe? {
+        guard let r = planned?.recipe, r.ownerUserId == filterOwnerId else { return nil }
+        return r
+    }
 
     private var weekPlans: [PlannedMeal] {
         allPlanned.filter { calendar.isDate($0.weekStart, inSameDayAs: displayedWeekStart) }
@@ -72,7 +92,7 @@ struct MealPlanView: View {
                     }
                 )
             }
-            .onboardingMealPlanTip(isOnboardingWalkthrough)
+           
         }
     }
 
@@ -218,7 +238,7 @@ struct MealPlanView: View {
                 pickerTarget = MealPickerTarget(dayIndex: dayIndex, slot: slot)
             } label: {
                 HStack(spacing: 8) {
-                    if let r = planned?.recipe {
+                    if let r = recipeForCurrentOwner(in: planned) {
                         Text(r.title.isEmpty ? "Untitled" : r.title)
                             .appFont(.body)
                             .foregroundStyle(AppTheme.textPrimary)
@@ -409,6 +429,6 @@ private struct RecipePickerSheet: View {
     let schema = Schema([Recipe.self, PlannedMeal.self, RecipeImportSubmission.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: config)
-    return MealPlanView()
+    return MealPlanView(filterOwnerId: "preview-user")
         .modelContainer(container)
 }

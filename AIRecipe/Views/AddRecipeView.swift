@@ -392,7 +392,10 @@ struct AddRecipeView: View {
             .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
+        guard let ownerId = SupabaseService.shared.client.auth.currentSession?.user.id.uuidString else { return }
+
         let recipe = Recipe(
+            ownerUserId: ownerId,
             title: draftTitle.trimmingCharacters(in: .whitespacesAndNewlines),
             source: source,
             sourceURL: draftSourceURL.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -409,6 +412,7 @@ struct AddRecipeView: View {
         )
         modelContext.insert(recipe)
         try? modelContext.save()
+        Task { await SyncService.shared.push(modelContainer: modelContext.container) }
     }
 }
 

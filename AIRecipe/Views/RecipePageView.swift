@@ -1,14 +1,19 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 import UIKit
+import PostHog
+
 struct RecipePageView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.isOnboardingWalkthrough) private var isOnboardingWalkthrough
+  
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
     var openEditOnAppear: Bool = false
     @ObservedObject private var subManager = SubscriptionManager.shared
+
+    @AppStorage("app.didRequestStoreReviewAfterFirstGeneratedRecipe") private var didRequestStoreReviewAfterFirstGeneratedRecipe = false
 
     @State private var showingEdit = false
     @State private var showingImport = false
@@ -50,6 +55,19 @@ struct RecipePageView: View {
                             .foregroundStyle(AppTheme.textPrimary)
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingEdit = true
+                        PostHogSDK.shared.capture("ai_recipe_added", properties: [
+                                "meal_type": "dinner"
+                        ])
+                        print("🚀 PostHog successfully initialized via AppDelegate!")
+                    } label: {
+                        Image(systemName: "pencil")
+                            .appFont(.callout)
+                            .foregroundStyle(AppTheme.textPrimary)
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         exportRecipe()
@@ -76,6 +94,9 @@ struct RecipePageView: View {
                     try? await Task.sleep(nanoseconds: 450_000_000)
                     showingEdit = true
                 }
+            }
+            .onAppear {
+                scheduleStoreReviewAfterFirstGeneratedRecipeIfNeeded()
             }
             .fullScreenCover(isPresented: $showCookMode) {
                 CookModeView(recipe: recipe)
@@ -110,28 +131,61 @@ struct RecipePageView: View {
             }
         }
     }
+
+    /// After the user’s first AI/import-backed recipe is in Home, prompt for an App Store review once when they open it.
+    private func scheduleStoreReviewAfterFirstGeneratedRecipeIfNeeded() {
+        guard !didRequestStoreReviewAfterFirstGeneratedRecipe else { return }
+
+        let ownerId = recipe.ownerUserId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !ownerId.isEmpty, ownerId != Recipe.localOnboardingOwnerPlaceholder else { return }
+        guard Self.isLikelyGeneratedRecipe(recipe) else { return }
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" { return }
+        #endif
+
+        let recipeId = recipe.id
+        Task { @MainActor in
+            var descriptor = FetchDescriptor<Recipe>(
+                predicate: #Predicate<Recipe> { r in
+                    r.ownerUserId == ownerId && r.deletedAt == nil
+                }
+            )
+            descriptor.fetchLimit = 2
+            let rows = (try? modelContext.fetch(descriptor)) ?? []
+            guard rows.count == 1, rows.first?.id == recipeId else { return }
+
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            guard !Task.isCancelled else { return }
+
+            let scene = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first { $0.activationState == .foregroundActive }
+                ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+            guard let scene else { return }
+
+            AppStore.requestReview(in: scene)
+            didRequestStoreReviewAfterFirstGeneratedRecipe = true
+        }
+    }
+
+    /// Heuristic: recipe came from link/photo import or backend analyze (not a blank manual-only entry).
+    private static func isLikelyGeneratedRecipe(_ recipe: Recipe) -> Bool {
+        let url = recipe.sourceURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lower = url.lowercased()
+        if lower.hasPrefix("http://") || lower.hasPrefix("https://") { return true }
+        if lower.hasPrefix("photos://") { return true }
+        if !recipe.downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+        return false
+    }
     
     private var headerRow: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Text(recipe.title.isEmpty ? "Recipe" : recipe.title)
-                .appFont(.titleBold)
-                .foregroundStyle(AppTheme.textPrimary)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Button {
-                showingEdit = true
-            } label: {
-                Image(systemName: "pencil")
-                    .appFont(.callout)
-                    .foregroundStyle(.black)
-                    .frame(width: 36, height: 36)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
-                    .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
-            }
-            .onboardingRecipeEditTip(isOnboardingWalkthrough)
-        }
-        .padding(14)
-        .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        Text(recipe.title.isEmpty ? "Recipe" : recipe.title)
+            .appFont(.titleBold)
+            .foregroundStyle(AppTheme.textPrimary)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
     }
     
     private var videoSection: some View {
@@ -213,6 +267,13 @@ struct RecipePageView: View {
             parts[index] = recipe.ingredientChecked(at: index) ? "0" : "1"
         }
         recipe.ingredientCheckmarks = parts.joined(separator: ",")
+        touchRecipeForSync()
+    }
+
+    private func touchRecipeForSync() {
+        recipe.updatedAt = Date()
+        try? modelContext.save()
+        Task { await SyncService.shared.push(modelContainer: modelContext.container) }
     }
     
     /// Steps: vertical circle-line timeline (1 — 2 — 3)
@@ -234,12 +295,13 @@ struct RecipePageView: View {
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(steps.enumerated()), id: \.offset) { index, text in
-                        stepRow(number: index + 1, text: text)
+                        stepRow(
+                            number: index + 1,
+                            text: text,
+                            isLast: index == steps.count - 1
+                        )
                         if index < steps.count - 1 {
-                            Rectangle()
-                                .fill(Color.black)
-                                .frame(width: 3, height: 24)
-                                .padding(.leading, 15)
+                            stepTimelineGapConnector()
                         }
                     }
                 }
@@ -252,18 +314,42 @@ struct RecipePageView: View {
         }
     }
 
-    private func stepRow(number: Int, text: String) -> some View {
+    private static let stepTimelineSpacing: CGFloat = 16
+
+    private func stepRow(number: Int, text: String, isLast: Bool) -> some View {
         HStack(alignment: .top, spacing: 12) {
-            Text("\(number)")
-                .appFont(.headlineBold)
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(Color.black, in: Circle())
+            VStack(spacing: 0) {
+                Text("\(number)")
+                    .appFont(.headlineBold)
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(Color.black, in: Circle())
+                if !isLast {
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(width: 3)
+                        .frame(maxHeight: .infinity)
+                }
+            }
+            .frame(width: 32)
+            .frame(maxHeight: .infinity, alignment: .top)
+
             Text(text)
                 .appFont(.callout)
                 .foregroundStyle(AppTheme.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 8)
+        }
+    }
+
+    /// Vertical segment in the gap between steps (aligned with numbered circles).
+    private func stepTimelineGapConnector() -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Rectangle()
+                .fill(Color.black)
+                .frame(width: 3, height: Self.stepTimelineSpacing)
+                .frame(width: 32)
+            Spacer(minLength: 0)
         }
     }
     
@@ -292,19 +378,20 @@ struct RecipePageView: View {
                 .foregroundStyle(AppTheme.textPrimary)
             Spacer()
             HStack(spacing: 4) {
-                ForEach(1...5, id: \.self) { star in
-                    Image(systemName: star <= recipe.rating ? "star.fill" : "star")
-                        .foregroundStyle(star <= recipe.rating ? AppTheme.primary : AppTheme.textSecondary.opacity(0.4))
-                        .onTapGesture {
-                            if recipe.rating == star {
-                                recipe.rating = 0
-                                recipe.triedBefore = false
-                            } else {
-                                recipe.rating = star
-                                recipe.triedBefore = true
-                            }
+                        ForEach(1...5, id: \.self) { star in
+                            Image(systemName: star <= recipe.rating ? "star.fill" : "star")
+                                .foregroundStyle(star <= recipe.rating ? AppTheme.primary : AppTheme.textSecondary.opacity(0.4))
+                                .onTapGesture {
+                                    if recipe.rating == star {
+                                        recipe.rating = 0
+                                        recipe.triedBefore = false
+                                    } else {
+                                        recipe.rating = star
+                                        recipe.triedBefore = true
+                                    }
+                                    touchRecipeForSync()
+                                }
                         }
-                }
             }
         }
         .padding(14)
@@ -354,6 +441,7 @@ struct ShareSheet: UIViewControllerRepresentable {
     let container = try! ModelContainer(for: Recipe.self, configurations: config)
     let ctx = ModelContext(container)
     let recipe = Recipe(
+        ownerUserId: "preview-user",
         title: "Sample Recipe",
         sourceURL: "https://www.youtube.com/watch?v=noaf6TrczKs&list=RDnoaf6TrczKs&start_radio=1",
         creator: "Chef",

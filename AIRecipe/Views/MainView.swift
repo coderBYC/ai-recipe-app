@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 import SwiftData
 import StoreKit
 import UIKit
@@ -12,28 +13,28 @@ struct MainView: View {
     @State private var addSheet: AddRecipeSheet?
     @State private var showAddMenu = false
     @State private var showSavedVideoSuggestionBanner = false
+    /// RevenueCat paywall presented from outside Settings (e.g. silent share import at free limit).
+    @State private var showGlobalPaywall = false
     /// When set with Settings tab, `SettingsView` presents the matching legal sheet.
     @State private var deepLinkLegalDocument: LegalDocumentKind?
     @Environment(AuthManager.self) private var authManager
-    @AppStorage("hasOnboard") private var hasOnboard: Bool = false
+    /// Resolved after sign-in so Home / Meal Plan `@Query` scopes to this Supabase user only.
+    @State private var signedInTabUserId: String = ""
 
     var body: some View {
         Group {
-            if hasOnboard {
-                Group {
-                    content
-                }
-                .task {
-                    await authManager.getAuthState()
-                    consumePendingSharedRecipeURL()
-                    consumePendingDeepLink()
-                    consumePendingPhotoRecipeImport()
-                    if authManager.authState == .authenticated {
-                        await PhotoLibraryRecipeNotifier.shared.requestNeededPermissionsIfPossible()
-                    }
-                }
-            } else {
-                OnboardingView(isFinished: $hasOnboard)
+            content
+        }
+        .task {
+            await authManager.getAuthState()
+            if authManager.authState == .authenticated {
+                await ShareExtensionQuotaSnapshot.refreshFromBackend()
+            }
+            consumePendingSharedRecipeURL()
+            consumePendingDeepLink()
+            consumePendingPhotoRecipeImport()
+            if authManager.authState == .authenticated {
+                await PhotoLibraryRecipeNotifier.shared.requestNeededPermissionsIfPossible()
             }
         }
         .onAppear {
@@ -49,12 +50,10 @@ struct MainView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openAppDeepLink)) { _ in
             consumePendingDeepLink()
         }
-        .onChange(of: hasOnboard) { _, _ in
-            consumePendingSharedRecipeURL()
-            consumePendingDeepLink()
-            consumePendingPhotoRecipeImport()
-        }
         .onChange(of: authManager.authState) { _, newState in
+            if newState != .authenticated {
+                signedInTabUserId = ""
+            }
             consumePendingSharedRecipeURL()
             consumePendingDeepLink()
             consumePendingPhotoRecipeImport()
@@ -63,10 +62,11 @@ struct MainView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
-            guard phase == .active, hasOnboard, authManager.authState == .authenticated else { return }
+            guard phase == .active, authManager.authState == .authenticated else { return }
             Task {
                 await PhotoLibraryRecipeNotifier.shared.scanForRecentSavedVideosAndNotify()
             }
+            consumePendingSharedRecipeURL()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background {
@@ -77,31 +77,78 @@ struct MainView: View {
             consumePendingPhotoRecipeImport()
         }
         .onReceive(NotificationCenter.default.publisher(for: .savedVideoRecipeSuggestion)) { _ in
-            guard hasOnboard, authManager.authState == .authenticated else { return }
+            guard authManager.authState == .authenticated else { return }
             withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
                 showSavedVideoSuggestionBanner = true
             }
         }
     }
 
-    /// Presents auto-processing sheet when a share/deep link stored URL is available and Home is reachable.
+    /// Presents auto-processing sheet when a share/deep link stored URL is available and Home is reachable,
+    /// or enqueues link import(s) in the background when the user queued from the share extension (`silent` queue).
     private func consumePendingSharedRecipeURL() {
         PendingRecipeImport.migratePendingFromAppGroupToStandardIfNeeded()
-        guard hasOnboard, authManager.authState == .authenticated else { return }
+        guard authManager.authState == .authenticated else { return }
+
+        let queued = (UserDefaults.standard.array(forKey: PendingRecipeImport.silentImportQueueKey) as? [String]) ?? []
+        if !queued.isEmpty {
+            UserDefaults.standard.removeObject(forKey: PendingRecipeImport.silentImportQueueKey)
+            let container = modelContext.container
+            Task { @MainActor in
+                await SubscriptionManager.shared.checkStatus()
+                var usedToday = 0
+                if !SubscriptionManager.shared.isPremium,
+                   let userId = await SupabaseService.shared.currentUserIdString() {
+                    usedToday = (try? await FreeTierLimits.importsUsedToday(userId: userId)) ?? 0
+                }
+                for raw in queued {
+                    let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !t.isEmpty else { continue }
+                    let knownUsed = SubscriptionManager.shared.isPremium ? nil : usedToday
+                    let enqueued = await RecipeImportProcessor.enqueueSharedLinkImportSilently(
+                        url: t,
+                        container: container,
+                        knownImportsUsedToday: knownUsed,
+                        presentPaywallOnLimit: false
+                    )
+                    if enqueued, !SubscriptionManager.shared.isPremium {
+                        usedToday += 1
+                    }
+                }
+            }
+        }
+
         guard let raw = UserDefaults.standard.string(forKey: PendingRecipeImport.userDefaultsKey) else { return }
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             UserDefaults.standard.removeObject(forKey: PendingRecipeImport.userDefaultsKey)
+            UserDefaults.standard.removeObject(forKey: PendingRecipeImport.presentationModeKey)
             return
         }
+        let modeRaw = UserDefaults.standard.string(forKey: PendingRecipeImport.presentationModeKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let silent = modeRaw == "silent"
         UserDefaults.standard.removeObject(forKey: PendingRecipeImport.userDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: PendingRecipeImport.presentationModeKey)
+
+        if silent {
+            Task { @MainActor in
+                await RecipeImportProcessor.enqueueSharedLinkImportSilently(
+                    url: trimmed,
+                    container: modelContext.container,
+                    presentPaywallOnLimit: false
+                )
+            }
+            return
+        }
         selectedTab = .home
         addSheet = .addLinkWithURLAutoProcess(trimmed)
     }
 
-    /// Handles `airecipe://settings`, `airecipe://terms`, `airecipe://privacy` after onboard + sign-in.
+    /// Handles `airecipe://settings`, `airecipe://terms`, `airecipe://privacy` after sign-in.
     private func consumePendingDeepLink() {
-        guard hasOnboard, authManager.authState == .authenticated else { return }
+        guard authManager.authState == .authenticated else { return }
         guard let route = PendingAppDeepLink.consume() else { return }
         switch route {
         case PendingAppDeepLink.settings:
@@ -119,7 +166,7 @@ struct MainView: View {
 
     /// Opens the Photos video import sheet after a notification tap or `airecipe://photo-recipe`.
     private func consumePendingPhotoRecipeImport() {
-        guard hasOnboard, authManager.authState == .authenticated else { return }
+        guard authManager.authState == .authenticated else { return }
         guard PendingPhotoRecipeImport.takePending() else { return }
         selectedTab = .home
         addSheet = .photoLibraryVideo
@@ -133,8 +180,38 @@ struct MainView: View {
         case .notAuthenticated:
             LoginView(onSignedIn: { _ in }, onError: { _ in })
         case .authenticated:
-            mainTabView
+            authenticatedTabRoot
         }
+    }
+
+    /// Waits for Supabase user id before showing tabs so SwiftData queries never mix accounts.
+    private var authenticatedTabRoot: some View {
+        Group {
+            if signedInTabUserId.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .task { await loadSignedInTabUserId() }
+            } else {
+                mainTabView
+            }
+        }
+        .onChange(of: signedInTabUserId) { _, newId in
+            guard !newId.isEmpty else { return }
+            consumePendingSharedRecipeURL()
+        }
+    }
+
+    @MainActor
+    private func dismissAllImportSheets() {
+        addSheet = nil
+        showAddMenu = false
+    }
+
+    @MainActor
+    private func loadSignedInTabUserId() async {
+        guard let uid = await SupabaseService.shared.currentUserIdString(), !uid.isEmpty else { return }
+        Recipe.migrateUnassignedOwnersOnce(modelContext: modelContext, assignedTo: uid)
+        signedInTabUserId = uid
     }
 
     private var mainTabView: some View {
@@ -142,11 +219,11 @@ struct MainView: View {
             Group {
                 switch selectedTab {
                 case .home:
-                    RecipeListView(addSheet: $addSheet)
+                    RecipeListView(filterOwnerId: signedInTabUserId, addSheet: $addSheet)
                 case .cookbook:
                     ImportView()
                 case .mealPlan:
-                    MealPlanView()
+                    MealPlanView(filterOwnerId: signedInTabUserId)
                 case .settings:
                     SettingsView(deepLinkLegalDocument: $deepLinkLegalDocument)
                 }
@@ -167,6 +244,37 @@ struct MainView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .switchToImportsTab)) { _ in
             selectedTab = .cookbook
+        }
+        .onChange(of: selectedTab) { _, tab in
+            if tab == .cookbook {
+                consumePendingSharedRecipeURL()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .presentRevenueCatPaywall)) { _ in
+            showGlobalPaywall = true
+        }
+        .sheet(isPresented: $showGlobalPaywall, onDismiss: dismissAllImportSheets) {
+            RevenueCatUI.PaywallView(displayCloseButton: true)
+                .onRequestedDismissal {
+                    showGlobalPaywall = false
+                    dismissAllImportSheets()
+                }
+                .onPurchaseCompleted { _, _ in
+                    Task { @MainActor in
+                        await SubscriptionManager.shared.refreshAndSyncPlan()
+                        await ShareExtensionQuotaSnapshot.refreshFromBackend()
+                        showGlobalPaywall = false
+                        dismissAllImportSheets()
+                    }
+                }
+                .onRestoreCompleted { _ in
+                    Task { @MainActor in
+                        await SubscriptionManager.shared.refreshAndSyncPlan()
+                        await ShareExtensionQuotaSnapshot.refreshFromBackend()
+                        showGlobalPaywall = false
+                        dismissAllImportSheets()
+                    }
+                }
         }
         .confirmationDialog("Add Recipe", isPresented: $showAddMenu) {
             Button("Upload video link") {
@@ -374,6 +482,10 @@ struct ImportRecipeReviewSheet: View {
                 let recipe = RecipeImportProcessor.approveSubmission(submission, modelContext: mainModelContext)
                 onAddedToHome?(recipe)
                 onDismiss()
+                PostHogSDK.shared.capture("ai_recipe_added", properties: [
+                        "meal_type": "dinner"
+                ])
+                print("🚀 PostHog successfully initialized via AppDelegate!")
             } label: {
                 Text("Add to Home")
                     .frame(maxWidth: .infinity)
@@ -435,7 +547,7 @@ struct ImportView: View {
                         Text("My Imports")
                             .appFont(.title2)
                             .foregroundStyle(AppTheme.textPrimary)
-                        Text("Add a link or video from Home — progress shows here.")
+                        Text("Links you share from Instagram, YouTube, or TikTok appear here after you close the share sheet — open the app to finish processing.")
                             .appFont(.callout)
                             .foregroundStyle(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -445,23 +557,8 @@ struct ImportView: View {
                     .background(AppTheme.surface.ignoresSafeArea())
                 } else {
                     List {
-                        ForEach(submissions) { submission in
-                            ImportSubmissionRow(
-                                submission: submission,
-                                onReadyRowTap: submission.status == .ready
-                                    ? { importReview = ImportReviewItem(submission: submission) }
-                                    : nil
-                            )
-                                .listRowSeparator(.hidden)
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                .listRowBackground(Color.clear)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        deleteSubmission(submission)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
+                        ForEach(submissions.indices, id: \.self) { index in
+                            importRowView(submissions[index], index: index)
                         }
                     }
                     .listStyle(.plain)
@@ -508,6 +605,30 @@ struct ImportView: View {
         modelContext.delete(submission)
         try? modelContext.save()
         forcePollTick += 1
+    }
+
+    private func importRowView(_ submission: RecipeImportSubmission, index: Int) -> some View {
+        ImportSubmissionRow(
+            submission: submission,
+            onReadyRowTap: readyTapAction(for: submission)
+        )
+        .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+        .listRowBackground(Color.clear)
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                deleteSubmission(submission)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+
+    private func readyTapAction(for submission: RecipeImportSubmission) -> (() -> Void)? {
+        guard submission.status == .ready else { return nil }
+        return {
+            importReview = ImportReviewItem(submission: submission)
+        }
     }
 }
 
@@ -557,6 +678,22 @@ private struct ImportSubmissionRow: View {
     }
 }
 
+private enum SettingsLayout {
+    /// Space between section groups.
+    static let sectionSpacing: CGFloat = 40
+    /// Space between rows inside a section.
+    static let rowSpacing: CGFloat = 6
+    static let rowInsets = EdgeInsets(top: 2, leading: 20, bottom: 2, trailing: 20)
+}
+
+private extension View {
+    func settingsListRow() -> some View {
+        listRowSeparator(.hidden)
+            .listRowInsets(SettingsLayout.rowInsets)
+            .listRowBackground(Color.clear)
+    }
+}
+
 struct SettingsView: View {
     @Binding var deepLinkLegalDocument: LegalDocumentKind?
     @AppStorage("settings.language") private var language = "System"
@@ -568,19 +705,36 @@ struct SettingsView: View {
     @State private var showPaywall = false
     @State private var legalDocument: LegalDocumentKind?
 
+
     init(deepLinkLegalDocument: Binding<LegalDocumentKind?> = .constant(nil)) {
         _deepLinkLegalDocument = deepLinkLegalDocument
     }
     @State private var showDeleteAccountConfirm = false
     @State private var deleteAccountError: String?
     @State private var isDeletingAccount = false
+    @State private var freeDailyImportUsed = 0
+    @State private var isLoadingFreeUsage = false
     @ObservedObject private var subManager = SubscriptionManager.shared
+
+    private var freeDailyImportRemaining: Int {
+        FreeTierLimits.remainingToday(usedToday: freeDailyImportUsed)
+    }
+
+    private var freeDailyUsageRate: Double {
+        guard FreeTierLimits.dailyImportLimit > 0 else { return 0 }
+        return min(1, max(0, Double(freeDailyImportUsed) / Double(FreeTierLimits.dailyImportLimit)))
+    }
+
+    private var freeUsageRingColor: Color {
+        freeDailyUsageRate >= 0.8 ? .red : .green
+    }
+
     
     private let languages: [String] = ["System", "English", "Mandarin", "Spanish", "Hindi", "Korean"]
     
     var body: some View {
         NavigationStack {
-            List {
+            List{
                 Section("Recipe Settings"){
                     Picker("language", selection: $language) {
                         ForEach(languages, id: \.self) { lang in
@@ -589,25 +743,55 @@ struct SettingsView: View {
                     }
                     .padding(10)
                     .appFont(.body)
-                    .boxStyle(cornerRadius: 5)
+                    .boxStyle(cornerRadius: 8)
                     .pickerStyle(.navigationLink)
+                    .frame(maxWidth:.infinity, alignment: .init(horizontal: .center, vertical: .center))
+                    .settingsListRow()
                 }
-                .listSectionSeparator(.hidden)
-            
+
                 Section("Subscription Plan"){
                     if subManager.isPremium {
                         Text("PREMIUM PLAN🔥")
                             .appFont(.body)
-                            .listRowSeparator(.hidden)
+                            .settingsListRow()
                     } else {
-                        Text("Free version")
-                            .listRowSeparator(.hidden)
+                        Text("Free Version")
+                            .settingsListRow()
+                        VStack(spacing: 4) {
+                            ZStack {
+                                Circle()
+                                    .stroke(AppTheme.textSecondary.opacity(0.2), lineWidth: 11)
+                                Circle()
+                                    .trim(from: 0, to: freeDailyUsageRate)
+                                    .stroke(
+                                        freeUsageRingColor,
+                                        style: StrokeStyle(lineWidth: 11, lineCap: .round)
+                                    )
+                                    .rotationEffect(.degrees(-90))
+                                VStack(spacing: 2) {
+                                    if isLoadingFreeUsage {
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                    } else {
+                                        Text("\(freeDailyImportRemaining)")
+                                            .appFont(.titleBold)
+                                            .foregroundStyle(AppTheme.textPrimary)
+                                        Text("imports left")
+                                            .appFont(.caption)
+                                            .foregroundStyle(AppTheme.textSecondary)
+                                    }
+                                }
+                            }
+                            .frame(width: 120, height: 120)
+                        }
+                        .padding(.vertical, 2)
+                        .settingsListRow()
                     }
                     if subManager.isPremium {
                         Button("Change Your Plan") {
                             showPaywall = true
                         }
-                        .listRowSeparator(.hidden)
+                        .settingsListRow()
                         .padding(10)
                         .appFont(.body)
                         .boxStyle(cornerRadius: 8)
@@ -615,7 +799,7 @@ struct SettingsView: View {
                         Button("Upgrade to Premium") {
                             showPaywall = true
                         }
-                        .listRowSeparator(.hidden)
+                        .settingsListRow()
                         .padding(10)
                         .appFont(.body)
                         .boxStyle(cornerRadius: 8)
@@ -636,7 +820,7 @@ struct SettingsView: View {
                             await subManager.refreshAndSyncPlan()
                         }
                     }
-                    .listRowSeparator(.hidden)
+                    .settingsListRow()
                     .padding(10)
                     .appFont(.body)
                     .boxStyle(cornerRadius: 8)
@@ -644,6 +828,7 @@ struct SettingsView: View {
                 .listSectionSeparator(.hidden)
                 .task {
                     await subManager.refreshAndSyncPlan()
+                    await refreshFreeDailyImportUsage()
                 }
 
                 Section("App Guidelines"){
@@ -651,49 +836,63 @@ struct SettingsView: View {
                         legalDocument = .termsOfService
                     } label: {
                         Text("Terms of Service")
-                            
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(alignment: .center)
                             .foregroundStyle(AppTheme.textPrimary)
                             .appFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
                     .buttonStyle(.plain)
-                    .frame(width:220)
-                    .listRowSeparator(.hidden)
+                   
+                    .settingsListRow()
 
                     Button {
                         legalDocument = .privacyAndAI
                     } label: {
                         Text("Privacy & AI Policy")
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(alignment: .center)
                             .foregroundStyle(AppTheme.textPrimary)
                             .appFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
                     .buttonStyle(.plain)
-                    .frame(width:220)
-                    .listRowSeparator(.hidden)
+                   
+                    .settingsListRow()
                 }
+                .listSectionSeparator(.hidden)
+
                 Section("Contact support") {
-                    NavigationLink {
+                    Button {
                         GeneralQuestionsListView()
                     } label: {
                         Text("General Questions")
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
                             .foregroundStyle(AppTheme.textPrimary)
                             .appFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
                     .buttonStyle(.plain)
-                    .listRowSeparator(.hidden)
-                    
+                    .settingsListRow()
+
+                    Button {
+                        requestAppStoreReview()
+                    } label: {
+                        Text("Rate Us")
+                           
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .appFont(.body)
+                            .padding(10)
+                            .boxStyle(cornerRadius: 8)
+                    }
+                    .buttonStyle(.plain)
+                    .settingsListRow()
+
                     Button("Contact Me") {
                         openSupportEmail()
                     }
-                    .listRowSeparator(.hidden)
+                    .settingsListRow()
                     .padding(10)
                     .appFont(.body)
                     .boxStyle(cornerRadius: 8)
@@ -709,16 +908,18 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Text("Sign Out")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(10)
+                                .frame(alignment: .center)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 10)
+                                
                                 .appFont(.body)
                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                 .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                                 .foregroundStyle(Color.red)
                         }
                     }
-                    .listRowSeparator(.hidden)
-                    .frame(width: 150)
+                    .settingsListRow()
+                    .frame(width: 110)
                     .background(AppTheme.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
@@ -737,17 +938,18 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Text("Delete account")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(10)
+                                .frame(alignment: .center)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 10)
                                 .appFont(.body)
                             Image(systemName: "trash.fill")
                                 .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                                 .foregroundStyle(Color.red)
                         }
                     }
-                    .listRowSeparator(.hidden)
+                    .frame(width: 150)
+                    .settingsListRow()
                     .disabled(isDeletingAccount)
-                    .frame(width: 180)
                     .background(AppTheme.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
@@ -757,11 +959,16 @@ struct SettingsView: View {
                     .padding(.trailing, AppTheme.boxShadowOffset)
                     .padding(.bottom, AppTheme.boxShadowOffset)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 12)
                             .fill(Color.red)
                     )
                 }
+                
+                .listSectionSeparator(.hidden)
             }
+            .listSectionSpacing(SettingsLayout.sectionSpacing)
+            .listRowSpacing(SettingsLayout.rowSpacing)
+            .environment(\.defaultMinListRowHeight, 8)
             .scrollContentBackground(.hidden)
             .listSectionSeparator(.hidden)
             .background(AppTheme.surface.ignoresSafeArea())
@@ -802,15 +1009,16 @@ struct SettingsView: View {
                 Task { @MainActor in
                     await subManager.refreshAndSyncPlan()
                     subscriptionTier = subManager.isPremium ? "Pro" : "Free"
+                    await refreshFreeDailyImportUsage()
                 }
             }
-            .confirmationDialog("Delete your account?", isPresented: $showDeleteAccountConfirm, titleVisibility: .visible) {
+            .alert("Delete your account?", isPresented: $showDeleteAccountConfirm) {
+                Button("Cancel", role: .cancel) {}
                 Button("Delete account", role: .destructive) {
                     Task { await performDeleteAccount() }
                 }
-                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Removes your login and profile on our servers and deletes local recipes on this device. For manual cleanup in Supabase, see Supabase/delete_account.sql.")
+                Text("This permanently deletes your login account. Local recipes on this device will also be removed.")
             }
             .errorPopup(message: $deleteAccountError)
         }
@@ -846,6 +1054,48 @@ struct SettingsView: View {
     private func openSupportEmail() {
         guard let url = URL(string: "mailto:bryanch@umich.edu") else { return }
         UIApplication.shared.open(url)
+    }
+
+    @MainActor
+    private func requestAppStoreReview() {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" { return }
+        #endif
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+            ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        guard let scene else { return }
+        AppStore.requestReview(in: scene)
+    }
+
+    @MainActor
+    private func refreshFreeDailyImportUsage() async {
+        guard !subManager.isPremium else {
+            freeDailyImportUsed = 0
+            isLoadingFreeUsage = false
+            return
+        }
+        guard !isLoadingFreeUsage else { return }
+
+        isLoadingFreeUsage = true
+        defer { isLoadingFreeUsage = false }
+
+        guard let userId = await SupabaseService.shared.currentUserIdString(), !userId.isEmpty else {
+            freeDailyImportUsed = 0
+            return
+        }
+
+        do {
+            let usedToday = try await FreeTierLimits.importsUsedToday(userId: userId)
+            freeDailyImportUsed = min(FreeTierLimits.dailyImportLimit, usedToday)
+            ShareExtensionQuotaSnapshot.publish(
+                usedToday: freeDailyImportUsed,
+                isPremium: subManager.isPremium
+            )
+        } catch {
+            freeDailyImportUsed = 0
+        }
     }
 }
 
@@ -973,8 +1223,10 @@ enum AppLanguage: String {
     }
 }
 
-#Preview("Main") {
-    MainView()
-        .modelContainer(for: Recipe.self, inMemory: true)
+
+
+#Preview("Settings") {
+    SettingsView(deepLinkLegalDocument: .constant(nil))
+        .modelContainer(for: [Recipe.self, PlannedMeal.self], inMemory: true)
         .environment(AuthManager(service: SupabaseService()))
 }

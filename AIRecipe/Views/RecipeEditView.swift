@@ -18,9 +18,12 @@ private struct EditableLine: Identifiable, Equatable {
 struct RecipeEditView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.isOnboardingWalkthrough) private var isOnboardingWalkthrough
+    
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
+    var onboardingCoachText: String? = nil
+    var onOnboardingCookTimePlusTapped: (() -> Void)? = nil
+    var onOnboardingSaved: (() -> Void)? = nil
 
     @State private var didLoadDraft = false
 
@@ -212,7 +215,10 @@ struct RecipeEditView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         applyDraftToRecipe()
+                        recipe.updatedAt = Date()
                         try? modelContext.save()
+                        Task { await SyncService.shared.push(modelContainer: modelContext.container) }
+                        onOnboardingSaved?()
                         onDismiss()
                         dismiss()
                     } label: {
@@ -222,7 +228,7 @@ struct RecipeEditView: View {
                             .frame(width: 34, height: 34)
                             .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
                     }
-                    .onboardingSaveEditsTip(isOnboardingWalkthrough)
+                   
                 }
             }
             .onAppear {
@@ -235,8 +241,8 @@ struct RecipeEditView: View {
 
     private var totalTimeBlock: some View {
         VStack(alignment: .leading, spacing: 14) {
-            timeRow(label: "Prep time", value: $draftPrepMinutes)
-            timeRow(label: "Cooking time", value: $draftCookMinutes)
+            timeRow(label: "Prep time", value: $draftPrepMinutes, isCookingTime: false)
+            timeRow(label: "Cooking time", value: $draftCookMinutes, isCookingTime: true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -244,7 +250,7 @@ struct RecipeEditView: View {
         .boxStyle()
     }
 
-    private func timeRow(label: String, value: Binding<Int>) -> some View {
+    private func timeRow(label: String, value: Binding<Int>, isCookingTime: Bool = false) -> some View {
         HStack {
             Text(label)
                 .appFont(.callout)
@@ -260,6 +266,7 @@ struct RecipeEditView: View {
                         .foregroundStyle(.red.opacity(0.85))
                 }
                 .buttonStyle(.plain)
+                .disabled(onboardingCoachText != nil && isCookingTime)
 
                 Text("\(value.wrappedValue)")
                     .appFont(.title3)
@@ -270,6 +277,9 @@ struct RecipeEditView: View {
                 Button {
                     value.wrappedValue = min(999, value.wrappedValue + 1)
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    if isCookingTime {
+                        onOnboardingCookTimePlusTapped?()
+                    }
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .appFont(.title3)

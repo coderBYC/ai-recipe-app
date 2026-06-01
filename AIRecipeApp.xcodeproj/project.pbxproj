@@ -10,7 +10,16 @@
 		1A03F7A92F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */; };
 		1A03F7AA2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */; };
 		1A03F7AB2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */; };
-		1A81B1322F7B05D3000923E5 /* OnBoardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */; };
+		1A86DB902FBE1617009E8391 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 1A86DB8F2FBE1617009E8391 /* PostHog */; };
+		1A86DB922FC227F9009E8391 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DB912FC227F9009E8391 /* OnboardingView.swift */; };
+		1A86DB942FC23AF6009E8391 /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DB932FC23AE4009E8391 /* OnboardingState.swift */; };
+		1A86DC042FC99900009E8391 /* OnboardingDemoRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC012FC99900009E8391 /* OnboardingDemoRecipe.swift */; };
+		1A86DC052FC99900009E8391 /* OnboardingEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC022FC99900009E8391 /* OnboardingEnvironment.swift */; };
+		1A86DC062FC99900009E8391 /* OnboardingTips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC032FC99900009E8391 /* OnboardingTips.swift */; };
+		1A86DC072FC99910009E8391 /* OnboardingTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC072FC99900009E8391 /* OnboardingTypes.swift */; };
+		1A86DC092FC99920009E8391 /* LoopingVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC082FC99920009E8391 /* LoopingVideoPlayer.swift */; };
+		1A86DC0B2FC99930009E8391 /* FreeTierLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC0A2FC99930009E8391 /* FreeTierLimits.swift */; };
+		1A86DC0D2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC0C2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift */; };
 		1A9211932F7C696C005252F5 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1A9211892F7C696C005252F5 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */; };
 		1A9F40142F5F772E00DFA8EF /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40132F5F772E00DFA8EF /* Auth */; };
@@ -25,6 +34,7 @@
 		1A9F41A22F6F79F500DFA8EF /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F41A12F6F79F500DFA8EF /* SubscriptionManager.swift */; };
 		1A9F41A52F6F7E4100DFA8EF /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F41A42F6F7E4100DFA8EF /* RevenueCat */; };
 		1A9F41A72F6F7E4100DFA8EF /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F41A62F6F7E4100DFA8EF /* RevenueCatUI */; };
+		1A9F41B02F90000100DFA8EF /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F41AF2F90000100DFA8EF /* SyncService.swift */; };
 		1ABCDACF2F57AEEB00975132 /* SourceIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */; };
 		B0010001 /* AIRecipeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010001 /* AIRecipeApp.swift */; };
 		B0010002 /* RecipeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010002 /* RecipeListView.swift */; };
@@ -46,11 +56,8 @@
 		B0010016 /* CookModeVoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010017 /* CookModeVoiceController.swift */; };
 		B0010017 /* PhotoLibraryRecipeNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010018 /* PhotoLibraryRecipeNotifier.swift */; };
 		B0010018 /* PhotoLibraryVideoImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010019 /* PhotoLibraryVideoImportView.swift */; };
-		B0010019 /* Fredoka-VF.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F001001A /* Fredoka-VF.ttf */; };
 		B0010020 /* RecipeImportSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001B /* RecipeImportSubmission.swift */; };
 		B0010021 /* RecipeImportProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001C /* RecipeImportProcessor.swift */; };
-		B0010022 /* OnboardingTips.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001D /* OnboardingTips.swift */; };
-		B0010023 /* OnboardingEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001E /* OnboardingEnvironment.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,7 +93,15 @@
 
 /* Begin PBXFileReference section */
 		1A03F7A82F946B7700854E59 /* Bitter-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Bitter-VariableFont_wght.ttf"; sourceTree = "<group>"; };
-		1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnBoardingView.swift; sourceTree = "<group>"; };
+		1A86DB912FC227F9009E8391 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		1A86DB932FC23AE4009E8391 /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
+		1A86DC012FC99900009E8391 /* OnboardingDemoRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingDemoRecipe.swift; sourceTree = "<group>"; };
+		1A86DC022FC99900009E8391 /* OnboardingEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingEnvironment.swift; sourceTree = "<group>"; };
+		1A86DC032FC99900009E8391 /* OnboardingTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTips.swift; sourceTree = "<group>"; };
+		1A86DC072FC99900009E8391 /* OnboardingTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTypes.swift; sourceTree = "<group>"; };
+		1A86DC082FC99920009E8391 /* LoopingVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopingVideoPlayer.swift; sourceTree = "<group>"; };
+		1A86DC0A2FC99930009E8391 /* FreeTierLimits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeTierLimits.swift; sourceTree = "<group>"; };
+		1A86DC0C2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionQuotaSnapshot.swift; sourceTree = "<group>"; };
 		1A9211892F7C696C005252F5 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		1A9F403A2F62254400DFA8EF /* CookModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeView.swift; sourceTree = "<group>"; };
@@ -94,6 +109,7 @@
 		1A9F407C2F6E232400DFA8EF /* RecipeShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RecipeShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A9F40912F6F33D700DFA8EF /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1A9F41A12F6F79F500DFA8EF /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		1A9F41AF2F90000100DFA8EF /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceIconView.swift; sourceTree = "<group>"; };
 		1AF4FA902F7F5194003BF5E5 /* AppSecrets.local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppSecrets.local.xcconfig; sourceTree = "<group>"; };
 		1AF4FA922F7F51CE003BF5E5 /* AppSecrets.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppSecrets.local.xcconfig.example; sourceTree = "<group>"; };
@@ -111,7 +127,6 @@
 		F001000D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F001000E /* RecipeBackendService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeBackendService.swift; sourceTree = "<group>"; };
 		F001000F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F0010010 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		F0010011 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		F0010012 /* LegalDocuments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocuments.swift; sourceTree = "<group>"; };
 		F0010013 /* PlannedMeal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlannedMeal.swift; sourceTree = "<group>"; };
@@ -121,11 +136,8 @@
 		F0010017 /* CookModeVoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeVoiceController.swift; sourceTree = "<group>"; };
 		F0010018 /* PhotoLibraryRecipeNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryRecipeNotifier.swift; sourceTree = "<group>"; };
 		F0010019 /* PhotoLibraryVideoImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryVideoImportView.swift; sourceTree = "<group>"; };
-		F001001A /* Fredoka-VF.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fredoka-VF.ttf"; sourceTree = "<group>"; };
 		F001001B /* RecipeImportSubmission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportSubmission.swift; sourceTree = "<group>"; };
 		F001001C /* RecipeImportProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportProcessor.swift; sourceTree = "<group>"; };
-		F001001D /* OnboardingTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTips.swift; sourceTree = "<group>"; };
-		F001001E /* OnboardingEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingEnvironment.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -139,6 +151,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		1A86DC002FC99900009E8391 /* Onboarding */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Onboarding; sourceTree = "<group>"; };
 		1A92118A2F7C696C005252F5 /* ShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1A9211942F7C696C005252F5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ShareExtension; sourceTree = "<group>"; };
 		1A9F40292F6114E400DFA8EF /* Auth View */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Auth View"; sourceTree = "<group>"; };
 		1A9F403E2F6249AF00DFA8EF /* Model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Model; sourceTree = "<group>"; };
@@ -171,6 +184,7 @@
 				1A9F41A52F6F7E4100DFA8EF /* RevenueCat in Frameworks */,
 				1A9F41A72F6F7E4100DFA8EF /* RevenueCatUI in Frameworks */,
 				1A9F40142F5F772E00DFA8EF /* Auth in Frameworks */,
+				1A86DB902FBE1617009E8391 /* PostHog in Frameworks */,
 				1A9F401C2F5F772E00DFA8EF /* Storage in Frameworks */,
 				1A9F401A2F5F772E00DFA8EF /* Realtime in Frameworks */,
 			);
@@ -208,7 +222,6 @@
 				G0010004 /* Helpers */,
 				G0010005 /* Theme */,
 				G0010006 /* Models */,
-				G0010007 /* Fonts */,
 				F001000D /* Assets.xcassets */,
 				F001000F /* Info.plist */,
 			);
@@ -237,10 +250,11 @@
 				F0010004 /* RecipeEditView.swift */,
 				F0010005 /* RecipePageView.swift */,
 				1A9F40292F6114E400DFA8EF /* Auth View */,
+				1A86DC002FC99900009E8391 /* Onboarding */,
 				F0010008 /* PasteLinkView.swift */,
 				F0010019 /* PhotoLibraryVideoImportView.swift */,
 				1A9F403A2F62254400DFA8EF /* CookModeView.swift */,
-				1A81B1312F7B05D3000923E5 /* OnBoardingView.swift */,
+				1A86DB912FC227F9009E8391 /* OnboardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -248,6 +262,14 @@
 		G0010004 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				1A86DB932FC23AE4009E8391 /* OnboardingState.swift */,
+				1A86DC072FC99900009E8391 /* OnboardingTypes.swift */,
+				1A86DC082FC99920009E8391 /* LoopingVideoPlayer.swift */,
+				1A86DC0A2FC99930009E8391 /* FreeTierLimits.swift */,
+				1A86DC0C2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift */,
+				1A86DC012FC99900009E8391 /* OnboardingDemoRecipe.swift */,
+				1A86DC022FC99900009E8391 /* OnboardingEnvironment.swift */,
+				1A86DC032FC99900009E8391 /* OnboardingTips.swift */,
 				F0010015 /* AppSecrets.swift */,
 				F0010009 /* VideoThumbnailView.swift */,
 				1ABCDACE2F57AEEB00975132 /* SourceIconView.swift */,
@@ -259,8 +281,7 @@
 				1A9F41A12F6F79F500DFA8EF /* SubscriptionManager.swift */,
 				F0010017 /* CookModeVoiceController.swift */,
 				F0010018 /* PhotoLibraryRecipeNotifier.swift */,
-				F001001D /* OnboardingTips.swift */,
-				F001001E /* OnboardingEnvironment.swift */,
+				1A9F41AF2F90000100DFA8EF /* SyncService.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -281,15 +302,6 @@
 				F001001B /* RecipeImportSubmission.swift */,
 			);
 			path = Models;
-			sourceTree = "<group>";
-		};
-		G0010007 /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				F001001A /* Fredoka-VF.ttf */,
-				F0010010 /* README.md */,
-			);
-			path = Fonts;
 			sourceTree = "<group>";
 		};
 		G0010008 /* Config */ = {
@@ -362,6 +374,7 @@
 				1A9211922F7C696C005252F5 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				1A86DC002FC99900009E8391 /* Onboarding */,
 				1A9F40292F6114E400DFA8EF /* Auth View */,
 				1A9F403E2F6249AF00DFA8EF /* Model */,
 				1A9F404F2F65F91900DFA8EF /* Payment */,
@@ -404,6 +417,7 @@
 			packageReferences = (
 				1A9F40122F5F772E00DFA8EF /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				1A9F41A32F6F7E4100DFA8EF /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				1A86DB8E2FBE12F8009E8391 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			productRefGroup = G0010002 /* Products */;
 			projectDirPath = "";
@@ -438,7 +452,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B001000D /* Assets.xcassets in Resources */,
-				B0010019 /* Fredoka-VF.ttf in Resources */,
 				1A03F7AA2F946B7700854E59 /* Bitter-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -465,9 +478,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A9F403D2F62436D00DFA8EF /* AuthManager.swift in Sources */,
+				1A86DC042FC99900009E8391 /* OnboardingDemoRecipe.swift in Sources */,
+				1A86DC052FC99900009E8391 /* OnboardingEnvironment.swift in Sources */,
+				1A86DC062FC99900009E8391 /* OnboardingTips.swift in Sources */,
 				1A9F41A22F6F79F500DFA8EF /* SubscriptionManager.swift in Sources */,
 				B0010001 /* AIRecipeApp.swift in Sources */,
-				1A81B1322F7B05D3000923E5 /* OnBoardingView.swift in Sources */,
 				B0010002 /* RecipeListView.swift in Sources */,
 				B0010003 /* AddRecipeView.swift in Sources */,
 				B0010004 /* RecipeEditView.swift in Sources */,
@@ -479,9 +494,15 @@
 				B0010011 /* MainView.swift in Sources */,
 				B0010012 /* LegalDocuments.swift in Sources */,
 				B0010013 /* PlannedMeal.swift in Sources */,
+				1A86DB922FC227F9009E8391 /* OnboardingView.swift in Sources */,
 				B0010014 /* MealPlanView.swift in Sources */,
 				B0010009 /* VideoThumbnailView.swift in Sources */,
 				1ABCDACF2F57AEEB00975132 /* SourceIconView.swift in Sources */,
+				1A86DB942FC23AF6009E8391 /* OnboardingState.swift in Sources */,
+				1A86DC072FC99910009E8391 /* OnboardingTypes.swift in Sources */,
+				1A86DC092FC99920009E8391 /* LoopingVideoPlayer.swift in Sources */,
+				1A86DC0B2FC99930009E8391 /* FreeTierLimits.swift in Sources */,
+				1A86DC0D2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift in Sources */,
 				B001000A /* BoxStyle.swift in Sources */,
 				1A9F403B2F62254400DFA8EF /* CookModeView.swift in Sources */,
 				B001000E /* RecipeBackendService.swift in Sources */,
@@ -491,8 +512,7 @@
 				B0010021 /* RecipeImportProcessor.swift in Sources */,
 				B0010017 /* PhotoLibraryRecipeNotifier.swift in Sources */,
 				B0010018 /* PhotoLibraryVideoImportView.swift in Sources */,
-				B0010022 /* OnboardingTips.swift in Sources */,
-				B0010023 /* OnboardingEnvironment.swift in Sources */,
+				1A9F41B02F90000100DFA8EF /* SyncService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -790,10 +810,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -831,10 +854,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -880,6 +906,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		1A86DB8E2FBE12F8009E8391 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.58.3;
+			};
+		};
 		1A9F40122F5F772E00DFA8EF /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift.git";
@@ -899,6 +933,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1A86DB8F2FBE1617009E8391 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1A86DB8E2FBE12F8009E8391 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
 		1A9F40132F5F772E00DFA8EF /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1A9F40122F5F772E00DFA8EF /* XCRemoteSwiftPackageReference "supabase-swift" */;

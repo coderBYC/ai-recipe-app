@@ -85,10 +85,9 @@ enum JSONValue: Codable {
 enum RecipeBackendConfig {
     static var baseURL: String {
         #if targetEnvironment(simulator)
-        return "http://127.0.0.1:8000"
+            return "http://127.0.0.1:8000"
         #else
-        return "http://35.3.118.45:8000"
-        //return "https://ai-recipe-app-1-h59j.onrender.com"
+            return "https://ai-recipe-app-1-h59j.onrender.com"
         #endif
     }
 
@@ -100,6 +99,30 @@ enum RecipeBackendConfig {
         let tail = trimmed.hasPrefix("/") ? String(trimmed.dropFirst()) : trimmed
         guard !tail.isEmpty else { return URL(string: base) }
         return URL(string: base + "/" + tail)
+    }
+
+    /// Resolves thumbnail/media URLs from the API. Rewrites loopback hosts when the app uses a different API base (common for queued imports).
+    static func resolvedMediaURL(_ raw: String) -> URL? {
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty else { return nil }
+        if s.lowercased().hasPrefix("file://"), let u = URL(string: s) { return u }
+        if s.hasPrefix("/") { return URL(fileURLWithPath: s) }
+
+        guard var thumb = URLComponents(string: s),
+              let api = URLComponents(string: baseURL.trimmingCharacters(in: .whitespacesAndNewlines)),
+              let apiHost = api.host
+        else {
+            return URL(string: s)
+        }
+
+        let loopbackHosts: Set<String> = ["127.0.0.1", "localhost", "0.0.0.0"]
+        let thumbHost = (thumb.host ?? "").lowercased()
+        if loopbackHosts.contains(thumbHost), thumbHost != apiHost.lowercased() {
+            thumb.scheme = api.scheme ?? thumb.scheme
+            thumb.host = apiHost
+            thumb.port = api.port
+        }
+        return thumb.url ?? URL(string: s)
     }
 }
 
@@ -328,6 +351,13 @@ final class RecipeBackendService {
 // MARK: - Map API response → Recipe (for SwiftData)
 
 extension RecipeAnalyzeResponse {
+    /// Persists a loadable thumbnail URL (rewrites loopback hosts to match the app’s API base).
+    static func storedMediaURLString(thumbnail_url: String?, video_url: String?) -> String {
+        let raw = (thumbnail_url ?? video_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else { return "" }
+        return RecipeBackendConfig.resolvedMediaURL(raw)?.absoluteString ?? raw
+    }
+
     /// Creates a Recipe model from the analyzed response and the original video URL.
     func toRecipe(sourceURL: String, modelContext: ModelContext) -> Recipe {
         let source = RecipeSource.inferred(from: sourceURL)
@@ -341,7 +371,9 @@ extension RecipeAnalyzeResponse {
         let totalSteps = instructions.count
         let heroSeconds = Self.parseHeroSeconds(from: dish_hero_timestamp_seconds)
 
+        let ownerId = SupabaseService.shared.client.auth.currentSession?.user.id.uuidString ?? ""
         let recipe = Recipe(
+            ownerUserId: ownerId,
             title: title.isEmpty ? "Imported recipe" : title,
             source: source,
             sourceURL: sourceURL,
@@ -354,7 +386,7 @@ extension RecipeAnalyzeResponse {
             triedBefore: false,
             notes: notes,
             stepsContent: stepsText,
-            downloadedVideoURL: (thumbnail_url ?? video_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
+            downloadedVideoURL: Self.storedMediaURLString(thumbnail_url: thumbnail_url, video_url: video_url),
             dishHeroTimestampSeconds: heroSeconds
         )
         modelContext.insert(recipe)
@@ -374,7 +406,7 @@ extension RecipeAnalyzeResponse {
         submission.readyTotalSteps = instructions.count
         submission.readySource = RecipeSource.inferred(from: finalSourceURL).rawValue
         submission.readySourceURL = finalSourceURL
-        submission.readyDownloadedVideoURL = (thumbnail_url ?? video_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        submission.readyDownloadedVideoURL = Self.storedMediaURLString(thumbnail_url: thumbnail_url, video_url: video_url)
         submission.readyDishHeroSeconds = Self.parseHeroSeconds(from: dish_hero_timestamp_seconds)
     }
 

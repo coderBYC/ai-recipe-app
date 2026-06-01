@@ -3,7 +3,7 @@ import SwiftData
 import Supabase
 import RevenueCat
 import UserNotifications
-import TipKit
+import PostHog
 
 extension Notification.Name {
     /// After enqueueing a link/photo import, switch tab bar to Imports.
@@ -15,6 +15,8 @@ extension Notification.Name {
     static let openPhotoRecipeImport = Notification.Name("openPhotoRecipeImport")
     /// Notifications denied: show an in-app banner instead of a system notification.
     static let savedVideoRecipeSuggestion = Notification.Name("savedVideoRecipeSuggestion")
+    /// Present `RevenueCatUI.PaywallView` from the root tab UI (e.g. share import hit free tier).
+    static let presentRevenueCatPaywall = Notification.Name("presentRevenueCatPaywall")
 }
 
 /// Deep links: `airecipe://settings`, `airecipe://terms`, `airecipe://privacy` (RevenueCat paywall buttons, Safari tests).
@@ -41,33 +43,86 @@ enum PendingAppDeepLink {
 enum PendingRecipeImport {
     static let appGroupSuiteName = "group.com.airecipe.app"
     static let userDefaultsKey = "pendingSharedRecipeURL"
+    /// `"silent"` = queue import without sheet (user closed share extension). `"sheet"` = show `PasteLinkView` auto-process.
+    static let presentationModeKey = "pendingSharedRecipePresentationMode"
+    /// URLs the user queued from the share extension (close / dismiss); drained when the main app runs while signed in.
+    static let silentImportQueueKey = "silentSharedImportURLQueue"
 
     private static var groupDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupSuiteName)
     }
 
-    /// If the extension couldn’t open the app, migrate the pending URL when the user opens the app manually.
-    static func migratePendingFromAppGroupToStandardIfNeeded() {
-        if let existing = UserDefaults.standard.string(forKey: userDefaultsKey),
-           !existing.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return
+    private static func mergeUniqueURLQueues(_ existing: [String], _ incoming: [String]) -> [String] {
+        var seen = Set<String>()
+        var out: [String] = []
+        for raw in existing + incoming {
+            let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !t.isEmpty, seen.insert(t).inserted else { continue }
+            out.append(t)
         }
+        return out
+    }
+
+    private static func appendToStandardSilentQueue(_ url: String) {
+        let t = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return }
+        var q = (UserDefaults.standard.array(forKey: silentImportQueueKey) as? [String]) ?? []
+        guard !q.contains(t) else { return }
+        q.append(t)
+        UserDefaults.standard.set(q, forKey: silentImportQueueKey)
+    }
+
+    /// Merges App Group → standard: silent URL queue + optional single-URL handoff for `airecipe://import`.
+    static func migratePendingFromAppGroupToStandardIfNeeded() {
+        if let groupQ = groupDefaults?.array(forKey: silentImportQueueKey) as? [String], !groupQ.isEmpty {
+            let stdQ = (UserDefaults.standard.array(forKey: silentImportQueueKey) as? [String]) ?? []
+            UserDefaults.standard.set(mergeUniqueURLQueues(stdQ, groupQ), forKey: silentImportQueueKey)
+            groupDefaults?.removeObject(forKey: silentImportQueueKey)
+        }
+
         guard let raw = groupDefaults?.string(forKey: userDefaultsKey),
               !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let existing = UserDefaults.standard.string(forKey: userDefaultsKey),
+           !existing.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            appendToStandardSilentQueue(trimmed)
+            groupDefaults?.removeObject(forKey: userDefaultsKey)
+            groupDefaults?.removeObject(forKey: presentationModeKey)
+            return
+        }
+
         UserDefaults.standard.set(trimmed, forKey: userDefaultsKey)
+        let rawMode = groupDefaults?.string(forKey: presentationModeKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let mode = rawMode == "silent" ? "silent" : "sheet"
+        UserDefaults.standard.set(mode, forKey: presentationModeKey)
         groupDefaults?.removeObject(forKey: userDefaultsKey)
+        groupDefaults?.removeObject(forKey: presentationModeKey)
     }
 
-    static func takePendingURLFromAppGroupConsuming() -> String? {
+    /// Reads URL + presentation from the App Group and removes them (used when handling `airecipe://import`).
+    static func takeImportHandoffFromAppGroupConsuming() -> (url: String, presentation: String)? {
         guard let raw = groupDefaults?.string(forKey: userDefaultsKey) else { return nil }
-        groupDefaults?.removeObject(forKey: userDefaultsKey)
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
+        guard !trimmed.isEmpty else {
+            groupDefaults?.removeObject(forKey: userDefaultsKey)
+            groupDefaults?.removeObject(forKey: presentationModeKey)
+            return nil
+        }
+        let rawMode = groupDefaults?.string(forKey: presentationModeKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let mode = rawMode == "silent" ? "silent" : "sheet"
+        groupDefaults?.removeObject(forKey: userDefaultsKey)
+        groupDefaults?.removeObject(forKey: presentationModeKey)
+        return (trimmed, mode)
     }
 
     static func clearAppGroupPending() {
         groupDefaults?.removeObject(forKey: userDefaultsKey)
+        groupDefaults?.removeObject(forKey: presentationModeKey)
     }
 }
 
@@ -75,13 +130,17 @@ enum PendingRecipeImport {
 struct AIRecipeApp: App {
     /// Retain delegate for `Purchases.shared` (SDK holds weak reference).
     private static let revenueCatDelegate = RevenueCatPurchasesDelegate()
-
+   
     init() {
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         #if DEBUG
         Purchases.logLevel = .debug
         #else
         Purchases.logLevel = .warn
         #endif
+        _ = PostHogConfig(
+                    apiKey: "phc_oJMeDDAjsLWkGbBqJ2R5LRYd6whaSHRvR32ADynEQefS",
+                    host: "https://us.posthog.com")
         let rcKey = AppSecrets.revenueCatPublicKey
         guard !rcKey.isEmpty else {
             fatalError(AppSecrets.configurationHint)
@@ -90,7 +149,7 @@ struct AIRecipeApp: App {
         Purchases.shared.delegate = Self.revenueCatDelegate
         UNUserNotificationCenter.current().delegate = RecipeNotificationCenterDelegate.shared
         PhotoLibraryRecipeNotifier.shared.registerCategories()
-        OnboardingTipKitBootstrap.configureIfAvailable()
+       
     }
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([Recipe.self, PlannedMeal.self, RecipeImportSubmission.self])
@@ -142,15 +201,23 @@ struct AIRecipeApp: App {
 /// Hosts `MainView`, auth, and deep links.
 private struct AppLifecycleRoot: View {
     @State private var authManager = AuthManager(service: SupabaseService())
-
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     var body: some View {
-        MainView()
-            .environment(authManager)
-            .onOpenURL { url in
-                Task {
-                    await handleIncomingURL(url)
-                }
+        Group{
+            if hasCompletedOnboarding {
+                MainView()
+                    .environment(authManager)
+                    .onOpenURL { url in
+                        Task {
+                            await handleIncomingURL(url)
+                        }
+                    }
+            } else {
+                OnboardingView()
             }
+        }
+        
+       
     }
 
     @MainActor
@@ -167,17 +234,20 @@ private struct AppLifecycleRoot: View {
         // Share extension: `airecipe://import` / `airecipe://open` (App Group or `?url=…`)
         if host == "import" || host == "open" {
             var link: String?
+            var presentation = "sheet"
             if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
                let q = components.queryItems?.first(where: { $0.name == "url" })?.value {
                 let t = q.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !t.isEmpty { link = t }
             }
-            if link == nil {
-                link = PendingRecipeImport.takePendingURLFromAppGroupConsuming()
+            if link == nil, let handoff = PendingRecipeImport.takeImportHandoffFromAppGroupConsuming() {
+                link = handoff.url
+                presentation = handoff.presentation
             }
             guard let trimmed = link?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return }
             PendingRecipeImport.clearAppGroupPending()
             UserDefaults.standard.set(trimmed, forKey: PendingRecipeImport.userDefaultsKey)
+            UserDefaults.standard.set(presentation, forKey: PendingRecipeImport.presentationModeKey)
             NotificationCenter.default.post(name: .importSharedRecipeLink, object: trimmed)
             return
         }

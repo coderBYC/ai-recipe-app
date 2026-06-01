@@ -40,11 +40,7 @@ struct VideoThumbnailView: View {
     }
 
     private var playableDownloadedURL: URL? {
-        let s = downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !s.isEmpty else { return nil }
-        if s.lowercased().hasPrefix("file://"), let u = URL(string: s) { return u }
-        if s.hasPrefix("/") { return URL(fileURLWithPath: s) }
-        return URL(string: s)
+        RecipeBackendConfig.resolvedMediaURL(downloadedVideoURL)
     }
 
     private var placeholderView: some View {
@@ -151,11 +147,7 @@ struct RecipeListThumbnailView: View {
     }
 
     private static func playableDownloadedURL(_ recipe: Recipe) -> URL? {
-        let s = recipe.downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !s.isEmpty else { return nil }
-        if s.lowercased().hasPrefix("file://"), let u = URL(string: s) { return u }
-        if s.hasPrefix("/") { return URL(fileURLWithPath: s) }
-        return URL(string: s)
+        RecipeBackendConfig.resolvedMediaURL(recipe.downloadedVideoURL)
     }
 }
 

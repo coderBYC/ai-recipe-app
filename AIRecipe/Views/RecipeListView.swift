@@ -4,9 +4,24 @@ import SwiftData
 // MARK: - Home Page
 
 struct RecipeListView: View {
+    /// Supabase Auth `user.id.uuidString`; only this user’s recipes appear in Home.
+    let filterOwnerId: String
     @Environment(\.modelContext) private var modelContext
     @Binding var addSheet: AddRecipeSheet?
-    @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
+    @Query private var recipes: [Recipe]
+
+    init(filterOwnerId: String, addSheet: Binding<AddRecipeSheet?>) {
+        self.filterOwnerId = filterOwnerId
+        _addSheet = addSheet
+        let oid = filterOwnerId
+        _recipes = Query(
+            filter: #Predicate<Recipe> { r in
+                r.deletedAt == nil && r.ownerUserId == oid
+            },
+            sort: \Recipe.createdAt,
+            order: .reverse
+        )
+    }
     @State private var selectedRecipe: Recipe?
     @State private var openEditWhenRecipeOpens = false
     @State private var searchText = ""
@@ -83,6 +98,9 @@ struct RecipeListView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
+            }
+            .onAppear {
+                Task { await SyncService.shared.silentSync(modelContainer: modelContext.container) }
             }
             .sheet(item: $addSheet) { sheet in
                 addSheetContent(sheet)
@@ -170,15 +188,6 @@ struct RecipeListView: View {
             Text("No recipes")
                 .appFont(.body)
                 .foregroundStyle(AppTheme.textSecondary)
-            Button("Add recipe") {
-                addSheet = .addLink
-            }
-            .padding(.horizontal,14)
-            .padding(.vertical,5)
-            .buttonStyle(PlainButtonStyle()).boxStyle(cornerRadius: 8)
-            .tint(AppTheme.primary)
-            .appFont(.callout)
-            .padding(.top,8)
             Spacer()
         } else {
             ScrollView(showsIndicators: false) {
@@ -188,7 +197,10 @@ struct RecipeListView: View {
                             .onTapGesture { selectedRecipe = recipe }
                             .contextMenu {
                                 Button(role: .destructive) {
-                                    modelContext.delete(recipe)
+                                    recipe.deletedAt = Date()
+                                    recipe.updatedAt = Date()
+                                    try? modelContext.save()
+                                    Task { await SyncService.shared.push(modelContainer: modelContext.container) }
                                 } label: { Label("Delete", systemImage: "trash") }
                             }
                     }
@@ -281,7 +293,7 @@ struct RecipeRowView: View {
 }
 
 #Preview("Recipe list") {
-    RecipeListView(addSheet: .constant(nil))
+    RecipeListView(filterOwnerId: "preview-user", addSheet: .constant(nil))
         .modelContainer(for: Recipe.self, inMemory: false)
 }
 
@@ -289,7 +301,14 @@ struct RecipeRowView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Recipe.self, configurations: config)
     let ctx = ModelContext(container)
-    let recipe = Recipe(title: "Viral Feta Pasta", creator: "Chef", timestamp: "2:30", estimatedCookingMinutes: 25, triedBefore: true)
+    let recipe = Recipe(
+        ownerUserId: "preview-user",
+        title: "Viral Feta Pasta",
+        creator: "Chef",
+        timestamp: "2:30",
+        estimatedCookingMinutes: 25,
+        triedBefore: true
+    )
     ctx.insert(recipe)
     try! ctx.save()
     return RecipeRowView(recipe: recipe)

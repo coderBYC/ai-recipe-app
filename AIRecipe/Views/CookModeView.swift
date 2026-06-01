@@ -6,6 +6,10 @@ struct CookModeView: View {
     @Bindable var recipe: Recipe
     /// When true, shows tappable shortcuts that mirror voice timer commands (onboarding).
     var onboardingVoiceShortcuts: Bool = false
+    /// When false, skips mic/speech setup (onboarding mock in media box).
+    var enablesVoiceAssistant: Bool = true
+    /// Scripted onboarding cues (advance step / set timer) without real speech.
+    var onboardingDemoTrigger: OnboardingCookModeDemoTrigger = .none
     @Environment(\.dismiss) private var dismiss
     @StateObject private var voice = CookModeVoiceController()
     @State private var stepIndex: Int = 0
@@ -64,7 +68,7 @@ struct CookModeView: View {
                             .frame(width: 34, height: 34)
                             .background(Color.black, in: RoundedRectangle(cornerRadius: 8))
                     }
-                    .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingFinishCookTip(), edge: .bottom)
+
 
                 }
                 .padding()
@@ -89,7 +93,7 @@ struct CookModeView: View {
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
-                        .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingCookVoiceTip(), edge: .top)
+
                 }
                 
                 Spacer()
@@ -99,7 +103,7 @@ struct CookModeView: View {
                     Text(timeString(from: timerSeconds))
                         .font(AppTheme.bitterFont(size: 32, weight: .bold))
                         .foregroundStyle(.white)
-                        .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingTimerVoiceTip(), edge: .bottom)
+                       
 
                     if onboardingVoiceShortcuts {
                         VStack(spacing: 6) {
@@ -151,7 +155,7 @@ struct CookModeView: View {
                                 .padding(.vertical, 10)
                                 .background(Color.white, in: Capsule())
                         }
-                        .onboardingCookTipIfNeeded(onboardingVoiceShortcuts, tip: OnboardingPauseTimerTip(), edge: .top)
+                      
                         
                         Button {
                             timerSeconds += 10
@@ -193,7 +197,9 @@ struct CookModeView: View {
             }
         }
         .onAppear {
-            voice.requestPermissionsAndStart()
+            if enablesVoiceAssistant {
+                voice.requestPermissionsAndStart()
+            }
         }
         .onDisappear {
             voice.stop()
@@ -202,6 +208,16 @@ struct CookModeView: View {
             handleIssuedCommand(cmd)
             if cmd != .none {
                 voice.resetIssuedCommand()
+            }
+        }
+        .onChange(of: onboardingDemoTrigger) { _, trigger in
+            switch trigger {
+            case .none:
+                break
+            case .nextStep:
+                nextStep()
+            case .setFiveMinutes:
+                handleIssuedCommand(.setMinutes(5))
             }
         }
     }

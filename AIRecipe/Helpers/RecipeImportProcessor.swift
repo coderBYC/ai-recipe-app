@@ -3,6 +3,83 @@ import SwiftData
 
 enum RecipeImportProcessor {
     private static let importsDirName = "PendingImportVideos"
+    private static let freeTierCompletedGenerationsBeforePaywall = 2
+
+    private static func languageCodeFromSettings() -> String {
+        let languageSetting = UserDefaults.standard.string(forKey: "settings.language") ?? "System"
+        switch languageSetting {
+        case "Mandarin": return "zh"
+        case "Spanish": return "es"
+        case "Hindi": return "hi"
+        case "Korean": return "ko"
+        case "System": return "en"
+        default: return "en"
+        }
+    }
+
+    /// Share extension **Close**: create an Imports row and start the backend job without presenting `PasteLinkView`.
+    /// - Returns: `true` if a new import job was enqueued.
+    @MainActor
+    static func enqueueSharedLinkImportSilently(
+        url: String,
+        container: ModelContainer,
+        knownImportsUsedToday: Int? = nil,
+        presentPaywallOnLimit: Bool = true
+    ) async -> Bool {
+        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, URL(string: trimmed) != nil else { return false }
+
+        let ctx = ModelContext(container)
+
+        func insertFailed(_ message: String) {
+            let sub = RecipeImportSubmission(
+                importKind: "link",
+                sourceURL: trimmed,
+                languageCode: languageCodeFromSettings()
+            )
+            sub.status = .failed
+            sub.errorMessage = message
+            ctx.insert(sub)
+            try? ctx.save()
+        }
+
+        guard await SupabaseService.shared.currentUserIdString() != nil else {
+            insertFailed("Sign in to import shared links.")
+            return false
+        }
+
+        await SubscriptionManager.shared.checkStatus()
+        if !SubscriptionManager.shared.isPremium {
+            do {
+                let used: Int
+                if let knownImportsUsedToday {
+                    used = knownImportsUsedToday
+                } else {
+                    used = try await SupabaseService.shared.fetchAIUsageCount()
+                }
+                if used >= freeTierCompletedGenerationsBeforePaywall {
+                    if presentPaywallOnLimit {
+                        insertFailed("You’ve reached the free import limit. Subscribe to continue.")
+                        NotificationCenter.default.post(name: .presentRevenueCatPaywall, object: nil)
+                    }
+                    return false
+                }
+            } catch {
+                // If usage can’t be read, allow import (same tolerance as PasteLinkView).
+            }
+        }
+
+        let submission = RecipeImportSubmission(
+            importKind: "link",
+            sourceURL: trimmed,
+            languageCode: languageCodeFromSettings()
+        )
+        ctx.insert(submission)
+        try? ctx.save()
+        let sid = submission.id
+        await startLinkJob(submissionId: sid, container: container)
+        return true
+    }
 
     private static func urlNeedsDownloadedVideo(_ raw: String) -> Bool {
         let u = raw.lowercased()
@@ -163,9 +240,10 @@ enum RecipeImportProcessor {
     }
 
     /// Builds a `Recipe` from a finished import (not inserted). Used for list preview and for `finalizeImport`.
-    static func makeRecipe(from sub: RecipeImportSubmission) -> Recipe {
+    static func makeRecipe(from sub: RecipeImportSubmission, ownerUserId: String = Recipe.localOnboardingOwnerPlaceholder) -> Recipe {
         let source = RecipeSource(rawValue: sub.readySource) ?? .youtube
         return Recipe(
+            ownerUserId: ownerUserId,
             title: sub.readyTitle.isEmpty ? "Imported recipe" : sub.readyTitle,
             source: source,
             sourceURL: sub.readySourceURL,
@@ -188,11 +266,14 @@ enum RecipeImportProcessor {
     @discardableResult
     @MainActor
     static func approveSubmission(_ sub: RecipeImportSubmission, modelContext: ModelContext) -> Recipe {
-        let recipe = makeRecipe(from: sub)
+        let owner = SupabaseService.shared.client.auth.currentSession?.user.id.uuidString ?? Recipe.localOnboardingOwnerPlaceholder
+        let recipe = makeRecipe(from: sub, ownerUserId: owner)
+        recipe.updatedAt = Date()
         modelContext.insert(recipe)
         removePendingVideoIfAny(relPath: sub.pendingVideoRelPath)
         modelContext.delete(sub)
         try? modelContext.save()
+        Task { await SyncService.shared.push(modelContainer: modelContext.container) }
         return recipe
     }
 }

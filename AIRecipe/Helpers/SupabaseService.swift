@@ -10,6 +10,7 @@ enum SupabaseUsageError: Error {
 enum SupabaseAccountError: Error, LocalizedError {
     case notAuthenticated
     case deleteFailed(status: Int, body: String)
+    case deleteFunctionFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ enum SupabaseAccountError: Error, LocalizedError {
             return "Not signed in."
         case .deleteFailed(let status, let body):
             return "Could not delete account (HTTP \(status)): \(body)"
+        case .deleteFunctionFailed(let message):
+            return "Could not delete account: \(message)"
         }
     }
 }
@@ -65,30 +68,34 @@ final class SupabaseService {
         return userId.uuidString
     }
     
-    /// Deletes the signed-in user via GoTrue `DELETE /auth/v1/user` (removes `auth.users` and cascades to `profiles` if FK is set).
+    /// Deletes the signed-in auth user via Supabase Edge Function `delete-account`.
+    /// The function verifies caller JWT, then uses service-role admin delete.
     func deleteAccount() async throws {
-        let session: Session
         do {
-            session = try await client.auth.session
+            _ = try await client.auth.session
         } catch {
             throw SupabaseAccountError.notAuthenticated
         }
-        guard let base = AppSecrets.supabaseURL else {
-            throw SupabaseAccountError.deleteFailed(status: 0, body: "Supabase URL not configured.")
-        }
-        let url = base.appendingPathComponent("auth/v1/user")
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        request.setValue(AppSecrets.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse else {
-            throw SupabaseAccountError.deleteFailed(status: 0, body: "No HTTP response")
+        struct DeleteAccountResponse: Decodable {
+            let ok: Bool
+            let deleted_user_id: String?
+            let error: String?
         }
-        if !(200...299).contains(http.statusCode) {
-            let body = String(data: data, encoding: .utf8) ?? ""
-            throw SupabaseAccountError.deleteFailed(status: http.statusCode, body: body)
+
+        do {
+            let response: DeleteAccountResponse = try await client.functions.invoke(
+                "delete-account",
+                options: FunctionInvokeOptions(body: [String: String]())
+            )
+            if !response.ok {
+                throw SupabaseAccountError.deleteFunctionFailed(response.error ?? "unknown error")
+            }
+        } catch {
+            if let accountErr = error as? SupabaseAccountError {
+                throw accountErr
+            }
+            throw SupabaseAccountError.deleteFunctionFailed(error.localizedDescription)
         }
 
         try await client.auth.signOut()

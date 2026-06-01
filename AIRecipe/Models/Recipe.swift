@@ -41,7 +41,9 @@ enum RecipeSource: String, Codable, CaseIterable, Identifiable {
 
 @Model
 final class Recipe: Identifiable {
-    var id: UUID
+    @Attribute(.unique) var id: String
+    /// Supabase Auth user id (`uuidString`) who owns this row locally; scopes Home / sync per account.
+    var ownerUserId: String
     var title: String
     var source: String
     var sourceURL: String
@@ -54,6 +56,10 @@ final class Recipe: Identifiable {
     var triedBefore: Bool
     var notes: String
     var createdAt: Date
+    /// Bumped on every user-visible edit; drives incremental cloud sync.
+    var updatedAt: Date
+    /// When set, the recipe is treated as removed from Home (soft delete).
+    var deletedAt: Date?
     /// 0–5 star rating given by the user.
     var rating: Int
     /// URL to the downloaded video (served by backend) for in-app playback. Empty for YouTube (use sourceURL embed instead).
@@ -64,8 +70,15 @@ final class Recipe: Identifiable {
     var stepsContent: String
     /// Comma-separated "1" or "0" for each ingredient line (checked or not).
     var ingredientCheckmarks: String
-    
+
+    /// Recipes created in the pre-auth onboarding chrome use this so they never mix with a signed-in user’s library.
+    static let localOnboardingOwnerPlaceholder = "__onboarding_local__"
+
+    private static let ownerMigrationDefaultsKey = "recipeOwnerUserIdMigration_v1"
+
     init(
+        id: String = "",
+        ownerUserId: String = "",
         title: String = "",
         source: RecipeSource = .youtube,
         sourceURL: String = "",
@@ -81,9 +94,14 @@ final class Recipe: Identifiable {
         ingredientCheckmarks: String = "",
         downloadedVideoURL: String = "",
         dishHeroTimestampSeconds: Double = 1,
-        rating: Int = 0
+        rating: Int = 0,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
+        deletedAt: Date? = nil
     ) {
-        self.id = UUID()
+        let trimmedId = id.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.id = trimmedId.isEmpty ? UUID().uuidString : trimmedId
+        self.ownerUserId = ownerUserId.trimmingCharacters(in: .whitespacesAndNewlines)
         self.title = title
         self.source = source.rawValue
         self.sourceURL = sourceURL
@@ -99,7 +117,9 @@ final class Recipe: Identifiable {
         self.dishHeroTimestampSeconds = dishHeroTimestampSeconds
         self.stepsContent = stepsContent
         self.ingredientCheckmarks = ingredientCheckmarks
-        self.createdAt = Date()
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
         self.rating = rating
     }
     
@@ -174,5 +194,20 @@ final class Recipe: Identifiable {
         for (i, step) in stepLines.enumerated() { lines.append("\(i + 1). \(step)") }
         if !sourceURL.isEmpty { lines.append(""); lines.append("Source: \(sourceURL)") }
         return lines.joined(separator: "\n")
+    }
+
+    /// One-time: legacy rows had no owner; assign them to the first signed-in user on this install so lists stay consistent.
+    @MainActor
+    static func migrateUnassignedOwnersOnce(modelContext: ModelContext, assignedTo: String) {
+        guard !assignedTo.isEmpty else { return }
+        guard !UserDefaults.standard.bool(forKey: ownerMigrationDefaultsKey) else { return }
+        let desc = FetchDescriptor<Recipe>(predicate: #Predicate<Recipe> { $0.ownerUserId == "" })
+        guard let rows = try? modelContext.fetch(desc) else {
+            UserDefaults.standard.set(true, forKey: ownerMigrationDefaultsKey)
+            return
+        }
+        for r in rows { r.ownerUserId = assignedTo }
+        try? modelContext.save()
+        UserDefaults.standard.set(true, forKey: ownerMigrationDefaultsKey)
     }
 }

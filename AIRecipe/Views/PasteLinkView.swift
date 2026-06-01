@@ -46,14 +46,12 @@ struct PasteLinkView: View {
             RevenueCatUI.PaywallView(displayCloseButton: true)
                 .onPurchaseCompleted { _, _ in
                     Task { @MainActor in
-                        await SubscriptionManager.shared.refreshAndSyncPlan()
-                        subscriptionTier = SubscriptionManager.shared.isPremium ? "Pro" : "Free"
+                        await refreshSubscriptionAndRetryShareExtensionImportIfNeeded()
                     }
                 }
                 .onRestoreCompleted { _ in
                     Task { @MainActor in
-                        await SubscriptionManager.shared.refreshAndSyncPlan()
-                        subscriptionTier = SubscriptionManager.shared.isPremium ? "Pro" : "Free"
+                        await refreshSubscriptionAndRetryShareExtensionImportIfNeeded()
                     }
                 }
         }
@@ -157,6 +155,16 @@ struct PasteLinkView: View {
                 .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
         )
         .shadow(color: .black.opacity(0.12), radius: 20, y: 10)
+    }
+
+    /// After paywall purchase/restore, continue the share-extension auto-import flow if the user is now Pro.
+    @MainActor
+    private func refreshSubscriptionAndRetryShareExtensionImportIfNeeded() async {
+        await SubscriptionManager.shared.refreshAndSyncPlan()
+        subscriptionTier = SubscriptionManager.shared.isPremium ? "Pro" : "Free"
+        guard SubscriptionManager.shared.isPremium else { return }
+        guard autoProcessOnAppear, canProcess else { return }
+        processLink()
     }
 
     private func currentLanguageCode() -> String {
