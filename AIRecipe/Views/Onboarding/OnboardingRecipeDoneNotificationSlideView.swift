@@ -1,29 +1,35 @@
 import SwiftUI
 import UIKit
 
-/// iOS-style stacked push notification mock for the “recipe ready” onboarding step.
+/// Slide 4 — salmon hero + iOS-style “recipe ready” push notification mock.
 struct OnboardingRecipeDoneNotificationSlideView: View {
     private static let appDisplayName = "Let Him Cook"
     private static let appIconAsset = "icon"
+    private static let heroImageAsset = "crispy"
+    private static let heroImageFallback = "salmon"
+    private static let notificationBody =
+        "Your Crispy Honey Garlic Salmon Recipe is ready!"
 
-    @State private var stackRevealed = false
+    @State private var notificationRevealed = false
     @State private var didPlayHaptic = false
 
-    private static let stackSpring = Animation.spring(response: 0.62, dampingFraction: 0.78)
-    private static let cardSpring = Animation.spring(response: 0.55, dampingFraction: 0.82)
+    private static let revealSpring = Animation.spring(response: 0.55, dampingFraction: 0.82)
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Text("④ Your Recipe Is Done!")
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 20)
                 .appFont(.title)
 
-            VStack(spacing: 6) {
-                primaryNotificationCard(revealed: stackRevealed)
-                stackedNotificationCard(layer: .middle, revealed: stackRevealed)
-                stackedNotificationCard(layer: .back, revealed: stackRevealed)
-            }
-            .padding(.horizontal, 20)
+            heroSalmonImage
+                .padding(.horizontal, 28)
+                .padding(.top, 4)
+
+            iosNotificationCard(revealed: notificationRevealed)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
 
             Spacer(minLength: 0)
         }
@@ -33,88 +39,59 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
             await runEntranceSequence()
         }
         .onDisappear {
-            stackRevealed = false
+            notificationRevealed = false
             didPlayHaptic = false
         }
     }
 
-    private enum StackLayer {
-        case back
-        case middle
+    @ViewBuilder
+    private var heroSalmonImage: some View {
+        let asset = UIImage(named: Self.heroImageAsset) != nil
+            ? Self.heroImageAsset
+            : Self.heroImageFallback
 
-        var scale: CGFloat {
-            switch self {
-            case .back: return 0.9
-            case .middle: return 0.95
-            }
-        }
-
-        var horizontalInset: CGFloat {
-            switch self {
-            case .back: return 14
-            case .middle: return 7
-            }
-        }
-
-        var opacity: Double {
-            switch self {
-            case .back: return 0.5
-            case .middle: return 0.68
-            }
-        }
-
-        var entranceDelay: Double {
-            switch self {
-            case .back: return 0.2
-            case .middle: return 0.12
-            }
-        }
+        Image(asset)
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: 280, maxHeight: 200)
+            .accessibilityLabel("Crispy honey garlic salmon")
     }
 
-    private func stackedNotificationCard(layer: StackLayer, revealed: Bool) -> some View {
-        glassPlate(cornerRadius: 20, materialOpacity: layer.opacity)
-            .frame(height: 44)
-            .padding(.horizontal, layer.horizontalInset)
-            .scaleEffect(revealed ? layer.scale : layer.scale * 0.94, anchor: .top)
-            .offset(y: revealed ? 0 : -12)
-            .opacity(revealed ? 1 : 0)
-            .animation(Self.stackSpring.delay(layer.entranceDelay), value: revealed)
-    }
-
-    private func primaryNotificationCard(revealed: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+    private func iosNotificationCard(revealed: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .center, spacing: 10) {
                 appIconView
-                    .frame(width: 28, height: 28)
+                    .frame(width: 36, height: 36)
 
-                Text(Self.appDisplayName.uppercased())
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(notificationInk)
+                Text(Self.appDisplayName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.black)
                     .lineLimit(1)
 
                 Spacer(minLength: 4)
 
                 Text("now")
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(notificationInk.opacity(0.55))
+                    .foregroundStyle(Color(white: 0.55))
             }
-            .padding(.bottom, 8)
 
-            Text("Your Crispy Salmon Recipe Is Ready!")
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(notificationInk)
+            Text(Self.notificationBody)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(Color.black)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .background {
-            glassPlate(cornerRadius: 22, materialOpacity: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(notificationCardFill)
+                .shadow(color: Color.black.opacity(0.14), radius: 10, x: 0, y: 5)
         }
-        .shadow(color: Color.black.opacity(0.08), radius: 20, y: 10)
-        .scaleEffect(revealed ? 1 : 0.94, anchor: .top)
-        .offset(y: revealed ? 0 : -40)
+        .scaleEffect(revealed ? 1 : 0.96, anchor: .top)
+        .offset(y: revealed ? 0 : -28)
         .opacity(revealed ? 1 : 0)
-        .animation(Self.cardSpring.delay(0.04), value: revealed)
+        .animation(Self.revealSpring, value: revealed)
     }
 
     @ViewBuilder
@@ -123,41 +100,31 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
             Image(Self.appIconAsset)
                 .resizable()
                 .scaledToFill()
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         } else {
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(notificationInk.opacity(0.12))
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.black.opacity(0.08))
                 .overlay {
                     Image(systemName: "fork.knife")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(notificationInk.opacity(0.7))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Color.black.opacity(0.65))
                 }
         }
     }
 
-    private func glassPlate(cornerRadius: CGFloat, materialOpacity: Double) -> some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(Color.white.opacity(0.12 * materialOpacity))
-            .background {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .opacity(materialOpacity)
-            }
-            .glassStroke(cornerRadius: cornerRadius)
-    }
-
-    private var notificationInk: Color {
-        Color.primary.opacity(0.88)
+    /// Light gray translucent card like the iOS banner in the mock.
+    private var notificationCardFill: some ShapeStyle {
+        Color(white: 0.94).opacity(0.96)
     }
 
     @MainActor
     private func runEntranceSequence() async {
-        stackRevealed = false
+        notificationRevealed = false
         try? await Task.sleep(for: .milliseconds(120))
         guard !Task.isCancelled else { return }
 
-        withAnimation(Self.stackSpring) {
-            stackRevealed = true
+        withAnimation(Self.revealSpring) {
+            notificationRevealed = true
         }
 
         try? await Task.sleep(for: .milliseconds(280))
@@ -165,27 +132,6 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
         didPlayHaptic = true
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
             OnboardingRecipeReadyHaptics.play()
-        }
-    }
-}
-
-// MARK: - Glass chrome
-
-private extension View {
-    func glassStroke(cornerRadius: CGFloat) -> some View {
-        overlay {
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.55),
-                            Color.white.opacity(0.12),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
         }
     }
 }
@@ -215,11 +161,5 @@ enum OnboardingRecipeReadyHaptics {
 
 #Preview {
     OnboardingRecipeDoneNotificationSlideView()
-        .background {
-            LinearGradient(
-                colors: [Color.blue.opacity(0.35), Color.purple.opacity(0.25)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
+        .background(Color.white)
 }

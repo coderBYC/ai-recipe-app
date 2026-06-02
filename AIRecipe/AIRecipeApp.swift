@@ -214,6 +214,7 @@ private struct AppLifecycleRoot: View {
                     }
             } else {
                 OnboardingView()
+                    .environment(authManager)
             }
         }
         
