@@ -4,7 +4,10 @@
 <dict>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Bitter-VariableFont_wght.ttf</string>
+		<string>LibreBaskerville-VariableFont_wght.ttf</string>
+		<string>nanum-myeongjo-latin-400-normal.ttf</string>
+		<string>nanum-myeongjo-latin-700-normal.ttf</string>
+		<string>nanum-myeongjo-latin-800-normal.ttf</string>
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>

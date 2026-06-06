@@ -94,7 +94,7 @@ struct RecipeListView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Home")
-                        .appFont(.largeTitle)
+                        .nanumAppFont(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }

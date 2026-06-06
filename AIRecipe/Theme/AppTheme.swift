@@ -20,8 +20,13 @@ enum AppTheme {
 
     private static var cachedBitterRegularPS: String?
     private static var cachedBitterBoldPS: String?
+    private static var cachedLibreRegularPS: String?
+    private static var cachedLibreBoldPS: String?
+    private static var cachedNanumRegularPS: String?
+    private static var cachedNanumBoldPS: String?
+    private static var cachedNanumExtraBoldPS: String?
 
-    /// Bitter (bundled `Bitter-VariableFont_wght.ttf` and/or static Bitter .ttf). Resolves PostScript names at runtime.
+    /// Bitter (bundled `Bitter-VariableFont_wght.ttf`). Used for settings and meal plan body text.
     static func bitterFont(size: CGFloat, weight: Font.Weight = .regular) -> Font {
         let wantsBold: Bool
         switch weight {
@@ -38,6 +43,29 @@ enum AppTheme {
         } else {
             if let ps = cachedBitterRegularPS ?? resolveBitterPostScript(bold: false) {
                 cachedBitterRegularPS = ps
+                return .custom(ps, size: size)
+            }
+        }
+        return .system(size: size, weight: weight)
+    }
+
+    /// Libre Baskerville (bundled variable font). Default body/UI serif.
+    static func libreBaskervilleFont(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        let wantsBold: Bool
+        switch weight {
+        case .bold, .heavy, .black, .semibold:
+            wantsBold = true
+        default:
+            wantsBold = false
+        }
+        if wantsBold {
+            if let ps = cachedLibreBoldPS ?? resolveLibreBaskervillePostScript(bold: true) {
+                cachedLibreBoldPS = ps
+                return .custom(ps, size: size)
+            }
+        } else {
+            if let ps = cachedLibreRegularPS ?? resolveLibreBaskervillePostScript(bold: false) {
+                cachedLibreRegularPS = ps
                 return .custom(ps, size: size)
             }
         }
@@ -77,13 +105,130 @@ enum AppTheme {
             }
         }
         #if DEBUG
-        print("AppTheme: Bitter not found. Add Bitter .ttf to the target and Info.plist → UIAppFonts.")
+        print("AppTheme: Bitter not found. Add Bitter-VariableFont_wght.ttf to the target and Info.plist → UIAppFonts.")
         #endif
         return nil
     }
 
-    /// Typography for `.appFont(_:)` — all Bitter.
+    private static func resolveLibreBaskervillePostScript(bold: Bool) -> String? {
+        let staticCandidates: [String]
+        if bold {
+            staticCandidates = [
+                "LibreBaskerville-Bold", "LibreBaskervilleBold",
+            ]
+        } else {
+            staticCandidates = [
+                "LibreBaskerville-Regular", "LibreBaskervilleRegular", "LibreBaskerville",
+            ]
+        }
+        for name in staticCandidates where UIFont(name: name, size: 12) != nil {
+            return name
+        }
+        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("libre") && family.localizedCaseInsensitiveContains("baskerville") {
+            let names = UIFont.fontNames(forFamilyName: family)
+            if bold {
+                let pick = names.first { n in
+                    n.localizedCaseInsensitiveContains("bold") || n.contains("700")
+                } ?? names.first
+                if let pick, UIFont(name: pick, size: 12) != nil { return pick }
+            } else {
+                let pick = names.first { n in
+                    !n.localizedCaseInsensitiveContains("bold")
+                        && !n.localizedCaseInsensitiveContains("italic")
+                        && !n.contains("700")
+                } ?? names.first
+                if let pick, UIFont(name: pick, size: 12) != nil { return pick }
+            }
+        }
+        #if DEBUG
+        print("AppTheme: Libre Baskerville not found. Add LibreBaskerville-VariableFont_wght.ttf to the target and Info.plist → UIAppFonts.")
+        #endif
+        return nil
+    }
+
+    /// Nanum Myeongjo (bundled `nanum-myeongjo-latin-*.ttf`). Used for sign-in, screen titles, notes, cook mode.
+    static func nanumMyeongjoFont(size: CGFloat, weight: Font.Weight = .heavy) -> Font {
+        if let ps = cachedNanumExtraBoldPS ?? resolveNanumMyeongjoPostScript(weight: .extraBold) {
+            cachedNanumExtraBoldPS = ps
+            return .custom(ps, size: size)
+        }
+        if let ps = cachedNanumBoldPS ?? resolveNanumMyeongjoPostScript(weight: .bold) {
+            cachedNanumBoldPS = ps
+            return .custom(ps, size: size)
+        }
+        if let ps = cachedNanumRegularPS ?? resolveNanumMyeongjoPostScript(weight: .regular) {
+            cachedNanumRegularPS = ps
+            return .custom(ps, size: size)
+        }
+        return .system(size: size, weight: weight)
+    }
+
+    private enum NanumResolvedWeight {
+        case regular, bold, extraBold
+    }
+
+    private static func resolveNanumMyeongjoPostScript(weight: NanumResolvedWeight) -> String? {
+        let staticCandidates: [String]
+        switch weight {
+        case .extraBold:
+            staticCandidates = [
+                "NanumMyeongjoExtraBold", "NanumMyeongjo-ExtraBold", "NanumMyeongjoOTFExtraBold",
+                "NanumMyeongjo-800", "NanumMyeongjo800",
+            ]
+        case .bold:
+            staticCandidates = [
+                "NanumMyeongjoBold", "NanumMyeongjo-Bold", "NanumMyeongjoOTFBold",
+                "NanumMyeongjo-700", "NanumMyeongjo700",
+            ]
+        case .regular:
+            staticCandidates = [
+                "NanumMyeongjo", "NanumMyeongjo-Regular", "NanumMyeongjoOTF", "NanumMyeongjoOTFRegular",
+            ]
+        }
+        for name in staticCandidates where UIFont(name: name, size: 12) != nil {
+            return name
+        }
+        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("nanum") {
+            let names = UIFont.fontNames(forFamilyName: family)
+            let pick: String?
+            switch weight {
+            case .extraBold:
+                pick = names.first { n in
+                    n.localizedCaseInsensitiveContains("extrabold")
+                        || n.localizedCaseInsensitiveContains("extra bold")
+                        || n.contains("800")
+                        || n.localizedCaseInsensitiveContains("black")
+                } ?? names.first { $0.localizedCaseInsensitiveContains("bold") }
+            case .bold:
+                pick = names.first { n in
+                    (n.localizedCaseInsensitiveContains("bold") || n.contains("700"))
+                        && !n.localizedCaseInsensitiveContains("extra")
+                        && !n.contains("800")
+                } ?? names.first
+            case .regular:
+                pick = names.first { n in
+                    !n.localizedCaseInsensitiveContains("bold")
+                        && !n.localizedCaseInsensitiveContains("italic")
+                        && !n.contains("700")
+                        && !n.contains("800")
+                } ?? names.first
+            }
+            if let pick, UIFont(name: pick, size: 12) != nil { return pick }
+        }
+        #if DEBUG
+        print("AppTheme: Nanum Myeongjo not found. Add nanum-myeongjo-latin-*.ttf to the target and Info.plist → UIAppFonts.")
+        #endif
+        return nil
+    }
+
+    /// Typography for `.appFont(_:)` — Libre Baskerville by default; `.notes` uses Nanum.
     static func font(_ style: FontStyle) -> Font {
+        switch style {
+        case .notes:
+            return nanumFont(style)
+        default:
+            break
+        }
         let weight: Font.Weight
         switch style {
         case .headlineBold, .titleBold:
@@ -91,7 +236,26 @@ enum AppTheme {
         case .largeTitle, .title, .headline:
             weight = .semibold
         default:
-            weight = (style.weight == .bold) ? .bold : .semibold
+            weight = (style.weight == .bold) ? .bold : .regular
+        }
+        return libreBaskervilleFont(size: style.size, weight: weight)
+    }
+
+    /// Nanum Myeongjo typography for sign-in, screen titles, notes, and cook mode.
+    static func nanumFont(_ style: FontStyle) -> Font {
+        nanumMyeongjoFont(size: style.size, weight: .heavy)
+    }
+
+    /// Bitter typography for settings and meal plan content.
+    static func bitterFont(_ style: FontStyle) -> Font {
+        let weight: Font.Weight
+        switch style {
+        case .headlineBold, .titleBold:
+            weight = .bold
+        case .largeTitle, .title, .headline:
+            weight = .semibold
+        default:
+            weight = (style.weight == .bold) ? .bold : .regular
         }
         return bitterFont(size: style.size, weight: weight)
     }
@@ -134,6 +298,14 @@ enum AppTheme {
 extension View {
     func appFont(_ style: AppTheme.FontStyle) -> some View {
         font(AppTheme.font(style))
+    }
+
+    func nanumAppFont(_ style: AppTheme.FontStyle) -> some View {
+        font(AppTheme.nanumFont(style))
+    }
+
+    func bitterAppFont(_ style: AppTheme.FontStyle) -> some View {
+        font(AppTheme.bitterFont(style))
     }
 
     func errorPopup(message: Binding<String?>) -> some View {
@@ -179,7 +351,7 @@ private struct ErrorPopupView: View {
 
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
-                    .font(AppTheme.bitterFont(size: 12, weight: .bold))
+                    .font(AppTheme.libreBaskervilleFont(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.9))
                     .padding(6)
                     .background(Color.white.opacity(0.2), in: Circle())

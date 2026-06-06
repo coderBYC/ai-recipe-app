@@ -4,8 +4,20 @@ enum OnboardingSlideDirection {
     case forward
     case backward
 
-    /// Instant swap — avoids previous slide sliding left under the next one.
-    var transition: AnyTransition { .identity }
+    var transition: AnyTransition {
+        switch self {
+        case .forward:
+            return .asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            )
+        case .backward:
+            return .asymmetric(
+                insertion: .move(edge: .leading).combined(with: .opacity),
+                removal: .move(edge: .trailing).combined(with: .opacity)
+            )
+        }
+    }
 }
 
 struct OnboardingSlideCanvas<Content: View>: View {

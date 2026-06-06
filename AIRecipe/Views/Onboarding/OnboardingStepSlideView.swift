@@ -17,16 +17,19 @@ struct OnboardingStepSlideView: View {
         case .viewImportInApp:
             OnboardingShareExtensionMockupSlideView()
         case .recipeDoneNotification:
-            OnboardingRecipeDoneNotificationSlideView()
+            OnboardingRecipeDoneNotificationSlideView(onNotificationTapped: onImportTabFlowCompleted)
 
-        case .importTapRecipe, .importTapEdit, .importAddMinute, .importSaveEdits:
+        case .importTapRecipe:
             OnboardingImportWalkthroughView(
                 step: step.importCoachStep ?? .tapImportRow,
                 onFlowCompleted: onImportTabFlowCompleted
             )
 
+        case .importedRecipeShowcase:
+            OnboardingImportedRecipeShowcaseSlideView()
+
         case .recipePageTapSteps:
-            OnboardingRecipePageStepsSlideView()
+            OnboardingRecipePageStepsSlideView(onStepsTapped: onImportTabFlowCompleted)
 
         case .cookModeVoiceIntro:
             OnboardingCookModeIntroSlideView(onVoiceDemoCompleted: onCookModeVoiceDemoCompleted)
@@ -37,19 +40,6 @@ struct OnboardingStepSlideView: View {
             FinalCTASlideView()
         case .signInAuth:
             SignInOnboardingSlideView(onAuthenticated: onAuthenticated)
-        }
-    }
-
-    @ViewBuilder
-    private func screenshotSlide(for step: OnboardingStep) -> some View {
-        if let asset = step.screenshotAssetName {
-            OnboardingScreenshotSlideView(
-                coach: step.coach,
-                imageName: asset,
-                systemImage: step.screenshotPlaceholderIcon
-            )
-        } else {
-            EmptyView()
         }
     }
 }

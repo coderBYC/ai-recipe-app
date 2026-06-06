@@ -23,18 +23,12 @@ struct ShareButtonSlideView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 82, height: 80)
                 .padding(.top, 10)
-                .padding(.bottom, 20)
+                .padding(.bottom, 40)
                 .clipped()
                 .cornerRadius(12)
                 .slideInFromTop(order: 1, isRevealed: isRevealed)
 
-            Image("arrow")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 150, height: 100)
-                .clipped()
-                .cornerRadius(12)
-                .rotationEffect(.degrees(40))
+            OnboardingFlashingArrowView(rotationDegrees: 70)
                 .slideInFromTop(order: 2, isRevealed: isRevealed)
 
             Text("② Click Let Him Cook Icon")
@@ -42,6 +36,8 @@ struct ShareButtonSlideView: View {
                 .font(.system(size: 30, weight: .medium))
                 .foregroundStyle(AppTheme.textPrimary)
                 .slideInFromTop(order: 3, isRevealed: isRevealed)
+                .padding(.top,30)
+                .padding(.bottom,20)
 
             VStack(alignment: .center) {
                 Image("icon")

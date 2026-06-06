@@ -49,9 +49,13 @@ struct OnboardingMealPlanMockupSlideView: View {
     @State private var didComplete = false
     @State private var contentRevealed = false
     @State private var showSpotlight = false
+    @State private var showPointer = false
+    @State private var showBottomPrompt = false
 
+    private static let bottomPromptText = "Add anything in your weekly meal plan"
     private static let contentEntrance = Animation.spring(response: 0.55, dampingFraction: 0.84)
     private static let spotlightEntrance = Animation.easeInOut(duration: 0.45)
+    private static let hintEntrance = Animation.spring(response: 0.5, dampingFraction: 0.82)
 
     private let sampleRecipes: [MockRecipeOption] = [
         .init(title: "Spicy Salmon Rice Bowl", creator: "@fitfoodie"),
@@ -62,16 +66,22 @@ struct OnboardingMealPlanMockupSlideView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 12) {
             OnboardingMediaBox {
                 ZStack {
                     mealPlanContent
                 }
                 .overlayPreferenceValue(LunchButtonAnchorKey.self) { anchor in
-                    spotlightOverlay(anchor: anchor)
+                    spotlightAndHintsOverlay(anchor: anchor)
                 }
             }
             .padding(.horizontal, OnboardingMediaLayout.horizontalPadding)
+
+            if showBottomPrompt {
+                OnboardingFlashingCoachBox(text: Self.bottomPromptText)
+                    .padding(.horizontal, 16)
+                    .transition(.opacity.combined(with: .scale(scale: 0.94)))
+            }
         }
         .padding(.top, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -81,6 +91,8 @@ struct OnboardingMealPlanMockupSlideView: View {
         .onDisappear {
             contentRevealed = false
             showSpotlight = false
+            showPointer = false
+            showBottomPrompt = false
         }
         .sheet(isPresented: $showPicker) {
             NavigationStack {
@@ -168,7 +180,7 @@ struct OnboardingMealPlanMockupSlideView: View {
     }
 
     @ViewBuilder
-    private func spotlightOverlay(anchor: Anchor<CGRect>?) -> some View {
+    private func spotlightAndHintsOverlay(anchor: Anchor<CGRect>?) -> some View {
         GeometryReader { proxy in
             let size = proxy.size
             ZStack {
@@ -182,16 +194,19 @@ struct OnboardingMealPlanMockupSlideView: View {
                         .frame(width: hole.size.width, height: hole.size.height)
                         .position(x: hole.center.x, y: hole.center.y)
                         .blendMode(.destinationOut)
+                }
 
-                    coachPopup
-                        .position(x: lunchRect.midX, y: lunchRect.minY - OnboardingMealPlanSpotlightLayout.coachGapAboveButton)
-                        .opacity(showSpotlight ? 1 : 0)
-                        .offset(y: showSpotlight ? 0 : 10)
+                if showPointer, let anchor {
+                    let lunchRect = proxy[anchor]
+                    OnboardingFlashingPointerEmojiView(emoji: "👇", fontSize: 44)
+                        .position(x: lunchRect.midX, y: max(24, lunchRect.minY - 22))
+                        .transition(.opacity.combined(with: .scale(scale: 0.88)))
                 }
             }
             .compositingGroup()
             .allowsHitTesting(false)
             .animation(Self.spotlightEntrance, value: showSpotlight)
+            .animation(Self.hintEntrance, value: showPointer)
         }
     }
 
@@ -374,32 +389,6 @@ struct OnboardingMealPlanMockupSlideView: View {
         )
     }
 
-    private var coachPopup: some View {
-        VStack(spacing: 0) {
-            Text("Tap Add recipe for Lunch")
-                .appFont(.headlineBold)
-                .foregroundStyle(AppTheme.textPrimary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(AppTheme.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 1)
-
-            TrianglePointer()
-                .fill(AppTheme.surface)
-                .frame(width: 16, height: 8)
-                .overlay(
-                    TrianglePointer()
-                        .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
-                )
-                .offset(y: -1)
-        }
-    }
-
     private func completeStepIfNeeded() {
         guard !didComplete else { return }
         didComplete = true
@@ -412,6 +401,8 @@ struct OnboardingMealPlanMockupSlideView: View {
     private func runEntranceSequence() async {
         contentRevealed = false
         showSpotlight = false
+        showPointer = false
+        showBottomPrompt = false
 
         try? await Task.sleep(for: .milliseconds(80))
         guard !Task.isCancelled else { return }
@@ -425,6 +416,14 @@ struct OnboardingMealPlanMockupSlideView: View {
 
         withAnimation(Self.spotlightEntrance) {
             showSpotlight = true
+        }
+
+        try? await Task.sleep(for: .milliseconds(480))
+        guard !Task.isCancelled else { return }
+
+        withAnimation(Self.hintEntrance) {
+            showPointer = true
+            showBottomPrompt = true
         }
     }
 }

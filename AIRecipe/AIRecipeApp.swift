@@ -4,6 +4,8 @@ import Supabase
 import RevenueCat
 import UserNotifications
 import PostHog
+import GoogleSignIn
+import GoogleSignInSwift
 
 extension Notification.Name {
     /// After enqueueing a link/photo import, switch tab bar to Imports.
@@ -132,7 +134,6 @@ struct AIRecipeApp: App {
     private static let revenueCatDelegate = RevenueCatPurchasesDelegate()
    
     init() {
-        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
         #if DEBUG
         Purchases.logLevel = .debug
         #else
@@ -149,7 +150,7 @@ struct AIRecipeApp: App {
         Purchases.shared.delegate = Self.revenueCatDelegate
         UNUserNotificationCenter.current().delegate = RecipeNotificationCenterDelegate.shared
         PhotoLibraryRecipeNotifier.shared.registerCategories()
-       
+        GoogleSignInService.configure()
     }
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([Recipe.self, PlannedMeal.self, RecipeImportSubmission.self])
@@ -192,7 +193,10 @@ struct AIRecipeApp: App {
         WindowGroup {
             AppLifecycleRoot()
                 .preferredColorScheme(.light)
-                .font(AppTheme.bitterFont(size: 17))
+                .font(AppTheme.libreBaskervilleFont(size: 17))
+                .onOpenURL { url in
+                                    GIDSignIn.sharedInstance.handle(url)
+                                }
         }
         .modelContainer(sharedModelContainer)
     }
@@ -200,7 +204,7 @@ struct AIRecipeApp: App {
 
 /// Hosts `MainView`, auth, and deep links.
 private struct AppLifecycleRoot: View {
-    @State private var authManager = AuthManager(service: SupabaseService())
+    @State private var authManager = AuthManager(service: SupabaseService.shared)
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     var body: some View {
         Group{
@@ -225,9 +229,16 @@ private struct AppLifecycleRoot: View {
     private func handleIncomingURL(_ url: URL) async {
         // Supabase magic-link callback.
         if url.scheme == "io.supabase.user-management" {
-            try? await SupabaseService.shared.client.auth.session(from: url)
+            do {
+                _ = try await SupabaseService.shared.client.auth.session(from: url)
+                await authManager.getAuthState()
+            } catch {
+                print("Supabase magic link failed: \(error.localizedDescription)")
+                authManager.error = error
+            }
             return
         }
+        
 
         guard url.scheme?.lowercased() == "airecipe" else { return }
         let host = url.host?.lowercased() ?? ""

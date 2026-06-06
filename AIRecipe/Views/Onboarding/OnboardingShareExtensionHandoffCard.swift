@@ -74,14 +74,14 @@ struct OnboardingShareExtensionHandoffCard: View {
 
     private func primaryButton(title: String) -> some View {
         Text(title)
-            .font(AppTheme.bitterFont(size: 16, weight: .heavy))
+            .font(AppTheme.nanumMyeongjoFont(size: 18, weight: .bold))
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)
-            .lineLimit(2)
-            .minimumScaleFactor(0.7)
+            .lineLimit(3)
+            .minimumScaleFactor(0.75)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 14)
             .background(Color.black, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)

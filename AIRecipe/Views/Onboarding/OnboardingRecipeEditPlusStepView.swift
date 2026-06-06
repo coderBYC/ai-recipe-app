@@ -19,7 +19,7 @@ struct OnboardingRecipeEditPlusStepView: View {
                         RecipeEditView(
                             recipe: preview.1,
                             onDismiss: {},
-                            onboardingCoachText: ImportOnboardingCoachStep.tapPlusOneMinute.coachText,
+                            onboardingSpotlight: .cookTimePlusButton,
                             onOnboardingCookTimePlusTapped: onFlowCompleted
                         )
                         .modelContainer(preview.0)

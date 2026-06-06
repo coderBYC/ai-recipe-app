@@ -4,7 +4,7 @@ import SwiftUI
 struct SaveEditsSlideView: View {
     var body: some View {
         OnboardingScreenshotSlideView(
-            coachmark: OnboardingStep.importSaveEdits.coachmark,
+            coachmark: OnboardingStep.recipePageTapSteps.coachmark,
             imageName: "screenshot-save-edits",
             systemImage: "checkmark.circle"
         )

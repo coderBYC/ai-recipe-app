@@ -6,10 +6,7 @@ struct RecipeEditSandboxView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            OnboardingCoachmark(text: OnboardingStep.importTapEdit.coachmark)
-                .padding(.horizontal, 20)
-                .padding(.top, 4)
-                .padding(.bottom, 6)
+
 
             RecipePageView(
                 recipe: recipe,

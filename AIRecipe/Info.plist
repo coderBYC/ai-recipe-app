@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -22,7 +20,19 @@
 				<string>airecipe</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1061957845150-qos4bjs52l49977nqj1closh4aoq76g8</string>
+			</array>
+		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>1061957845150-qos4bjs52l49977nqj1closh4aoq76g8.apps.googleusercontent.com</string>
+	<key>GOOGLE_WEB_CLIENT_ID</key>
+	<string>$(GOOGLE_WEB_CLIENT_ID)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -37,7 +47,9 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Bitter-VariableFont_wght.ttf</string>
-		<string>Fredoka-VF.ttf</string>
+		<string>nanum-myeongjo-latin-400-normal.ttf</string>
+		<string>nanum-myeongjo-latin-700-normal.ttf</string>
+		<string>nanum-myeongjo-latin-800-normal.ttf</string>
 	</array>
 </dict>
 </plist>

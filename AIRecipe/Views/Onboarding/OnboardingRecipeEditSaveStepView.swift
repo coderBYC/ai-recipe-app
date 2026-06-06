@@ -19,7 +19,7 @@ struct OnboardingRecipeEditSaveStepView: View {
                         RecipeEditView(
                             recipe: preview.1,
                             onDismiss: {},
-                            onboardingCoachText: ImportOnboardingCoachStep.tapSave.coachText,
+                            onboardingSpotlight: .saveButton,
                             onOnboardingSaved: onFlowCompleted
                         )
                         .modelContainer(preview.0)
@@ -42,7 +42,7 @@ struct OnboardingRecipeEditSaveStepView: View {
                             .frame(width: holeWidth, height: holeHeight)
                             .position(x: holeX, y: holeY)
                             .blendMode(.destinationOut)
-                        OnboardingCoachCallout(text: ImportOnboardingCoachStep.tapSave.coachText ?? "")
+                        OnboardingCoachCallout(text: "Tap Save")
                             .padding(.top, 50)
                             .padding(.trailing, 22)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)

@@ -7,10 +7,6 @@ struct RecipeEditOnboardingSlideView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            OnboardingCoachmark(OnboardingStep.importTapEdit.coach)
-                .padding(.horizontal, 20)
-                .padding(.top, 4)
-
             RecipeEditView(recipe: recipe) { }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(

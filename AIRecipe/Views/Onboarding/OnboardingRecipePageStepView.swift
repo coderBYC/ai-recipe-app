@@ -19,7 +19,7 @@ struct OnboardingRecipePageStepView: View {
                         OnboardingRecipePageView(
                             recipe: preview.1,
                             onDismiss: {},
-                            onboardingCoachText: ImportOnboardingCoachStep.tapEdit.coachText,
+                            onboardingSpotlight: .editButton,
                             onOnboardingEditTapped: onFlowCompleted
                         )
                         .modelContainer(preview.0)
@@ -31,19 +31,9 @@ struct OnboardingRecipePageStepView: View {
                     }
                 }
             }
-            .overlay {
-                ZStack {
-                    Color.gray.opacity(0.78)
-                    OnboardingCoachCallout(text: "Edit Your Recipe!")
-                        .padding(.top, 8)
-                        .padding(.trailing, 12)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                }
-                .allowsHitTesting(false)
-            }
-            .padding(.horizontal, OnboardingMediaLayout.horizontalPadding)
         }
         .padding(.top, 8)
+        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

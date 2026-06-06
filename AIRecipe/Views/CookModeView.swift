@@ -10,6 +10,10 @@ struct CookModeView: View {
     var enablesVoiceAssistant: Bool = true
     /// Scripted onboarding cues (advance step / set timer) without real speech.
     var onboardingDemoTrigger: OnboardingCookModeDemoTrigger = .none
+    /// Reports step index + timer seconds for onboarding voice-demo detection.
+    var onOnboardingCookStateChange: ((Int, Int) -> Void)? = nil
+    /// Reports mic / speech status for onboarding permission UI.
+    var onOnboardingVoiceStatusChange: ((Bool, Bool, String) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @StateObject private var voice = CookModeVoiceController()
     @State private var stepIndex: Int = 0
@@ -44,16 +48,16 @@ struct CookModeView: View {
                 HStack {
                     if voice.isListening {
                         Image(systemName: "mic.fill")
-                            .appFont(.caption)
+                            .nanumAppFont(.caption)
                             .foregroundStyle(.green)
                     } else if voice.authorizationDenied {
                         Image(systemName: "mic.slash.fill")
-                            .appFont(.caption)
+                            .nanumAppFont(.caption)
                             .foregroundStyle(.orange.opacity(0.9))
                     }
                     if !voice.statusText.isEmpty {
                         Text(voice.statusText)
-                            .appFont(.caption2)
+                            .nanumAppFont(.caption2)
                             .foregroundStyle(.white.opacity(0.65))
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
@@ -63,7 +67,7 @@ struct CookModeView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "checkmark")
-                            .appFont(.callout)
+                            .nanumAppFont(.callout)
                             .foregroundStyle(.white)
                             .frame(width: 34, height: 34)
                             .background(Color.black, in: RoundedRectangle(cornerRadius: 8))
@@ -89,7 +93,7 @@ struct CookModeView: View {
                 // Step text
                 if !steps.isEmpty {
                     Text(steps[stepIndex])
-                        .appFont(.largeTitle)
+                        .nanumAppFont(.largeTitle)
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
@@ -101,21 +105,21 @@ struct CookModeView: View {
                 // Timer controls
                 VStack(spacing: 8) {
                     Text(timeString(from: timerSeconds))
-                        .font(AppTheme.bitterFont(size: 32, weight: .bold))
+                        .font(AppTheme.nanumMyeongjoFont(size: 32, weight: .bold))
                         .foregroundStyle(.white)
                        
 
                     if onboardingVoiceShortcuts {
                         VStack(spacing: 6) {
                             Text("Or tap to practice the same commands")
-                                .appFont(.caption2)
+                                .nanumAppFont(.caption2)
                                 .foregroundStyle(.white.opacity(0.75))
                             HStack(spacing: 10) {
                                 Button("5 minutes") {
                                     handleIssuedCommand(.setMinutes(5))
                                     voice.resetIssuedCommand()
                                 }
-                                .appFont(.caption)
+                                .nanumAppFont(.caption)
                                 .foregroundStyle(.black)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -125,7 +129,7 @@ struct CookModeView: View {
                                     handleIssuedCommand(.pauseTimer)
                                     voice.resetIssuedCommand()
                                 }
-                                .appFont(.caption)
+                                .nanumAppFont(.caption)
                                 .foregroundStyle(.black)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -167,12 +171,13 @@ struct CookModeView: View {
                                 .background(Color.white, in: Capsule())
                         }
                     }
-                    .appFont(.body)
+                    .nanumAppFont(.body)
                 }
                 .padding(.bottom, 16)
                 
                 // Step counter
                 Text("\(stepIndex + 1) / \(steps.count)")
+                    .nanumAppFont(.caption)
                     .foregroundStyle(.white.opacity(0.7))
                     .padding(.bottom, 24)
             }
@@ -200,6 +205,8 @@ struct CookModeView: View {
             if enablesVoiceAssistant {
                 voice.requestPermissionsAndStart()
             }
+            reportOnboardingCookState()
+            reportOnboardingVoiceStatus()
         }
         .onDisappear {
             voice.stop()
@@ -209,6 +216,16 @@ struct CookModeView: View {
             if cmd != .none {
                 voice.resetIssuedCommand()
             }
+            reportOnboardingVoiceStatus()
+        }
+        .onChange(of: voice.isListening) { _, _ in
+            reportOnboardingVoiceStatus()
+        }
+        .onChange(of: voice.authorizationDenied) { _, _ in
+            reportOnboardingVoiceStatus()
+        }
+        .onChange(of: voice.statusText) { _, _ in
+            reportOnboardingVoiceStatus()
         }
         .onChange(of: onboardingDemoTrigger) { _, trigger in
             switch trigger {
@@ -219,7 +236,22 @@ struct CookModeView: View {
             case .setFiveMinutes:
                 handleIssuedCommand(.setMinutes(5))
             }
+            reportOnboardingCookState()
         }
+        .onChange(of: stepIndex) { _, _ in
+            reportOnboardingCookState()
+        }
+        .onChange(of: timerSeconds) { _, _ in
+            reportOnboardingCookState()
+        }
+    }
+
+    private func reportOnboardingCookState() {
+        onOnboardingCookStateChange?(stepIndex, timerSeconds)
+    }
+
+    private func reportOnboardingVoiceStatus() {
+        onOnboardingVoiceStatusChange?(voice.isListening, voice.authorizationDenied, voice.statusText)
     }
 
     private func handleIssuedCommand(_ cmd: CookVoiceCommand) {

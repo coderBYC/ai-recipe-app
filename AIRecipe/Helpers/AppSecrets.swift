@@ -65,6 +65,12 @@ enum AppSecrets {
         resolvedString(for: "REVENUECAT_API_KEY")
     }
 
+    /// Web OAuth client ID from Google Cloud (same value as Supabase Auth → Google → Client ID).
+    /// Required for native Google Sign-In → Supabase `signInWithIdToken` (used as GIDSignIn `serverClientID`).
+    static var googleWebClientID: String {
+        resolvedString(for: "GOOGLE_WEB_CLIENT_ID")
+    }
+
     static let configurationHint = """
         Missing or invalid API configuration. Fix all of the following, then Clean Build Folder and build again:
         • Copy Config/AppSecrets.local.xcconfig.example to Config/AppSecrets.local.xcconfig (gitignored).

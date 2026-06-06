@@ -48,8 +48,8 @@ final class CookModeVoiceController: ObservableObject {
                     self.authorizationDenied = true
                     self.statusText = "Enable Speech Recognition in Settings for voice commands."
                 case .notDetermined:
-                    self.authorizationDenied = true
-                    self.statusText = "Speech recognition not allowed."
+                    self.authorizationDenied = false
+                    self.statusText = "Allow speech recognition when prompted."
                 @unknown default:
                     self.authorizationDenied = true
                     self.statusText = "Speech recognition unavailable."

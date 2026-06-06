@@ -87,7 +87,11 @@ struct RecipeListThumbnailView: View {
 
     var body: some View {
         Group {
-            if recipe.sourceEnum == .youtube, let thumb = Recipe.youtubeThumbnailURL(from: recipe.sourceURL) {
+            if let assetName = Self.bundleAssetName(recipe) {
+                Image(assetName)
+                    .resizable()
+                    .scaledToFill()
+            } else if recipe.sourceEnum == .youtube, let thumb = Recipe.youtubeThumbnailURL(from: recipe.sourceURL) {
                 AsyncImage(url: thumb) { phase in
                     switch phase {
                     case .success(let image):
@@ -147,7 +151,78 @@ struct RecipeListThumbnailView: View {
     }
 
     private static func playableDownloadedURL(_ recipe: Recipe) -> URL? {
-        RecipeBackendConfig.resolvedMediaURL(recipe.downloadedVideoURL)
+        let raw = recipe.downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.hasPrefix("asset://") else { return nil }
+        return RecipeBackendConfig.resolvedMediaURL(raw)
+    }
+
+    /// Onboarding / previews: `downloadedVideoURL` = `asset://crispy`
+    private static func bundleAssetName(_ recipe: Recipe) -> String? {
+        let raw = recipe.downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard raw.hasPrefix("asset://") else { return nil }
+        let name = String(raw.dropFirst("asset://".count))
+        guard !name.isEmpty, UIImage(named: name) != nil else { return nil }
+        return name
+    }
+}
+
+// MARK: - Imports tab row thumbnail (ready + in-flight)
+
+struct ImportSubmissionThumbnailView: View {
+    let submission: RecipeImportSubmission
+    private let side: CGFloat = 72
+
+    var body: some View {
+        Group {
+            if submission.status == .ready {
+                RecipeListThumbnailView(recipe: RecipeImportProcessor.makeRecipe(from: submission))
+            } else if let url = Self.mediaURL(for: submission) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    case .failure, .empty:
+                        placeholder
+                    @unknown default:
+                        placeholder
+                    }
+                }
+            } else {
+                placeholder
+            }
+        }
+        .frame(width: side, height: side)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
+                .stroke(AppTheme.textSecondary.opacity(0.28), lineWidth: AppTheme.boxBorderWidth)
+        )
+    }
+
+    private var placeholder: some View {
+        Rectangle()
+            .fill(AppTheme.primary.opacity(0.12))
+            .overlay {
+                SourceIconView(source: Self.inferredSource(from: submission.sourceURL))
+            }
+    }
+
+    private static func mediaURL(for submission: RecipeImportSubmission) -> URL? {
+        let ready = submission.readyDownloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !ready.isEmpty, let url = RecipeBackendConfig.resolvedMediaURL(ready) {
+            return url
+        }
+        return nil
+    }
+
+    private static func inferredSource(from url: String) -> RecipeSource {
+        let u = url.lowercased()
+        if u.contains("tiktok.com") || u.contains("vt.tiktok.com") { return .tiktok }
+        if u.contains("instagram.com") || u.contains("instagr.am") { return .instagram }
+        if u.contains("youtube.com") || u.contains("youtu.be") { return .youtube }
+        if u.hasPrefix("photos://") { return .photos }
+        return .instagram
     }
 }
 

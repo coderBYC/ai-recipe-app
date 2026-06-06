@@ -398,11 +398,11 @@ struct MainView: View {
         } label: {
             VStack(spacing: 4){
                 Image(systemName: icon)
-                    .font(AppTheme.bitterFont(size: 22, weight: .regular))
+                    .font(AppTheme.bitterFont(size: 22, weight: .ultraLight))
                     .frame(maxWidth: .infinity)
                     .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
                 Text(title)
-                    .font(AppTheme.bitterFont(size: 10, weight: .medium))
+                    .font(AppTheme.nanumMyeongjoFont(size: 10, weight: .medium))
                     .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
                     .fontWeight(.semibold)
             }
@@ -571,7 +571,7 @@ struct ImportView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Imports")
-                        .appFont(.largeTitle)
+                        .nanumAppFont(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
@@ -637,6 +637,17 @@ private struct ImportSubmissionRow: View {
     let submission: RecipeImportSubmission
     var onReadyRowTap: (() -> Void)?
 
+    private var displayTitle: String {
+        let title = submission.readyTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !title.isEmpty { return title }
+        let url = submission.sourceURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if url.isEmpty { return "Importing recipe…" }
+        if let host = URL(string: url)?.host?.replacingOccurrences(of: "www.", with: "") {
+            return host
+        }
+        return url
+    }
+
     var body: some View {
         Group {
             switch submission.status {
@@ -655,7 +666,7 @@ private struct ImportSubmissionRow: View {
             case .processing, .failed:
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(submission.sourceURL)
+                        Text(displayTitle)
                             .appFont(.headline)
                             .foregroundStyle(AppTheme.textPrimary)
                             .lineLimit(2)
@@ -665,6 +676,8 @@ private struct ImportSubmissionRow: View {
                             .lineLimit(submission.status == .failed ? 4 : 2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+
+                    ImportSubmissionThumbnailView(submission: submission)
 
                     if submission.status == .processing {
                         ProgressView()
@@ -742,7 +755,7 @@ struct SettingsView: View {
                         }
                     }
                     .padding(10)
-                    .appFont(.body)
+                    .bitterAppFont(.body)
                     .boxStyle(cornerRadius: 8)
                     .pickerStyle(.navigationLink)
                     .frame(maxWidth:.infinity, alignment: .init(horizontal: .center, vertical: .center))
@@ -752,7 +765,7 @@ struct SettingsView: View {
                 Section("Subscription Plan"){
                     if subManager.isPremium {
                         Text("PREMIUM PLAN🔥")
-                            .appFont(.body)
+                            .bitterAppFont(.body)
                             .settingsListRow()
                     } else {
                         Text("Free Version")
@@ -774,10 +787,10 @@ struct SettingsView: View {
                                             .scaleEffect(0.8)
                                     } else {
                                         Text("\(freeDailyImportRemaining)")
-                                            .appFont(.titleBold)
+                                            .bitterAppFont(.titleBold)
                                             .foregroundStyle(AppTheme.textPrimary)
                                         Text("imports left")
-                                            .appFont(.caption)
+                                            .bitterAppFont(.caption)
                                             .foregroundStyle(AppTheme.textSecondary)
                                     }
                                 }
@@ -793,7 +806,7 @@ struct SettingsView: View {
                         }
                         .settingsListRow()
                         .padding(10)
-                        .appFont(.body)
+                        .bitterAppFont(.body)
                         .boxStyle(cornerRadius: 8)
                     } else {
                         Button("Upgrade to Premium") {
@@ -801,7 +814,7 @@ struct SettingsView: View {
                         }
                         .settingsListRow()
                         .padding(10)
-                        .appFont(.body)
+                        .bitterAppFont(.body)
                         .boxStyle(cornerRadius: 8)
                     }
                     Button("Manage subscription") {
@@ -822,7 +835,7 @@ struct SettingsView: View {
                     }
                     .settingsListRow()
                     .padding(10)
-                    .appFont(.body)
+                    .bitterAppFont(.body)
                     .boxStyle(cornerRadius: 8)
                 }
                 .listSectionSeparator(.hidden)
@@ -838,7 +851,7 @@ struct SettingsView: View {
                         Text("Terms of Service")
                             .frame(alignment: .center)
                             .foregroundStyle(AppTheme.textPrimary)
-                            .appFont(.body)
+                            .bitterAppFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
@@ -852,7 +865,7 @@ struct SettingsView: View {
                         Text("Privacy & AI Policy")
                             .frame(alignment: .center)
                             .foregroundStyle(AppTheme.textPrimary)
-                            .appFont(.body)
+                            .bitterAppFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
@@ -869,7 +882,7 @@ struct SettingsView: View {
                         Text("General Questions")
                             
                             .foregroundStyle(AppTheme.textPrimary)
-                            .appFont(.body)
+                            .bitterAppFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
@@ -882,7 +895,7 @@ struct SettingsView: View {
                         Text("Rate Us")
                            
                             .foregroundStyle(AppTheme.textPrimary)
-                            .appFont(.body)
+                            .bitterAppFont(.body)
                             .padding(10)
                             .boxStyle(cornerRadius: 8)
                     }
@@ -894,7 +907,7 @@ struct SettingsView: View {
                     }
                     .settingsListRow()
                     .padding(10)
-                    .appFont(.body)
+                    .bitterAppFont(.body)
                     .boxStyle(cornerRadius: 8)
                 }
                 .listSectionSeparator(.hidden)
@@ -912,7 +925,7 @@ struct SettingsView: View {
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 10)
                                 
-                                .appFont(.body)
+                                .bitterAppFont(.body)
                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                 .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                                 .foregroundStyle(Color.red)
@@ -941,7 +954,7 @@ struct SettingsView: View {
                                 .frame(alignment: .center)
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 10)
-                                .appFont(.body)
+                                .bitterAppFont(.body)
                             Image(systemName: "trash.fill")
                                 .font(AppTheme.bitterFont(size: 18, weight: .semibold))
                                 .foregroundStyle(Color.red)
@@ -976,7 +989,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
-                        .appFont(.largeTitle)
+                        .nanumAppFont(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
@@ -1003,7 +1016,7 @@ struct SettingsView: View {
                         }
                     }
             }
-            .appFont(.titleBold)
+            .bitterAppFont(.titleBold)
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 Task { @MainActor in
@@ -1107,7 +1120,7 @@ private struct GeneralQuestionsListView: View {
                     SupportTopicDetailView(topic: topic)
                 } label: {
                     Text(topic.title)
-                        .appFont(.body)
+                        .bitterAppFont(.body)
                         .foregroundStyle(AppTheme.textPrimary)
                         .padding(10)
                         .boxStyle(cornerRadius: 8)
@@ -1130,7 +1143,7 @@ private struct SupportTopicDetailView: View {
         ScrollView {
             Text(topic.instructions)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .appFont(.body)
+                .bitterAppFont(.body)
                 .foregroundStyle(AppTheme.textPrimary)
                 .padding(14)
                 .boxStyle(cornerRadius: 8)

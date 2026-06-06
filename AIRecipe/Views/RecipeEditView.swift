@@ -21,9 +21,11 @@ struct RecipeEditView: View {
     
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
-    var onboardingCoachText: String? = nil
+    var onboardingSpotlight: OnboardingSpotlightTarget? = nil
     var onOnboardingCookTimePlusTapped: (() -> Void)? = nil
     var onOnboardingSaved: (() -> Void)? = nil
+
+    private var isOnboardingWalkthrough: Bool { onboardingSpotlight != nil }
 
     @State private var didLoadDraft = false
 
@@ -197,8 +199,9 @@ struct RecipeEditView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .appFont(.callout)
-                            .foregroundStyle(AppTheme.textPrimary)
+                            .foregroundStyle(isOnboardingWalkthrough ? AppTheme.textSecondary.opacity(0.45) : AppTheme.textPrimary)
                     }
+                    .disabled(isOnboardingWalkthrough)
                 }
                 ToolbarItem(placement: .principal) {
                     Text("Edit")
@@ -227,8 +230,9 @@ struct RecipeEditView: View {
                             .foregroundStyle(.black)
                             .frame(width: 34, height: 34)
                             .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
+                            .padding(4)
                     }
-                   
+                    .onboardingSpotlightTarget(.saveButton)
                 }
             }
             .onAppear {
@@ -266,7 +270,7 @@ struct RecipeEditView: View {
                         .foregroundStyle(.red.opacity(0.85))
                 }
                 .buttonStyle(.plain)
-                .disabled(onboardingCoachText != nil && isCookingTime)
+                .disabled(isOnboardingWalkthrough)
 
                 Text("\(value.wrappedValue)")
                     .appFont(.title3)
@@ -274,18 +278,26 @@ struct RecipeEditView: View {
                     .frame(minWidth: 36)
                     .monospacedDigit()
 
-                Button {
-                    value.wrappedValue = min(999, value.wrappedValue + 1)
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    if isCookingTime {
-                        onOnboardingCookTimePlusTapped?()
+                Group {
+                    let plus = Button {
+                        value.wrappedValue = min(999, value.wrappedValue + 1)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        if isCookingTime {
+                            onOnboardingCookTimePlusTapped?()
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .appFont(.title3)
+                            .foregroundStyle(.green.opacity(0.9))
                     }
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .appFont(.title3)
-                        .foregroundStyle(.green.opacity(0.9))
+                    .buttonStyle(.plain)
+
+                    if isCookingTime {
+                        plus.onboardingSpotlightTarget(.cookTimePlusButton)
+                    } else {
+                        plus
+                    }
                 }
-                .buttonStyle(.plain)
             }
         }
     }
@@ -461,6 +473,36 @@ struct RecipeEditView: View {
             .filter { !$0.isEmpty }
         recipe.stepsContent = nonEmptySteps.joined(separator: "\n")
         recipe.totalSteps = nonEmptySteps.count
+    }
+}
+
+// MARK: - Legacy onboarding init (keeps linker happy after onboardingCoachText → onboardingSpotlight rename)
+
+extension RecipeEditView {
+    init(
+        recipe: Recipe,
+        onDismiss: @escaping () -> Void,
+        onboardingCoachText: String?,
+        onOnboardingCookTimePlusTapped: (() -> Void)? = nil,
+        onOnboardingSaved: (() -> Void)? = nil
+    ) {
+        let spotlight: OnboardingSpotlightTarget? = {
+            guard let onboardingCoachText else { return nil }
+            if onboardingCoachText == "Tap +1 min" {
+                return .cookTimePlusButton
+            }
+            if onboardingCoachText == "Tap Save" {
+                return .saveButton
+            }
+            return nil
+        }()
+        self.init(
+            recipe: recipe,
+            onDismiss: onDismiss,
+            onboardingSpotlight: spotlight,
+            onOnboardingCookTimePlusTapped: onOnboardingCookTimePlusTapped,
+            onOnboardingSaved: onOnboardingSaved
+        )
     }
 }
 

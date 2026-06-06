@@ -1,11 +1,11 @@
 import UIKit
 
-/// Bitter for UIKit labels in the share extension (matches main app `AppTheme.bitterFont` resolution).
+/// Libre Baskerville for UIKit labels in the share extension (matches main app body font).
 enum ShareExtensionFonts {
-    private static var cachedBitterRegularPS: String?
-    private static var cachedBitterBoldPS: String?
+    private static var cachedLibreRegularPS: String?
+    private static var cachedLibreBoldPS: String?
 
-    static func bitter(size: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
+    static func libreBaskerville(size: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
         let wantsBold: Bool
         switch weight {
         case .bold, .heavy, .black, .semibold:
@@ -14,50 +14,47 @@ enum ShareExtensionFonts {
             wantsBold = false
         }
         if wantsBold {
-            if let ps = cachedBitterBoldPS ?? resolveBitterPostScript(bold: true) {
-                cachedBitterBoldPS = ps
+            if let ps = cachedLibreBoldPS ?? resolveLibrePostScript(bold: true) {
+                cachedLibreBoldPS = ps
                 if let f = UIFont(name: ps, size: size) { return f }
             }
         } else {
-            if let ps = cachedBitterRegularPS ?? resolveBitterPostScript(bold: false) {
-                cachedBitterRegularPS = ps
+            if let ps = cachedLibreRegularPS ?? resolveLibrePostScript(bold: false) {
+                cachedLibreRegularPS = ps
                 if let f = UIFont(name: ps, size: size) { return f }
             }
         }
         return .systemFont(ofSize: size, weight: weight)
     }
 
-    private static func resolveBitterPostScript(bold: Bool) -> String? {
+    /// Backward-compatible alias.
+    static func bitter(size: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
+        libreBaskerville(size: size, weight: weight)
+    }
+
+    private static func resolveLibrePostScript(bold: Bool) -> String? {
         let staticCandidates: [String]
         if bold {
-            staticCandidates = [
-                "Bitter-Bold", "BitterBold", "Bitter_700Bold", "Bitter Roman Bold", "BitterRoman-Bold",
-            ]
+            staticCandidates = ["LibreBaskerville-Bold", "LibreBaskervilleBold"]
         } else {
-            staticCandidates = [
-                "Bitter-Regular", "BitterRegular", "Bitter Roman", "BitterRoman-Regular", "Bitter",
-            ]
+            staticCandidates = ["LibreBaskerville-Regular", "LibreBaskervilleRegular", "LibreBaskerville"]
         }
         for name in staticCandidates where UIFont(name: name, size: 12) != nil {
             return name
         }
-        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("bitter") {
+        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("libre") && family.localizedCaseInsensitiveContains("baskerville") {
             let names = UIFont.fontNames(forFamilyName: family)
+            let pick: String?
             if bold {
-                let pick = names.first { n in
-                    n.localizedCaseInsensitiveContains("bold")
-                        || n.contains("700")
-                        || n.localizedCaseInsensitiveContains("black")
-                } ?? names.first
-                if let pick, UIFont(name: pick, size: 12) != nil { return pick }
+                pick = names.first { $0.localizedCaseInsensitiveContains("bold") || $0.contains("700") } ?? names.first
             } else {
-                let pick = names.first { n in
-                    !n.localizedCaseInsensitiveContains("bold")
-                        && !n.localizedCaseInsensitiveContains("italic")
-                        && !n.contains("700")
+                pick = names.first {
+                    !$0.localizedCaseInsensitiveContains("bold")
+                        && !$0.localizedCaseInsensitiveContains("italic")
+                        && !$0.contains("700")
                 } ?? names.first
-                if let pick, UIFont(name: pick, size: 12) != nil { return pick }
             }
+            if let pick, UIFont(name: pick, size: 12) != nil { return pick }
         }
         return nil
     }

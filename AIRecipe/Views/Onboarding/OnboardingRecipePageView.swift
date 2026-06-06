@@ -7,16 +7,15 @@ struct OnboardingRecipePageView: View {
 
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
-    var onboardingCoachText: String? = nil
+    var onboardingSpotlight: OnboardingSpotlightTarget? = nil
     var onOnboardingEditTapped: (() -> Void)? = nil
     var onOnboardingCookTimePlusTapped: (() -> Void)? = nil
     var onOnboardingEditSaved: (() -> Void)? = nil
+    var onOnboardingStepsTapped: (() -> Void)? = nil
 
     @State private var showingEdit = false
 
-    private var isEditCoachStep: Bool {
-        onboardingCoachText == ImportOnboardingCoachStep.tapEdit.coachText
-    }
+    private var isOnboardingWalkthrough: Bool { onboardingSpotlight != nil }
 
     var body: some View {
         NavigationStack {
@@ -39,12 +38,6 @@ struct OnboardingRecipePageView: View {
                     }
                     .padding(16)
                 }
-                .overlay {
-                    if isEditCoachStep {
-                        Color.gray.opacity(0.68)
-                            .allowsHitTesting(false)
-                    }
-                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(AppTheme.surface, for: .navigationBar)
@@ -54,25 +47,24 @@ struct OnboardingRecipePageView: View {
                     Button { onDismiss() } label: {
                         Image(systemName: "xmark")
                             .appFont(.callout)
-                            .foregroundStyle(onboardingCoachText == nil ? AppTheme.textPrimary : AppTheme.textSecondary.opacity(0.45))
+                            .foregroundStyle(isOnboardingWalkthrough ? AppTheme.textSecondary.opacity(0.45) : AppTheme.textPrimary)
                     }
-                    .disabled(onboardingCoachText != nil)
+                    .disabled(isOnboardingWalkthrough)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        onOnboardingEditTapped?()
-                        showingEdit = true
-                    } label: {
-                        VStack(spacing: 6) {
-                            Image(systemName: "pencil")
-                                .appFont(.callout)
-                                .foregroundStyle(isEditCoachStep ? AppTheme.textPrimary : AppTheme.textSecondary.opacity(0.45))
-                            if isEditCoachStep, let text = onboardingCoachText {
-                                OnboardingCoachCallout(text: text, direction: .down)
-                            }
+                        if let onOnboardingEditTapped {
+                            onOnboardingEditTapped()
+                        } else {
+                            showingEdit = true
                         }
+                    } label: {
+                        Image(systemName: "pencil")
+                            .appFont(.callout)
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .padding(8)
                     }
-                    .disabled(onboardingCoachText != nil && !isEditCoachStep)
+                    .onboardingSpotlightTarget(.editButton)
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button { } label: {
@@ -87,7 +79,6 @@ struct OnboardingRecipePageView: View {
                 RecipeEditView(
                     recipe: recipe,
                     onDismiss: { showingEdit = false },
-                    onboardingCoachText: onboardingCoachText,
                     onOnboardingCookTimePlusTapped: onOnboardingCookTimePlusTapped,
                     onOnboardingSaved: onOnboardingEditSaved
                 )
@@ -106,18 +97,14 @@ struct OnboardingRecipePageView: View {
     }
 
     private var videoSection: some View {
-        VideoThumbnailView(
-            sourceURL: recipe.sourceURL,
-            downloadedVideoURL: recipe.downloadedVideoURL,
-            source: recipe.sourceEnum,
-            dishHeroTimestampSeconds: recipe.dishHeroTimestampSeconds
-        )
-        .frame(height: 200)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
-                .stroke(AppTheme.textSecondary.opacity(0.3), lineWidth: AppTheme.boxBorderWidth)
-        )
+        Image("salmon")
+            .resizable()
+            .frame(height: 200)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
+                    .stroke(AppTheme.textSecondary.opacity(0.3), lineWidth: AppTheme.boxBorderWidth)
+            )
     }
 
     private var estimateTimeSection: some View {
@@ -170,8 +157,6 @@ struct OnboardingRecipePageView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 4)
-        .opacity(onboardingCoachText == nil ? 1 : 0.45)
-        .allowsHitTesting(onboardingCoachText == nil)
     }
 
     private var stepsSection: some View {
@@ -201,8 +186,12 @@ struct OnboardingRecipePageView: View {
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
-        .opacity(onboardingCoachText == nil ? 1 : 0.45)
-        .allowsHitTesting(onboardingCoachText == nil)
+        .onboardingSpotlightTarget(.stepsSection)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard onboardingSpotlight == .stepsSection else { return }
+            onOnboardingStepsTapped?()
+        }
     }
 
     private static let stepTimelineSpacing: CGFloat = 16
@@ -259,7 +248,6 @@ struct OnboardingRecipePageView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .boxStyle()
-        .opacity(onboardingCoachText == nil ? 1 : 0.45)
     }
 
     private var ratingSection: some View {
@@ -277,8 +265,6 @@ struct OnboardingRecipePageView: View {
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
-        .opacity(onboardingCoachText == nil ? 1 : 0.45)
-        .allowsHitTesting(onboardingCoachText == nil)
     }
 
     private var openLinkSection: some View {
@@ -299,7 +285,5 @@ struct OnboardingRecipePageView: View {
             RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
                 .stroke(AppTheme.textSecondary.opacity(0.25), lineWidth: AppTheme.boxBorderWidth)
         )
-        .opacity(onboardingCoachText == nil ? 1 : 0.45)
-        .allowsHitTesting(onboardingCoachText == nil)
     }
 }

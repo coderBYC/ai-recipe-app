@@ -3,17 +3,22 @@ import UIKit
 
 /// Slide 4 — salmon hero + iOS-style “recipe ready” push notification mock.
 struct OnboardingRecipeDoneNotificationSlideView: View {
+    var onNotificationTapped: () -> Void = {}
+
     private static let appDisplayName = "Let Him Cook"
     private static let appIconAsset = "icon"
     private static let heroImageAsset = "crispy"
     private static let heroImageFallback = "salmon"
     private static let notificationBody =
         "Your Crispy Honey Garlic Salmon Recipe is ready!"
+    private static let tapCoachText = "Click Recipe Notification To See Your Recipe!"
 
     @State private var notificationRevealed = false
+    @State private var showTapHints = false
     @State private var didPlayHaptic = false
 
     private static let revealSpring = Animation.spring(response: 0.55, dampingFraction: 0.82)
+    private static let hintSpring = Animation.spring(response: 0.5, dampingFraction: 0.82)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -21,15 +26,36 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 20)
+                .padding(.top, 60)
                 .appFont(.title)
 
             heroSalmonImage
                 .padding(.horizontal, 28)
                 .padding(.top, 4)
 
-            iosNotificationCard(revealed: notificationRevealed)
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
+            VStack(spacing: 10) {
+                
+
+                Button {
+                    guard notificationRevealed else { return }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    onNotificationTapped()
+                } label: {
+                    iosNotificationCard(revealed: notificationRevealed)
+                }
+                .buttonStyle(.plain)
+                .disabled(!notificationRevealed)
+                if showTapHints {
+                    OnboardingFlashingPointerEmojiView(emoji: "👆", fontSize: 52)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    OnboardingFlashingCoachBox(text: Self.tapCoachText)
+                        .transition(.opacity.combined(with: .scale(scale: 0.94)))
+
+                    
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
 
             Spacer(minLength: 0)
         }
@@ -40,6 +66,7 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
         }
         .onDisappear {
             notificationRevealed = false
+            showTapHints = false
             didPlayHaptic = false
         }
     }
@@ -53,7 +80,7 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
         Image(asset)
             .resizable()
             .scaledToFit()
-            .frame(maxWidth: 280, maxHeight: 200)
+            .frame(maxWidth: 200, maxHeight: 200)
             .accessibilityLabel("Crispy honey garlic salmon")
     }
 
@@ -86,7 +113,7 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
         .background {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(notificationCardFill)
-                .shadow(color: Color.black.opacity(0.14), radius: 10, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.44), radius: 10, x: 0, y: 5)
         }
         .scaleEffect(revealed ? 1 : 0.96, anchor: .top)
         .offset(y: revealed ? 0 : -28)
@@ -120,6 +147,8 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
     @MainActor
     private func runEntranceSequence() async {
         notificationRevealed = false
+        showTapHints = false
+
         try? await Task.sleep(for: .milliseconds(120))
         guard !Task.isCancelled else { return }
 
@@ -133,6 +162,41 @@ struct OnboardingRecipeDoneNotificationSlideView: View {
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
             OnboardingRecipeReadyHaptics.play()
         }
+
+        try? await Task.sleep(for: .milliseconds(450))
+        guard !Task.isCancelled else { return }
+
+        withAnimation(Self.hintSpring) {
+            showTapHints = true
+        }
+    }
+}
+
+// MARK: - Flashing coach box
+
+struct OnboardingFlashingCoachBox: View {
+    let text: String
+
+    @State private var isPulsing = false
+
+    var body: some View {
+        Text(text)
+            .appFont(.headlineBold)
+            .foregroundStyle(AppTheme.textPrimary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+            .opacity(isPulsing ? 1 : 0.38)
+            .scaleEffect(isPulsing ? 1 : 0.98)
+            .animation(
+                .easeInOut(duration: 0.7).repeatForever(autoreverses: true),
+                value: isPulsing
+            )
+            .onAppear { isPulsing = true }
+            .onDisappear { isPulsing = false }
+            .allowsHitTesting(false)
     }
 }
 

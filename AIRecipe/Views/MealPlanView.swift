@@ -74,7 +74,7 @@ struct MealPlanView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Meal Plan")
-                        .appFont(.largeTitle)
+                        .nanumAppFont(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
@@ -110,12 +110,12 @@ struct MealPlanView: View {
 
             VStack(spacing: 4) {
                 Text(weekRangeTitle)
-                    .appFont(.headlineBold)
+                    .bitterAppFont(.headlineBold)
                     .foregroundStyle(AppTheme.textPrimary)
                     .multilineTextAlignment(.center)
                 if calendar.isDate(displayedWeekStart, equalTo: Calendar.mondayStart(of: Date()), toGranularity: .day) {
                     Text("This Week")
-                        .appFont(.caption)
+                        .bitterAppFont(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(.green)
@@ -163,10 +163,10 @@ struct MealPlanView: View {
 
         return VStack(spacing: 6) {
             Text(short)
-                .appFont(.caption)
+                .bitterAppFont(.headlineBold)
                 .foregroundStyle(isToday ? AppTheme.surface : AppTheme.textSecondary)
             Text("\(num)")
-                .appFont(.headlineBold)
+                .bitterAppFont(.headlineBold)
                 .foregroundStyle(isToday ? AppTheme.surface : AppTheme.textPrimary)
         }
         .frame(minWidth: 48)
@@ -189,15 +189,15 @@ struct MealPlanView: View {
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(longWeekday(d))
-                    .appFont(.title3)
+                    .bitterAppFont(.headlineBold)
                     .foregroundStyle(AppTheme.textPrimary)
                 mediumDate(d)
-                    .appFont(.callout)
+                    .bitterAppFont(.headlineBold)
                     .foregroundStyle(AppTheme.textSecondary)
                 Spacer()
                 if isToday {
                     Text("Today")
-                        .appFont(.caption)
+                        .bitterAppFont(.title2)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(.green)
@@ -230,7 +230,7 @@ struct MealPlanView: View {
                 .frame(width: 28, alignment: .center)
 
             Text(slot.label)
-                .appFont(.callout)
+                .bitterAppFont(.headlineBold)
                 .foregroundStyle(AppTheme.textSecondary)
                 .frame(width: 78, alignment: .leading)
 
@@ -240,7 +240,7 @@ struct MealPlanView: View {
                 HStack(spacing: 8) {
                     if let r = recipeForCurrentOwner(in: planned) {
                         Text(r.title.isEmpty ? "Untitled" : r.title)
-                            .appFont(.body)
+                            .nanumAppFont(.body)
                             .foregroundStyle(AppTheme.textPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
@@ -249,7 +249,7 @@ struct MealPlanView: View {
                             .frame(width: 22, height: 22)
                     } else {
                         Text("Add recipe")
-                            .appFont(.body)
+                            .bitterAppFont(.headlineBold)
                             .foregroundStyle(AppTheme.textSecondary.opacity(0.7))
                         Spacer()
                         Image(systemName: "plus.circle.fill")
@@ -368,9 +368,9 @@ private struct RecipePickerSheet: View {
                             .font(AppTheme.bitterFont(size: 28, weight: .semibold))
                             .foregroundStyle(AppTheme.textSecondary)
                         Text("No recipes yet")
-                            .appFont(.headlineBold)
+                            .bitterAppFont(.headlineBold)
                         Text("Save recipes from Home, then pick them here.")
-                            .appFont(.callout)
+                            .bitterAppFont(.callout)
                             .foregroundStyle(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
                     }
@@ -387,11 +387,11 @@ private struct RecipePickerSheet: View {
                                         .frame(width: 28, height: 28)
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(recipe.title.isEmpty ? "Untitled" : recipe.title)
-                                            .appFont(.body)
+                                            .nanumAppFont(.body)
                                             .foregroundStyle(AppTheme.textPrimary)
                                         if !recipe.creator.isEmpty {
                                             Text(recipe.creator)
-                                                .appFont(.caption)
+                                                .nanumAppFont(.caption)
                                                 .foregroundStyle(AppTheme.textSecondary)
                                         }
                                     }

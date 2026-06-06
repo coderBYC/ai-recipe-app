@@ -41,13 +41,48 @@ struct OnboardingCoachSpec {
     }
 }
 
+// MARK: - Spotlight targets (slides 6–9)
+
+enum OnboardingSpotlightTarget: Hashable {
+    case editButton
+    case cookTimePlusButton
+    case saveButton
+    case stepsSection
+}
+
+enum OnboardingSpotlightCoordinateSpace {
+    static let name = "onboardingSpotlight"
+}
+
+struct OnboardingSpotlightTargetRectKey: PreferenceKey {
+    static var defaultValue: [OnboardingSpotlightTarget: CGRect] = [:]
+
+    static func reduce(
+        value: inout [OnboardingSpotlightTarget: CGRect],
+        nextValue: () -> [OnboardingSpotlightTarget: CGRect]
+    ) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+extension View {
+    func onboardingSpotlightTarget(_ target: OnboardingSpotlightTarget) -> some View {
+        background {
+            GeometryReader { geo in
+                Color.clear.preference(
+                    key: OnboardingSpotlightTargetRectKey.self,
+                    value: [target: geo.frame(in: .named(OnboardingSpotlightCoordinateSpace.name))]
+                )
+            }
+        }
+    }
+}
+
 // MARK: - Import walkthrough coach steps
 
 enum ImportOnboardingCoachStep: Int, CaseIterable, Comparable {
     case tapImportRow = 0
     case tapEdit
-    case tapPlusOneMinute
-    case tapSave
     case done
 
     static func < (lhs: ImportOnboardingCoachStep, rhs: ImportOnboardingCoachStep) -> Bool {
@@ -57,13 +92,9 @@ enum ImportOnboardingCoachStep: Int, CaseIterable, Comparable {
     var slideTitle: String {
         switch self {
         case .tapImportRow:
-            return "⑤ Tap your imported recipe"
+            return "⑤ Tap All Your Generated Recipes In Import Tab"
         case .tapEdit:
-            return "⑥ Tap Edit"
-        case .tapPlusOneMinute:
-            return "⑦ Add 1 minute"
-        case .tapSave:
-            return "⑧ Save edits"
+            return "⑥ Tap Edit On Your Recipe"
         case .done:
             return ""
         }
@@ -72,13 +103,9 @@ enum ImportOnboardingCoachStep: Int, CaseIterable, Comparable {
     var coachText: String? {
         switch self {
         case .tapImportRow:
-            return "Click Your Recipe"
+            return "Click Your Generated Recipe Here!"
         case .tapEdit:
             return "Tap Edit"
-        case .tapPlusOneMinute:
-            return "Tap +1 min"
-        case .tapSave:
-            return "Tap Save"
         case .done:
             return nil
         }

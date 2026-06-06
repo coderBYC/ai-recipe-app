@@ -15,16 +15,14 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
 
     // Import walkthrough (single persistent slide identity)
     case importTapRecipe = 4
-    case importTapEdit = 5
-    case importAddMinute = 6
-    case importSaveEdits = 7
+    case importedRecipeShowcase = 5
 
     // Post-import walkthrough
-    case recipePageTapSteps = 8
-    case cookModeVoiceIntro = 9
-    case mealPlanAddRecipe = 10
-    case youAreDone = 11
-    case signInAuth = 12
+    case recipePageTapSteps = 6
+    case cookModeVoiceIntro = 7
+    case mealPlanAddRecipe = 8
+    case youAreDone = 9
+    case signInAuth = 10
 
     static var stepCount: Int { allCases.count }
 
@@ -37,9 +35,6 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
     var importCoachStep: ImportOnboardingCoachStep? {
         switch self {
         case .importTapRecipe: return .tapImportRow
-        case .importTapEdit: return .tapEdit
-        case .importAddMinute: return .tapPlusOneMinute
-        case .importSaveEdits: return .tapSave
         default: return nil
         }
     }
@@ -71,12 +66,13 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
 
         case .importTapRecipe:
             return OnboardingCoachSpec(text: ImportOnboardingCoachStep.tapImportRow.coachText ?? "", font: .headlineBold)
-        case .importTapEdit:
-            return OnboardingCoachSpec(text: ImportOnboardingCoachStep.tapEdit.coachText ?? "", font: .headlineBold)
-        case .importAddMinute:
-            return OnboardingCoachSpec(text: ImportOnboardingCoachStep.tapPlusOneMinute.coachText ?? "", font: .headlineBold)
-        case .importSaveEdits:
-            return OnboardingCoachSpec(text: ImportOnboardingCoachStep.tapSave.coachText ?? "", font: .headlineBold)
+
+        case .importedRecipeShowcase:
+            return OnboardingCoachSpec(
+                text: "You can import every video to recipes like this!",
+                font: .titleBold,
+                textAlignment: .center
+            )
 
         case .recipePageTapSteps:
             return OnboardingCoachSpec(text: "Click Steps To Enter Cook Mode", font: .headlineBold)
@@ -137,7 +133,7 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
     var screenshotAssetName: String? {
         switch self {
         case .intro, .youAreDone, .signInAuth,
-             .importTapRecipe, .importTapEdit, .importAddMinute, .importSaveEdits,
+             .importTapRecipe,.importedRecipeShowcase,
              .recipePageTapSteps, .cookModeVoiceIntro:
             return nil
         case .shareRecipe:
@@ -161,7 +157,7 @@ enum OnboardingStep: Int, CaseIterable, Comparable {
             return "arrow.up.forward.app"
         case .recipeDoneNotification:
             return "bell.badge"
-        case .importTapRecipe, .importTapEdit, .importAddMinute, .importSaveEdits:
+        case .importTapRecipe, .importedRecipeShowcase:
             return "play.rectangle"
         case .recipePageTapSteps:
             return "list.number"

@@ -20,16 +20,19 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             OnboardingProgressBar(currentStep: currentStep)
 
-            OnboardingSlideCanvas(direction: slideDirection) {
-                OnboardingStepSlideView(
-                    step: currentStep,
-                    onAuthenticated: completeOnboarding,
-                    onImportTabFlowCompleted: autoAdvanceFromImportTabStep,
-                    onCookModeVoiceDemoCompleted: autoAdvanceFromCookModeVoiceStep
-                )
-                .id(currentStep.slideIdentity)
+            ZStack {
+                OnboardingSlideCanvas(direction: slideDirection) {
+                    OnboardingStepSlideView(
+                        step: currentStep,
+                        onAuthenticated: completeOnboarding,
+                        onImportTabFlowCompleted: autoAdvanceFromImportTabStep,
+                        onCookModeVoiceDemoCompleted: autoAdvanceFromCookModeVoiceStep
+                    )
+                    .id(currentStep.slideIdentity)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
 
             OnboardingNavigationBar(
                 currentStep: $currentStep,
@@ -65,7 +68,7 @@ struct OnboardingView: View {
             return
         }
         slideDirection = direction
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.88)) {
             currentStep = next
         }
     }
@@ -73,7 +76,7 @@ struct OnboardingView: View {
     private func regressStep(direction: OnboardingSlideDirection) {
         guard let prev = OnboardingStep(rawValue: currentStep.rawValue - 1) else { return }
         slideDirection = direction
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.88)) {
             currentStep = prev
         }
     }
@@ -85,8 +88,12 @@ struct OnboardingView: View {
     }
 
     private func autoAdvanceFromImportTabStep() {
-        let importSteps: Set<OnboardingStep> = [.importTapRecipe, .importTapEdit, .importAddMinute, .importSaveEdits]
-        guard importSteps.contains(currentStep) else { return }
+        let interactiveSteps: Set<OnboardingStep> = [
+            .recipeDoneNotification,
+            .importTapRecipe,
+            .recipePageTapSteps,
+        ]
+        guard interactiveSteps.contains(currentStep) else { return }
         advanceStep(direction: .forward)
     }
 

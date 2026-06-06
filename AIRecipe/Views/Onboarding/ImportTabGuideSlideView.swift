@@ -30,15 +30,10 @@ struct ImportTabGuideSlideView: View {
     }
 
     private var demoImportRow: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(AppTheme.primary.opacity(0.15))
-                .frame(width: 56, height: 56)
-                .overlay {
-                    Image(systemName: "play.rectangle.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(AppTheme.primary)
-                }
+        let demoRecipe = OnboardingImportStepMockData.makeRecipe()
+
+        return HStack(spacing: 14) {
+            RecipeListThumbnailView(recipe: demoRecipe)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(recipeTitle)
