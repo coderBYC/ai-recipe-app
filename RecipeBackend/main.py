@@ -1,7 +1,7 @@
 from pathlib import Path
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile  # pyright: ignore[reportMissingImports]
 from fastapi.middleware.cors import CORSMiddleware  # pyright: ignore[reportMissingImports]
-from fastapi.responses import FileResponse  # pyright: ignore[reportMissingImports]
+from fastapi.responses import FileResponse, RedirectResponse  # pyright: ignore[reportMissingImports]
 from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 from google import genai
 from google.genai import errors as genai_errors  # pyright: ignore[reportMissingImports]
@@ -32,6 +32,7 @@ import cv2
 from supabase import create_client  # pyright: ignore[reportMissingImports]
 from postgrest.exceptions import APIError  # pyright: ignore[reportMissingImports]
 from datetime import datetime, timezone
+from cloudinaryconfig import thumbnail_delivery_url, upload_thumbnail_jpg
 from worker import ImportQueueWorker
 _backend_dir = Path(__file__).resolve().parent
 load_dotenv(_backend_dir / ".env")
@@ -571,12 +572,12 @@ def _generate_content_with_retry(
 
 
 def _require_recipe_ai_configured() -> None:
-    if recipe_ai_provider() == "openai":
-        if not OPENAI_API_KEY:
-            raise HTTPException(status_code=500, detail="OPENAI_API_KEY not configured")
-        return
-    if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not configured")
+    chain = recipe_ai_provider_chain()
+    if not chain:
+        raise HTTPException(
+            status_code=500,
+            detail="No recipe AI provider configured (set GEMINI_API_KEY and/or OPENAI_API_KEY)",
+        )
 
 
 async def _gemini_analyze_local_video(
@@ -601,25 +602,31 @@ async def _analyze_local_video_path(
 ) -> str:
     prompt = build_prompt(language)
     errors: list[tuple[str, BaseException]] = []
+    chain = recipe_ai_provider_chain()
 
-    for provider in recipe_ai_provider_chain():
+    for i, provider in enumerate(chain):
         try:
             print(f"[RecipeAI] analyzing video with provider={provider}")
             if provider == "openai":
-                return await asyncio.to_thread(
+                raw = await asyncio.to_thread(
                     analyze_video_with_openai,
                     video_path,
                     prompt,
                     extra_context,
                 )
+                print("[RecipeAI] OpenAI analysis succeeded")
+                return raw
             client = genai.Client(api_key=GEMINI_API_KEY)
             response = await _gemini_analyze_local_video(
                 client, video_path, prompt, extra_context
             )
+            print("[RecipeAI] Gemini analysis succeeded")
             return getattr(response, "text", None) or ""
         except Exception as e:
             errors.append((provider, e))
             print(f"[RecipeAI] provider={provider} failed: {e!r}")
+            if i + 1 < len(chain):
+                print(f"[RecipeAI] falling back to: {chain[i + 1]}")
 
     if errors:
         raise errors[-1][1]
@@ -672,9 +679,10 @@ def _upload_suffix(filename: str) -> str:
 
 def _save_thumbnail_from_video(video_path: str, request: Request, seconds: float) -> Optional[str]:
     """
-    Extract one frame from `video_path` and persist it as a JPG served by this backend.
-    Returns absolute thumbnail URL or None on failure.
+    Extract one frame from `video_path`, upload JPEG to Cloudinary ``thumbnail/{thumb_id}``,
+    and return the public CDN URL.
     """
+    _ = request  # kept for call-site compatibility; thumbnails no longer use PUBLIC_BASE_URL
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         return None
@@ -693,13 +701,17 @@ def _save_thumbnail_from_video(video_path: str, request: Request, seconds: float
             ok, frame = cap.read()
             if not ok or frame is None:
                 return None
-        os.makedirs(SERVED_THUMBS_DIR, exist_ok=True)
         thumb_id = str(uuid.uuid4())
-        out_path = os.path.join(SERVED_THUMBS_DIR, f"{thumb_id}.jpg")
-        if not cv2.imwrite(out_path, frame):
+        ok_encode, buf = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        if not ok_encode:
             return None
-        base = _public_base_url_for_thumbnails(request)
-        return f"{base}/thumbnail/{thumb_id}"
+        try:
+            url = upload_thumbnail_jpg(buf.tobytes(), thumb_id)
+            print(f"[Thumbnail] uploaded to Cloudinary: {url}")
+            return url
+        except Exception as e:
+            print(f"[Thumbnail] Cloudinary upload failed: {e!r}")
+            return None
     finally:
         cap.release()
 
@@ -936,11 +948,14 @@ async def get_import_job(job_id: str, request: Request):
 
 @app.get("/thumbnail/{thumb_id}")
 async def serve_thumbnail(thumb_id: str):
-    """Serve generated JPG thumbnail extracted from analyzed video."""
+    """
+    Legacy route for old Render/local URLs. New imports store Cloudinary URLs directly.
+    Redirects to Cloudinary; falls back to local JPG if present from older builds.
+    """
     path = os.path.join(SERVED_THUMBS_DIR, f"{thumb_id}.jpg")
-    if not os.path.isfile(path):
-        raise HTTPException(status_code=404, detail="Thumbnail not found")
-    return FileResponse(path, media_type="image/jpeg")
+    if os.path.isfile(path):
+        return FileResponse(path, media_type="image/jpeg")
+    return RedirectResponse(url=thumbnail_delivery_url(thumb_id), status_code=307)
 
 @app.post("/analyze_reel")
 async def analyze_reel_enqueue(request: Request, req: AnalyzeRequest, wait: bool = True):
@@ -1000,28 +1015,15 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
 
     try:
         if is_youtube_url(url):
-            # OpenAI (and openai→gemini fallback) needs a local file; Gemini-only can use URL.
-            if "openai" in recipe_ai_provider_chain():
-                yt_result = download_youtube_video(url)
-                if not yt_result:
-                    raise HTTPException(status_code=500, detail="Failed to download YouTube video")
-                local_video_path, creator_name = yt_result[0], yt_result[1] or ""
-                raw_text = await _analyze_local_video_path(
-                    local_video_path,
-                    req.language,
-                    [f"Original source URL: {url}"],
-                )
-            else:
-                client = genai.Client(api_key=GEMINI_API_KEY)
-                current_prompt = build_prompt(req.language)
-                response = _generate_content_with_retry(
-                    client,
-                    [
-                        current_prompt,
-                        {"fileData": {"fileUri": url}},
-                    ],
-                )
-                raw_text = getattr(response, "text", None) or ""
+            yt_result = download_youtube_video(url)
+            if not yt_result:
+                raise HTTPException(status_code=500, detail="Failed to download YouTube video")
+            local_video_path, creator_name = yt_result[0], yt_result[1] or ""
+            raw_text = await _analyze_local_video_path(
+                local_video_path,
+                req.language,
+                [f"Original source URL: {url}"],
+            )
         elif is_tiktok_url(url):
             tk_result = download_tiktok_video(url)
             if isinstance(tk_result, tuple):
@@ -1068,16 +1070,6 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
                 "Your import will retry automatically — please wait a few minutes."
             ),
         ) from e
-    except genai_errors.ServerError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Gemini temporarily unavailable. Please retry in a moment. ({e})",
-        )
-    except genai_errors.APIError as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Gemini API error: {e}",
-        )
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     except Exception as e:
@@ -1164,16 +1156,6 @@ async def analyze_video_upload(
             raise HTTPException(status_code=400, detail="Empty upload")
 
         raw_text = await _analyze_local_video_path(tmp_path, language)
-    except genai_errors.ServerError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Gemini temporarily unavailable. Please retry in a moment. ({e})",
-        ) from e
-    except genai_errors.APIError as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Gemini API error: {e}",
-        ) from e
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     except Exception as e:

@@ -19,26 +19,24 @@ def clean_env(name: str, default: str = "") -> str:
 
 
 def recipe_ai_provider() -> str:
-    """`openai` (GPT-5 Responses API) or `gemini`. Defaults to OpenAI when key is set."""
+    """Primary provider: `gemini` or `openai`. Default is Gemini first."""
     explicit = clean_env("RECIPE_AI_PROVIDER").lower()
     if explicit in ("openai", "gemini"):
         return explicit
-    if clean_env("OPENAI_API_KEY"):
-        return "openai"
     return "gemini"
 
 
 def recipe_ai_provider_chain() -> list[str]:
-    """Primary provider, then optional fallback (e.g. OpenAI fails → Gemini)."""
+    """Primary provider, then fallback on error (default: Gemini → OpenAI/ChatGPT)."""
     primary = recipe_ai_provider()
     chain: list[str] = [primary]
 
     explicit_fallback = clean_env("RECIPE_AI_FALLBACK_PROVIDER").lower()
     candidates = [explicit_fallback]
-    if primary == "openai":
-        candidates.append("gemini")
-    elif primary == "gemini":
+    if primary == "gemini":
         candidates.append("openai")
+    elif primary == "openai":
+        candidates.append("gemini")
 
     for name in candidates:
         if name not in ("openai", "gemini") or name in chain:
