@@ -153,7 +153,7 @@ struct AIRecipeApp: App {
         GoogleSignInService.configure()
     }
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Recipe.self, PlannedMeal.self, RecipeImportSubmission.self])
+        let schema = Schema([Recipe.self, Cookbook.self, PlannedMeal.self, RecipeImportSubmission.self])
         guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             fatalError("SwiftData: could not resolve application support directory.")
         }

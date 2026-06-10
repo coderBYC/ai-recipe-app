@@ -19,11 +19,18 @@ struct CookModeView: View {
     @State private var stepIndex: Int = 0
     @State private var timerSeconds: Int = 0
     @State private var isTimerRunning: Bool = false
+    @ObservedObject private var subManager = SubscriptionManager.shared
     
     var steps: [String] {
         recipe.stepLines
     }
-    
+
+    /// Per-step thumbnails need a playable MP4 URL (not the Cloudinary dish-hero image).
+    private var showsCookModeThumbnail: Bool {
+        if recipe.downloadedVideoURL.hasPrefix("asset://") { return false }
+        return !recipe.resolvedVideoPlaybackURLString.isEmpty
+    }
+
     var body: some View {
         
         ZStack {
@@ -87,20 +94,32 @@ struct CookModeView: View {
                     }
                 }
                 .padding(.horizontal)
-                
-                Spacer()
-                
-                // Step text
-                if !steps.isEmpty {
-                    Text(steps[stepIndex])
-                        .nanumAppFont(.largeTitle)
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 30)
 
+                Spacer(minLength: 12)
+
+                if !steps.isEmpty {
+                    VStack(spacing: 20) {
+                        // Dish hero thumbnail above step text (premium Cloudinary / free local capture).
+                        if showsCookModeThumbnail {
+                            SmartThumbnailView(
+                                asset: SmartThumbnailAsset(recipe: recipe, mode: .cookModeStep(stepIndex)),
+                                isUserPremium: subManager.isPremium,
+                                mode: .cookModeStep(stepIndex),
+                                side: 120,
+                                cornerRadius: 12
+                            )
+                            .id(stepIndex)
+                        }
+
+                        Text(steps[stepIndex])
+                            .nanumAppFont(.largeTitle)
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 30)
+                    }
                 }
-                
-                Spacer()
+
+                Spacer(minLength: 12)
                 
                 // Timer controls
                 VStack(spacing: 8) {

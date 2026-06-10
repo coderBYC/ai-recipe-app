@@ -3,7 +3,6 @@ import SwiftData
 
 enum RecipeImportProcessor {
     private static let importsDirName = "PendingImportVideos"
-    private static let freeTierCompletedGenerationsBeforePaywall = 2
 
     private static func languageCodeFromSettings() -> String {
         let languageSetting = UserDefaults.standard.string(forKey: "settings.language") ?? "System"
@@ -57,7 +56,7 @@ enum RecipeImportProcessor {
                 } else {
                     used = try await SupabaseService.shared.fetchAIUsageCount()
                 }
-                if used >= freeTierCompletedGenerationsBeforePaywall {
+                if FreeTierLimits.isImportLimitReached(usedCount: used) {
                     if presentPaywallOnLimit {
                         insertFailed("You’ve reached the free import limit. Subscribe to continue.")
                         NotificationCenter.default.post(name: .presentRevenueCatPaywall, object: nil)
@@ -76,6 +75,7 @@ enum RecipeImportProcessor {
         )
         ctx.insert(submission)
         try? ctx.save()
+        ctx.processPendingChanges()
         let sid = submission.id
         await startLinkJob(submissionId: sid, container: container)
         return true
@@ -120,6 +120,17 @@ enum RecipeImportProcessor {
     static func removePendingVideoIfAny(relPath: String?) {
         guard let relPath, !relPath.isEmpty, let url = resolvedVideoURL(relPath: relPath) else { return }
         try? FileManager.default.removeItem(at: url)
+    }
+
+    @MainActor
+    static func markSubmissionFailed(submissionId: UUID, container: ModelContainer, message: String) {
+        let ctx = ModelContext(container)
+        let sid = submissionId
+        let desc = FetchDescriptor<RecipeImportSubmission>(predicate: #Predicate { $0.id == sid })
+        guard let sub = try? ctx.fetch(desc).first else { return }
+        sub.status = .failed
+        sub.errorMessage = message
+        try? ctx.save()
     }
 
     @MainActor
@@ -174,6 +185,12 @@ enum RecipeImportProcessor {
                 case "ready":
                     if let response = job.parsedAnalyzeResponse {
                         response.applyToPendingImport(local, finalSourceURL: local.sourceURL)
+                        if local.readyStepTimestamps.isEmpty, let raw = job.stepTimestampsFromRawJSON {
+                            local.readyStepTimestamps = raw
+                        }
+                        if local.readyVideoPlaybackURL.isEmpty, let video = job.videoURLFromRawJSON {
+                            local.readyVideoPlaybackURL = RecipeAnalyzeResponse.storedVideoPlaybackURLString(video_url: video)
+                        }
                         local.status = .ready
                         local.errorMessage = ""
                         changed = true
@@ -257,6 +274,8 @@ enum RecipeImportProcessor {
             notes: sub.readyNotes,
             stepsContent: sub.readySteps,
             downloadedVideoURL: sub.readyDownloadedVideoURL,
+            videoPlaybackURL: sub.readyVideoPlaybackURL,
+            stepTimestampsContent: sub.readyStepTimestamps,
             dishHeroTimestampSeconds: sub.readyDishHeroSeconds,
             rating: 0
         )
@@ -265,9 +284,20 @@ enum RecipeImportProcessor {
     /// Inserts the recipe into Home, removes the submission, returns the persisted recipe.
     @discardableResult
     @MainActor
-    static func approveSubmission(_ sub: RecipeImportSubmission, modelContext: ModelContext) -> Recipe {
+    static func approveSubmission(
+        _ sub: RecipeImportSubmission,
+        modelContext: ModelContext,
+        cookbookId: String? = nil
+    ) -> Recipe {
         let owner = SupabaseService.shared.client.auth.currentSession?.user.id.uuidString ?? Recipe.localOnboardingOwnerPlaceholder
         let recipe = makeRecipe(from: sub, ownerUserId: owner)
+        let chosenCookbookId = cookbookId?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !chosenCookbookId.isEmpty {
+            recipe.cookbookId = chosenCookbookId
+            CookbookService.setActiveCookbookId(chosenCookbookId, ownerUserId: owner)
+        } else {
+            recipe.cookbookId = CookbookService.cookbookIdForNewRecipe(ownerUserId: owner, modelContext: modelContext)
+        }
         recipe.updatedAt = Date()
         modelContext.insert(recipe)
         removePendingVideoIfAny(relPath: sub.pendingVideoRelPath)

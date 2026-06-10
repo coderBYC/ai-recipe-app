@@ -21,8 +21,6 @@ struct PasteLinkView: View {
     @State private var didAutoProcess = false
     @State private var showPaywall = false
 
-    private static let freeTierCompletedGenerationsBeforePaywall = 2
-
     private var trimmedURL: String { linkText.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var canProcess: Bool { !trimmedURL.isEmpty && URL(string: trimmedURL) != nil }
 
@@ -182,9 +180,29 @@ struct PasteLinkView: View {
         guard canProcess else { return }
         errorMessage = nil
 
+        let submission = RecipeImportSubmission(
+            importKind: "link",
+            sourceURL: trimmedURL,
+            languageCode: currentLanguageCode()
+        )
+        modelContext.insert(submission)
+        try? modelContext.save()
+        modelContext.processPendingChanges()
+
+        let container = modelContext.container
+        let sid = submission.id
+
+        onQueuedToImports()
+        dismiss()
+        NotificationCenter.default.post(name: .switchToImportsTab, object: nil)
+
         Task { @MainActor in
             guard await SupabaseService.shared.currentUserIdString() != nil else {
-                errorMessage = "You need to be signed in to analyze videos."
+                RecipeImportProcessor.markSubmissionFailed(
+                    submissionId: sid,
+                    container: container,
+                    message: "You need to be signed in to analyze videos."
+                )
                 return
             }
 
@@ -192,31 +210,19 @@ struct PasteLinkView: View {
             if !SubscriptionManager.shared.isPremium {
                 do {
                     let used = try await SupabaseService.shared.fetchAIUsageCount()
-                    if used >= Self.freeTierCompletedGenerationsBeforePaywall {
-                        showPaywall = true
+                    if FreeTierLimits.isImportLimitReached(usedCount: used) {
+                        RecipeImportProcessor.markSubmissionFailed(
+                            submissionId: sid,
+                            container: container,
+                            message: "You've reached the free import limit. Subscribe to continue."
+                        )
+                        NotificationCenter.default.post(name: .presentRevenueCatPaywall, object: nil)
                         return
                     }
                 } catch {}
             }
 
-            let submission = RecipeImportSubmission(
-                importKind: "link",
-                sourceURL: trimmedURL,
-                languageCode: currentLanguageCode()
-            )
-            modelContext.insert(submission)
-            try? modelContext.save()
-
-            let container = modelContext.container
-            let sid = submission.id
-
-            onQueuedToImports()
-            dismiss()
-            NotificationCenter.default.post(name: .switchToImportsTab, object: nil)
-
-            Task { @MainActor in
-                await RecipeImportProcessor.startLinkJob(submissionId: sid, container: container)
-            }
+            await RecipeImportProcessor.startLinkJob(submissionId: sid, container: container)
         }
     }
 }

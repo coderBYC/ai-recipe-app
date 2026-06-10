@@ -16,6 +16,41 @@ struct RecipeIngredientItem: Codable {
 struct RecipeInstructionItem: Codable {
     let step: Int
     let description: String
+    let timestamp_seconds: String?
+
+    init(step: Int, description: String, timestamp_seconds: String? = nil) {
+        self.step = step
+        self.description = description
+        self.timestamp_seconds = timestamp_seconds
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        step = try container.decode(Int.self, forKey: .step)
+        description = try container.decode(String.self, forKey: .description)
+        timestamp_seconds = Self.decodeFlexibleTimestamp(from: container)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case step, description, timestamp_seconds
+    }
+
+    /// AI may return `"12.5"` or `12.5`; accept both so import jobs don't fail to decode.
+    private static func decodeFlexibleTimestamp(
+        from container: KeyedDecodingContainer<CodingKeys>
+    ) -> String? {
+        if let text = try? container.decode(String.self, forKey: .timestamp_seconds) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        if let value = try? container.decode(Double.self, forKey: .timestamp_seconds) {
+            return String(value)
+        }
+        if let value = try? container.decode(Int.self, forKey: .timestamp_seconds) {
+            return String(value)
+        }
+        return nil
+    }
 }
 
 struct RecipeAnalyzeResponse: Codable {
@@ -87,7 +122,8 @@ enum RecipeBackendConfig {
         #if targetEnvironment(simulator)
             return "http://127.0.0.1:8000"
         #else
-            return "https://ai-recipe-app-1-h59j.onrender.com"
+           // return "https://ai-recipe-app-1-h59j.onrender.com"
+            return "http://10.0.0.94:8000"
         #endif
     }
 
@@ -358,6 +394,25 @@ extension RecipeAnalyzeResponse {
         return RecipeBackendConfig.resolvedMediaURL(raw)?.absoluteString ?? raw
     }
 
+    static func storedThumbnailURLString(thumbnail_url: String?) -> String {
+        let raw = (thumbnail_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else { return "" }
+        return RecipeBackendConfig.resolvedMediaURL(raw)?.absoluteString ?? raw
+    }
+
+    static func storedVideoPlaybackURLString(video_url: String?) -> String {
+        let raw = (video_url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else { return "" }
+        return RecipeBackendConfig.resolvedMediaURL(raw)?.absoluteString ?? raw
+    }
+
+    static func joinedStepTimestamps(from instructions: [RecipeInstructionItem]) -> String {
+        instructions
+            .sorted { $0.step < $1.step }
+            .map { String(parseHeroSeconds(from: $0.timestamp_seconds)) }
+            .joined(separator: ",")
+    }
+
     /// Creates a Recipe model from the analyzed response and the original video URL.
     func toRecipe(sourceURL: String, modelContext: ModelContext) -> Recipe {
         let source = RecipeSource.inferred(from: sourceURL)
@@ -386,7 +441,9 @@ extension RecipeAnalyzeResponse {
             triedBefore: false,
             notes: notes,
             stepsContent: stepsText,
-            downloadedVideoURL: Self.storedMediaURLString(thumbnail_url: thumbnail_url, video_url: video_url),
+            downloadedVideoURL: Self.storedThumbnailURLString(thumbnail_url: thumbnail_url),
+            videoPlaybackURL: Self.storedVideoPlaybackURLString(video_url: video_url),
+            stepTimestampsContent: Self.joinedStepTimestamps(from: instructions),
             dishHeroTimestampSeconds: heroSeconds
         )
         modelContext.insert(recipe)
@@ -406,8 +463,20 @@ extension RecipeAnalyzeResponse {
         submission.readyTotalSteps = instructions.count
         submission.readySource = RecipeSource.inferred(from: finalSourceURL).rawValue
         submission.readySourceURL = finalSourceURL
-        submission.readyDownloadedVideoURL = Self.storedMediaURLString(thumbnail_url: thumbnail_url, video_url: video_url)
+        submission.readyDownloadedVideoURL = Self.storedThumbnailURLString(thumbnail_url: thumbnail_url)
+        submission.readyVideoPlaybackURL = Self.storedVideoPlaybackURLString(video_url: video_url)
+        submission.readyStepTimestamps = Self.joinedStepTimestamps(from: instructions)
         submission.readyDishHeroSeconds = Self.parseHeroSeconds(from: dish_hero_timestamp_seconds)
+    }
+
+    static func parseHeroSeconds(from raw: String?) -> Double {
+        guard let raw, !raw.isEmpty else { return 0 }
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+        if let v = Double(s), v >= 0, v.isFinite { return v }
+        if let r = s.range(of: #"[\d.]+"#, options: .regularExpression), let v = Double(s[r]), v >= 0, v.isFinite {
+            return v
+        }
+        return 0
     }
 
     private static func parseMinutes(from raw: String) -> Int {
@@ -421,15 +490,6 @@ extension RecipeAnalyzeResponse {
         return Int(digits.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
     }
 
-    private static func parseHeroSeconds(from raw: String?) -> Double {
-        guard let raw, !raw.isEmpty else { return 0 }
-        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
-        if let v = Double(s), v >= 0, v.isFinite { return v }
-        if let r = s.range(of: #"[\d.]+"#, options: .regularExpression), let v = Double(s[r]), v >= 0, v.isFinite {
-            return v
-        }
-        return 0
-    }
 }
 
 extension RemoteImportJob {
@@ -437,5 +497,32 @@ extension RemoteImportJob {
         guard let result_json else { return nil }
         guard let data = try? JSONEncoder().encode(result_json) else { return nil }
         return try? JSONDecoder().decode(RecipeAnalyzeResponse.self, from: data)
+    }
+
+    /// Fallback when `instructions[].timestamp_seconds` was numeric in stored JSON.
+    var stepTimestampsFromRawJSON: String? {
+        guard let result_json,
+              let instructions = result_json["instructions"],
+              case .array(let items) = instructions else { return nil }
+        let values: [String] = items.compactMap { item in
+            guard case .object(let dict) = item else { return nil }
+            switch dict["timestamp_seconds"] {
+            case .string(let s):
+                let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+                return t.isEmpty ? nil : String(RecipeAnalyzeResponse.parseHeroSeconds(from: t))
+            case .number(let n):
+                return String(max(0, n))
+            default:
+                return nil
+            }
+        }
+        guard !values.isEmpty else { return nil }
+        return values.joined(separator: ",")
+    }
+
+    var videoURLFromRawJSON: String? {
+        guard let result_json, case .string(let raw) = result_json["video_url"] else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

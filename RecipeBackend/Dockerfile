@@ -38,14 +38,11 @@ RUN python3 -m venv /opt/venv \
 ENV PATH="/opt/venv/bin:/usr/bin:/usr/local/bin:/bin"
 
 # --- App code ---
-COPY main.py /app/main.py
-COPY cloudinaryconfig.py /app/cloudinaryconfig.py
-COPY ai_video_analysis.py /app/ai_video_analysis.py
-COPY worker.py /app/worker.py
-COPY download.py /app/download.py
+COPY *.py /app/
+COPY routes/ /app/routes/
 COPY download_tiktok.js /app/download_tiktok.js
 
-RUN mkdir -p /app/downloads /app/served_videos
+RUN mkdir -p /app/downloads /app/served_videos /app/served_thumbnails
 
 EXPOSE 8000
 

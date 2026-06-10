@@ -44,6 +44,8 @@ final class Recipe: Identifiable {
     @Attribute(.unique) var id: String
     /// Supabase Auth user id (`uuidString`) who owns this row locally; scopes Home / sync per account.
     var ownerUserId: String
+    /// Local cookbook grouping on Home (`Cookbook.id`).
+    var cookbookId: String
     var title: String
     var source: String
     var sourceURL: String
@@ -62,9 +64,13 @@ final class Recipe: Identifiable {
     var deletedAt: Date?
     /// 0–5 star rating given by the user.
     var rating: Int
-    /// URL to the downloaded video (served by backend) for in-app playback. Empty for YouTube (use sourceURL embed instead).
+    /// Thumbnail / Cloudinary image URL for list & premium Cook Mode frames.
     var downloadedVideoURL: String
-    /// Seconds from video start where the finished dish is clearest (from analyze JSON); used with AVAssetImageGenerator for IG/TikTok preview.
+    /// MP4 playback URL for free-tier on-device frame capture (from analyze `video_url`).
+    var videoPlaybackURL: String
+    /// Comma-separated seconds per step, aligned with `stepLines` (from AI `instructions[].timestamp_seconds`).
+    var stepTimestampsContent: String
+    /// Seconds from video start where the finished dish is clearest (from analyze JSON).
     var dishHeroTimestampSeconds: Double
     /// Newline-separated step descriptions for circle-line timeline.
     var stepsContent: String
@@ -79,6 +85,7 @@ final class Recipe: Identifiable {
     init(
         id: String = "",
         ownerUserId: String = "",
+        cookbookId: String = "",
         title: String = "",
         source: RecipeSource = .youtube,
         sourceURL: String = "",
@@ -93,6 +100,8 @@ final class Recipe: Identifiable {
         stepsContent: String = "",
         ingredientCheckmarks: String = "",
         downloadedVideoURL: String = "",
+        videoPlaybackURL: String = "",
+        stepTimestampsContent: String = "",
         dishHeroTimestampSeconds: Double = 1,
         rating: Int = 0,
         createdAt: Date = Date(),
@@ -102,6 +111,7 @@ final class Recipe: Identifiable {
         let trimmedId = id.trimmingCharacters(in: .whitespacesAndNewlines)
         self.id = trimmedId.isEmpty ? UUID().uuidString : trimmedId
         self.ownerUserId = ownerUserId.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.cookbookId = cookbookId.trimmingCharacters(in: .whitespacesAndNewlines)
         self.title = title
         self.source = source.rawValue
         self.sourceURL = sourceURL
@@ -114,6 +124,8 @@ final class Recipe: Identifiable {
         self.triedBefore = triedBefore
         self.notes = notes
         self.downloadedVideoURL = downloadedVideoURL
+        self.videoPlaybackURL = videoPlaybackURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.stepTimestampsContent = stepTimestampsContent.trimmingCharacters(in: .whitespacesAndNewlines)
         self.dishHeroTimestampSeconds = dishHeroTimestampSeconds
         self.stepsContent = stepsContent
         self.ingredientCheckmarks = ingredientCheckmarks
@@ -171,6 +183,47 @@ final class Recipe: Identifiable {
     /// Step lines from stepsContent.
     var stepLines: [String] {
         stepsContent.split(separator: "\n", omittingEmptySubsequences: true).map { String($0).trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    }
+
+    /// Parsed per-step video timestamps from AI (`stepTimestampsContent`).
+    var stepTimestampValues: [Double] {
+        stepTimestampsContent
+            .split(separator: ",", omittingEmptySubsequences: false)
+            .compactMap { part in
+                let s = part.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+                guard let v = Double(s), v >= 0, v.isFinite else { return nil }
+                return v
+            }
+    }
+
+    /// Video time in seconds for Cook Mode step `index` (AI timestamp, with legacy fallback).
+    func stepTimestampSeconds(at index: Int) -> Double {
+        let values = stepTimestampValues
+        if index >= 0, index < values.count {
+            return values[index]
+        }
+        let count = max(stepLines.count, 1)
+        let hero = max(dishHeroTimestampSeconds, 1)
+        if count <= 1 { return hero }
+        return hero * Double(index) / Double(count - 1)
+    }
+
+    /// Resolved MP4 URL for AVAssetImageGenerator (free tier).
+    var resolvedVideoPlaybackURLString: String {
+        let video = videoPlaybackURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !video.isEmpty {
+            return RecipeBackendConfig.resolvedMediaURL(video)?.absoluteString ?? video
+        }
+        let stored = downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !stored.isEmpty, !stored.lowercased().contains("cloudinary.com") else { return "" }
+        return RecipeBackendConfig.resolvedMediaURL(stored)?.absoluteString ?? stored
+    }
+
+    /// Cloudinary thumbnail URL when present (premium Cook Mode / list).
+    var premiumCloudinaryURLString: String? {
+        let thumb = downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard thumb.lowercased().contains("cloudinary.com") else { return nil }
+        return RecipeBackendConfig.resolvedMediaURL(thumb)?.absoluteString ?? thumb
     }
     
     /// Parsed checkmarks for ingredients (same count as ingredientLines; default false).

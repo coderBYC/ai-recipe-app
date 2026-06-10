@@ -5,13 +5,17 @@ import StoreKit
 import UIKit
 import RevenueCatUI
 
-/// Root view with iOS glass-style TabView: Home, Cook Book, Add, Meal Plan, Settings.
+/// Root view: Home (recipes + Imports/Settings toolbar), Meal Plan, Grocery (soon), Let Him Cook (soon).
 struct MainView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
     @State private var selectedTab: AppTab = .home
     @State private var addSheet: AddRecipeSheet?
+    @State private var showImportsSheet = false
+    @State private var showSettingsSheet = false
     @State private var showAddMenu = false
+    @State private var showCreateCookbookSheet = false
+    @State private var activeCookbookId: String?
     @State private var showSavedVideoSuggestionBanner = false
     /// RevenueCat paywall presented from outside Settings (e.g. silent share import at free limit).
     @State private var showGlobalPaywall = false
@@ -152,12 +156,15 @@ struct MainView: View {
         guard let route = PendingAppDeepLink.consume() else { return }
         switch route {
         case PendingAppDeepLink.settings:
-            selectedTab = .settings
+            selectedTab = .home
+            showSettingsSheet = true
         case PendingAppDeepLink.terms:
-            selectedTab = .settings
+            selectedTab = .home
+            showSettingsSheet = true
             deepLinkLegalDocument = .termsOfService
         case PendingAppDeepLink.privacy:
-            selectedTab = .settings
+            selectedTab = .home
+            showSettingsSheet = true
             deepLinkLegalDocument = .privacyAndAI
         default:
             break
@@ -210,7 +217,8 @@ struct MainView: View {
     @MainActor
     private func loadSignedInTabUserId() async {
         guard let uid = await SupabaseService.shared.currentUserIdString(), !uid.isEmpty else { return }
-        Recipe.migrateUnassignedOwnersOnce(modelContext: modelContext, assignedTo: uid)
+        let defaultBook = CookbookService.ensureLibrary(for: uid, modelContext: modelContext)
+        activeCookbookId = CookbookService.activeCookbookId(for: uid) ?? defaultBook.id
         signedInTabUserId = uid
     }
 
@@ -219,13 +227,19 @@ struct MainView: View {
             Group {
                 switch selectedTab {
                 case .home:
-                    RecipeListView(filterOwnerId: signedInTabUserId, addSheet: $addSheet)
-                case .cookbook:
-                    ImportView()
+                    RecipeListView(
+                        filterOwnerId: signedInTabUserId,
+                        activeCookbookId: $activeCookbookId,
+                        addSheet: $addSheet,
+                        showImports: $showImportsSheet,
+                        showSettings: $showSettingsSheet
+                    )
                 case .mealPlan:
                     MealPlanView(filterOwnerId: signedInTabUserId)
-                case .settings:
-                    SettingsView(deepLinkLegalDocument: $deepLinkLegalDocument)
+                case .grocery:
+                    GroceryListPlaceholderView()
+                case .cook:
+                    CookAssistantPlaceholderView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -243,11 +257,28 @@ struct MainView: View {
             glassyTabBar
         }
         .onReceive(NotificationCenter.default.publisher(for: .switchToImportsTab)) { _ in
-            selectedTab = .cookbook
+            selectedTab = .home
+            showImportsSheet = true
         }
-        .onChange(of: selectedTab) { _, tab in
-            if tab == .cookbook {
-                consumePendingSharedRecipeURL()
+        .sheet(isPresented: $showImportsSheet) {
+            ImportView(
+                onTutorialAddedRecipe: { _ in
+                    guard !signedInTabUserId.isEmpty else { return }
+                    activeCookbookId = CookbookService.activeCookbookId(for: signedInTabUserId)
+                },
+                presentedAsSheet: true
+            )
+        }
+        .onChange(of: showImportsSheet) { _, isOpen in
+            guard !isOpen, !signedInTabUserId.isEmpty else { return }
+            activeCookbookId = CookbookService.activeCookbookId(for: signedInTabUserId)
+        }
+        .sheet(isPresented: $showSettingsSheet) {
+            SettingsView(deepLinkLegalDocument: $deepLinkLegalDocument, presentedAsSheet: true)
+        }
+        .sheet(isPresented: $showCreateCookbookSheet) {
+            CreateCookbookSheet(ownerUserId: signedInTabUserId) { book in
+                activeCookbookId = book.id
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .presentRevenueCatPaywall)) { _ in
@@ -289,11 +320,13 @@ struct MainView: View {
                 selectedTab = .home
                 addSheet = .manualRecipe
             }
+            Button("Add a cookbook") {
+                selectedTab = .home
+                showCreateCookbookSheet = true
+            }
             Button("Cancel", role: .cancel) {
                 selectedTab = .home
             }
-        } message: {
-            Text("Choose how to add a recipe")
         }
     }
 
@@ -349,11 +382,9 @@ struct MainView: View {
     
     var glassyTabBar: some View {
         HStack(spacing: 0) {
-            // 左側按鈕
-            tabButton(icon: "house.fill", title:"Home", tab: .home)
-            tabButton(icon: "square.and.arrow.up", title:"Imports", tab: .cookbook)
-            
-            // --- 特大加號按鈕 ---
+            tabButton(systemIcon: "house.fill", title: "Home", tab: .home)
+            tabButton(systemIcon: "calendar", title: "Meal Plan", tab: .mealPlan)
+
             Button {
                 showAddMenu = true
                 UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
@@ -361,16 +392,15 @@ struct MainView: View {
                 Image(systemName: "plus.circle.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 52, height: 52) // 這裡就可以自由調整大小了！
+                    .frame(width: 52, height: 52)
                     .foregroundStyle(AppTheme.primary)
-                    .background(Color.white, in: Circle()) // 背景光暈感
+                    .background(Color.white, in: Circle())
                     .shadow(color: AppTheme.primary.opacity(0.3), radius: 10, y: 5)
             }
-            .offset(y: -10) // 讓按鈕往上飄出一點，更有層次感
-            
-            // 右側按鈕
-            tabButton(icon: "calendar", title: "Meal Plan", tab: .mealPlan)
-            tabButton(icon: "gearshape.fill", title: "Settings", tab: .settings)
+            .offset(y: -10)
+
+            tabButton(systemIcon: "cart.fill", title: "Grocery", tab: .grocery)
+            tabButton(assetIcon: "OnboardingHolUpMeme", title: "Cook", tab: .cook)
         }
         .padding(.horizontal)
         .frame(height: 75)
@@ -392,28 +422,39 @@ struct MainView: View {
         .padding(.bottom, 4)
     }
 
-    private func tabButton(icon: String, title:String,tab: AppTab) -> some View {
+    private func tabButton(systemIcon: String? = nil, assetIcon: String? = nil, title: String, tab: AppTab) -> some View {
         Button {
             selectedTab = tab
         } label: {
-            VStack(spacing: 4){
-                Image(systemName: icon)
-                    .font(AppTheme.bitterFont(size: 22, weight: .ultraLight))
-                    .frame(maxWidth: .infinity)
-                    .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
+            VStack(spacing: 4) {
+                Group {
+                    if let assetIcon {
+                        Image(assetIcon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .opacity(selectedTab == tab ? 1 : 0.45)
+                    } else if let systemIcon {
+                        Image(systemName: systemIcon)
+                            .font(AppTheme.bitterFont(size: 22, weight: .ultraLight))
+                            .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
+                    }
+                }
+                .frame(maxWidth: .infinity)
                 Text(title)
                     .font(AppTheme.nanumMyeongjoFont(size: 10, weight: .medium))
                     .foregroundStyle(selectedTab == tab ? AppTheme.primary : .gray)
                     .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-            
         }
     }
 
 }
 
 enum AppTab {
-    case home, cookbook, mealPlan, settings
+    case home, mealPlan, grocery, cook
 }
 
 struct ImportReviewItem: Identifiable {
@@ -421,26 +462,32 @@ struct ImportReviewItem: Identifiable {
     let submission: RecipeImportSubmission
 }
 
-/// Full recipe detail from an in-memory `Recipe` (same UI as Home); user adds to library or discards the import.
+/// Full recipe detail from an in-memory `Recipe` (same UI as Home); user adds to a cookbook or discards the import.
 struct ImportRecipeReviewSheet: View {
     @Environment(\.modelContext) private var mainModelContext
     let submission: RecipeImportSubmission
     let onDismiss: () -> Void
-    /// Called with the persisted `Recipe` after the user taps **Add to Home** (optional).
+    /// Called with the persisted `Recipe` after the user adds to a cookbook (optional).
     var onAddedToHome: ((Recipe) -> Void)? = nil
 
     @State private var previewContainer: ModelContainer?
     @State private var previewRecipe: Recipe?
     @State private var previewLoadFailed = false
+    @State private var cookbooks: [Cookbook] = []
 
     var body: some View {
         Group {
             if let previewContainer, let previewRecipe {
-                RecipePageView(recipe: previewRecipe, onDismiss: onDismiss)
-                    .modelContainer(previewContainer)
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        reviewActionsBar
-                    }
+                RecipePageView(
+                    recipe: previewRecipe,
+                    onDismiss: onDismiss,
+                    importReviewActions: ImportReviewActions(
+                        cookbooks: cookbooks,
+                        onDiscard: discardImport,
+                        onAddToCookbook: addToCookbook
+                    )
+                )
+                .modelContainer(previewContainer)
             } else if previewLoadFailed {
                 VStack(spacing: 16) {
                     Text("Couldn’t load preview.")
@@ -461,47 +508,39 @@ struct ImportRecipeReviewSheet: View {
                 .background(AppTheme.surface)
             }
         }
-        .task { await loadPreview() }
+        .task {
+            await loadCookbooks()
+            await loadPreview()
+        }
     }
 
-    private var reviewActionsBar: some View {
-        HStack(spacing: 12) {
-            Button(role: .destructive) {
-                RecipeImportProcessor.removePendingVideoIfAny(relPath: submission.pendingVideoRelPath)
-                mainModelContext.delete(submission)
-                try? mainModelContext.save()
-                onDismiss()
-            } label: {
-                Text("Discard")
-                    .frame(maxWidth: .infinity)
-                    .appFont(.headline)
-            }
-            .buttonStyle(.bordered)
+    @MainActor
+    private func loadCookbooks() async {
+        guard let owner = await SupabaseService.shared.currentUserIdString(), !owner.isEmpty else { return }
+        _ = CookbookService.ensureLibrary(for: owner, modelContext: mainModelContext)
+        cookbooks = CookbookService.fetchCookbooks(ownerUserId: owner, modelContext: mainModelContext)
+    }
 
-            Button {
-                let recipe = RecipeImportProcessor.approveSubmission(submission, modelContext: mainModelContext)
-                onAddedToHome?(recipe)
-                onDismiss()
-                PostHogSDK.shared.capture("ai_recipe_added", properties: [
-                        "meal_type": "dinner"
-                ])
-                print("🚀 PostHog successfully initialized via AppDelegate!")
-            } label: {
-                Text("Add to Home")
-                    .frame(maxWidth: .infinity)
-                    .appFont(.headline)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(AppTheme.primary)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(AppTheme.surface)
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(AppTheme.shadow)
-                .frame(height: 1)
-        }
+    @MainActor
+    private func discardImport() {
+        RecipeImportProcessor.removePendingVideoIfAny(relPath: submission.pendingVideoRelPath)
+        onDismiss()
+        mainModelContext.delete(submission)
+        try? mainModelContext.save()
+    }
+
+    @MainActor
+    private func addToCookbook(_ cookbookId: String) {
+        onDismiss()
+        let recipe = RecipeImportProcessor.approveSubmission(
+            submission,
+            modelContext: mainModelContext,
+            cookbookId: cookbookId
+        )
+        onAddedToHome?(recipe)
+        PostHogSDK.shared.capture("ai_recipe_added", properties: [
+            "meal_type": "dinner"
+        ])
     }
 
     @MainActor
@@ -526,10 +565,12 @@ struct ImportRecipeReviewSheet: View {
 
 struct ImportView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Query(sort: \RecipeImportSubmission.createdAt, order: .reverse) private var submissions: [RecipeImportSubmission]
     @State private var importReview: ImportReviewItem?
     /// Optional hook when user completes **Add to Home** from the import preview (e.g. onboarding).
     var onTutorialAddedRecipe: ((Recipe) -> Void)? = nil
+    var presentedAsSheet: Bool = false
     @State private var forcePollTick: Int = 0
 
     private var hasProcessingRows: Bool {
@@ -541,7 +582,7 @@ struct ImportView: View {
             Group {
                 if submissions.isEmpty {
                     VStack(spacing: 12) {
-                        Image(systemName: "square.and.arrow.up")
+                        Image(systemName: "square.and.arrow.down")
                             .font(AppTheme.bitterFont(size: 38, weight: .regular))
                             .foregroundStyle(AppTheme.primary)
                         Text("My Imports")
@@ -557,8 +598,8 @@ struct ImportView: View {
                     .background(AppTheme.surface.ignoresSafeArea())
                 } else {
                     List {
-                        ForEach(submissions.indices, id: \.self) { index in
-                            importRowView(submissions[index], index: index)
+                        ForEach(submissions, id: \.id) { submission in
+                            importRowView(submission)
                         }
                     }
                     .listStyle(.plain)
@@ -574,6 +615,12 @@ struct ImportView: View {
                         .nanumAppFont(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
+                }
+                if presentedAsSheet {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") { dismiss() }
+                            .appFont(.body)
+                    }
                 }
             }
             .sheet(item: $importReview) { item in
@@ -607,7 +654,7 @@ struct ImportView: View {
         forcePollTick += 1
     }
 
-    private func importRowView(_ submission: RecipeImportSubmission, index: Int) -> some View {
+    private func importRowView(_ submission: RecipeImportSubmission) -> some View {
         ImportSubmissionRow(
             submission: submission,
             onReadyRowTap: readyTapAction(for: submission)
@@ -708,7 +755,9 @@ private extension View {
 }
 
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     @Binding var deepLinkLegalDocument: LegalDocumentKind?
+    var presentedAsSheet: Bool = false
     @AppStorage("settings.language") private var language = "System"
     @AppStorage("settings.subscriptionTier") private var subscriptionTier = "Free"
     @AppStorage("settings.fontScale") private var fontScale: Double = 1.0
@@ -719,8 +768,12 @@ struct SettingsView: View {
     @State private var legalDocument: LegalDocumentKind?
 
 
-    init(deepLinkLegalDocument: Binding<LegalDocumentKind?> = .constant(nil)) {
+    init(
+        deepLinkLegalDocument: Binding<LegalDocumentKind?> = .constant(nil),
+        presentedAsSheet: Bool = false
+    ) {
         _deepLinkLegalDocument = deepLinkLegalDocument
+        self.presentedAsSheet = presentedAsSheet
     }
     @State private var showDeleteAccountConfirm = false
     @State private var deleteAccountError: String?
@@ -993,6 +1046,12 @@ struct SettingsView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
+                if presentedAsSheet {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") { dismiss() }
+                            .appFont(.body)
+                    }
+                }
             }
             .sheet(item: $legalDocument) { kind in
                 LegalDocumentReaderView(kind: kind)
@@ -1050,6 +1109,7 @@ struct SettingsView: View {
         do {
             try await authManager.deleteAccount()
             try modelContext.delete(model: Recipe.self)
+            try modelContext.delete(model: Cookbook.self)
             try modelContext.delete(model: PlannedMeal.self)
             try modelContext.save()
             subscriptionTier = "Free"
@@ -1209,9 +1269,10 @@ private enum SupportTopic: String, CaseIterable, Identifiable {
             """
         case .createCookbook:
             return """
-            1. Save recipes from the Home tab.
-            2. Open the Cook Book tab to see your saved collection.
-            3. Tap a recipe to review details and organize your planning.
+            1. Tap the + button in the tab bar.
+            2. Choose “Add a cookbook”.
+            3. Enter a name and tap Create.
+            4. New recipes you add go into the selected cookbook on Home.
             """
         }
     }
@@ -1240,6 +1301,6 @@ enum AppLanguage: String {
 
 #Preview("Settings") {
     SettingsView(deepLinkLegalDocument: .constant(nil))
-        .modelContainer(for: [Recipe.self, PlannedMeal.self], inMemory: true)
+        .modelContainer(for: [Recipe.self, Cookbook.self, PlannedMeal.self], inMemory: true)
         .environment(AuthManager(service: SupabaseService()))
 }

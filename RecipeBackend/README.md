@@ -47,10 +47,9 @@ OPENAI_MODEL=gpt-5.5
 # RECIPE_AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Optional – Supabase (Pro plan sync; free tier uses in-process daily limits)
+# Optional – Supabase (import quota via `use_ai_once` / profiles.ai_usage_count; Pro plan sync)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your_supabase_service_role_key
-# FREE_IMPORTS_PER_DAY=3
 ```
 
 - **GEMINI_API_KEY**: Get from [Google AI Studio](https://aistudio.google.com/apikey). Required for `/analyze_reel`.
@@ -59,8 +58,8 @@ SUPABASE_SERVICE_KEY=your_supabase_service_role_key
   GEMINI_MODEL=gemini-3.1-pro-preview
   GEMINI_MODEL_FALLBACKS=gemini-3.1-flash-lite,gemini-3.5-flash,gemini-2.5-flash
   ```
-- **SUPABASE_URL** / **SUPABASE_SERVICE_KEY**: From Supabase Dashboard → **Settings** → **API**. Use the **service_role** key for the backend (never ship this in the iOS app). If omitted, AI quota checks are skipped.
-- **FREE_IMPORTS_PER_DAY**: Max link/photo imports per UTC day for free users (default **3**). Pro users are unlimited at this layer.
+- **SUPABASE_URL** / **SUPABASE_SERVICE_KEY**: From Supabase Dashboard → **Settings** → **API**. Use the **service_role** key for the backend (never ship this in the iOS app). If omitted, quota checks are skipped.
+- **Free import limit**: Enforced in Supabase via RPC `use_ai_once` (`profiles.ai_usage_count`; default cap **3** in your Postgres function). Instagram/TikTok cooldowns remain in-process on the backend.
 
 ---
 

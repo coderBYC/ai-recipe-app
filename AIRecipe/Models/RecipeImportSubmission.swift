@@ -36,6 +36,8 @@ final class RecipeImportSubmission {
     var readySource: String
     var readySourceURL: String
     var readyDownloadedVideoURL: String
+    var readyVideoPlaybackURL: String
+    var readyStepTimestamps: String
     var readyDishHeroSeconds: Double
 
     var status: RecipeImportStatus {
@@ -64,6 +66,8 @@ final class RecipeImportSubmission {
         self.readySource = RecipeSource.youtube.rawValue
         self.readySourceURL = ""
         self.readyDownloadedVideoURL = ""
+        self.readyVideoPlaybackURL = ""
+        self.readyStepTimestamps = ""
         self.readyDishHeroSeconds = 0
     }
 }

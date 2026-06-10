@@ -47,8 +47,6 @@ struct PhotoLibraryVideoImportView: View {
 
     var onQueuedToImports: () -> Void
 
-    private static let freeTierCompletedGenerationsBeforePaywall = 2
-
     @State private var pickerItem: PhotosPickerItem?
     @State private var errorMessage: String?
     @State private var showPaywall = false
@@ -159,7 +157,7 @@ struct PhotoLibraryVideoImportView: View {
             if !isPremium {
                 do {
                     let used = try await SupabaseService.shared.fetchAIUsageCount()
-                    if used >= Self.freeTierCompletedGenerationsBeforePaywall {
+                    if FreeTierLimits.isImportLimitReached(usedCount: used) {
                         await MainActor.run {
                             pickerItem = nil
                             showPaywall = true
@@ -194,6 +192,7 @@ struct PhotoLibraryVideoImportView: View {
             await MainActor.run {
                 modelContext.insert(submission)
                 try? modelContext.save()
+                modelContext.processPendingChanges()
                 let container = modelContext.container
                 let sid = submission.id
                 onQueuedToImports()

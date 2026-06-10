@@ -7,12 +7,25 @@ struct RecipeListView: View {
     /// Supabase Auth `user.id.uuidString`; only this user’s recipes appear in Home.
     let filterOwnerId: String
     @Environment(\.modelContext) private var modelContext
+    @Binding var activeCookbookId: String?
     @Binding var addSheet: AddRecipeSheet?
+    @Binding var showImports: Bool
+    @Binding var showSettings: Bool
     @Query private var recipes: [Recipe]
+    @Query private var cookbooks: [Cookbook]
 
-    init(filterOwnerId: String, addSheet: Binding<AddRecipeSheet?>) {
+    init(
+        filterOwnerId: String,
+        activeCookbookId: Binding<String?>,
+        addSheet: Binding<AddRecipeSheet?>,
+        showImports: Binding<Bool> = .constant(false),
+        showSettings: Binding<Bool> = .constant(false)
+    ) {
         self.filterOwnerId = filterOwnerId
+        _activeCookbookId = activeCookbookId
         _addSheet = addSheet
+        _showImports = showImports
+        _showSettings = showSettings
         let oid = filterOwnerId
         _recipes = Query(
             filter: #Predicate<Recipe> { r in
@@ -20,6 +33,13 @@ struct RecipeListView: View {
             },
             sort: \Recipe.createdAt,
             order: .reverse
+        )
+        _cookbooks = Query(
+            filter: #Predicate<Cookbook> { $0.ownerUserId == oid },
+            sort: [
+                SortDescriptor(\.sortOrder),
+                SortDescriptor(\.createdAt),
+            ]
         )
     }
     @State private var selectedRecipe: Recipe?
@@ -35,6 +55,9 @@ struct RecipeListView: View {
     
     var filteredRecipes: [Recipe] {
         var list = recipes
+        if let cookbookId = activeCookbookId, !cookbookId.isEmpty {
+            list = list.filter { $0.cookbookId == cookbookId }
+        }
         if !searchText.isEmpty {
             list = list.filter {
                 $0.title.localizedCaseInsensitiveContains(searchText) ||
@@ -76,6 +99,8 @@ struct RecipeListView: View {
                 
                 VStack(spacing: 16) {
                     Group {
+                        cookbooksSection
+                            .fixedSize(horizontal: false, vertical: true)
                         searchBar
                         tagsSection
                             .fixedSize(horizontal: false, vertical: true)
@@ -98,8 +123,33 @@ struct RecipeListView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 18) {
+                        Button {
+                            showImports = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.down")
+                                .font(AppTheme.bitterFont(size: 18, weight: .regular))
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
+                        .accessibilityLabel("Imports")
+
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(AppTheme.bitterFont(size: 18, weight: .regular))
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
+                        .accessibilityLabel("Settings")
+                    }
+                }
             }
             .onAppear {
+                let defaultBook = CookbookService.ensureLibrary(for: filterOwnerId, modelContext: modelContext)
+                if activeCookbookId == nil {
+                    activeCookbookId = CookbookService.activeCookbookId(for: filterOwnerId) ?? defaultBook.id
+                }
                 Task { await SyncService.shared.silentSync(modelContainer: modelContext.container) }
             }
             .sheet(item: $addSheet) { sheet in
@@ -115,6 +165,40 @@ struct RecipeListView: View {
         }
     }
     
+    private var cookbooksSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(cookbooks) { book in
+                    Button {
+                        activeCookbookId = book.id
+                        CookbookService.setActiveCookbookId(book.id, ownerUserId: filterOwnerId)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    } label: {
+                        Text(book.name.isEmpty ? CookbookService.defaultCookbookName : book.name)
+                            .appFont(.callout)
+                            .fontWeight(activeCookbookId == book.id ? .semibold : .regular)
+                            .foregroundStyle(activeCookbookId == book.id ? .white : AppTheme.textPrimary)
+                            .lineLimit(1)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(activeCookbookId == book.id ? AppTheme.primary : AppTheme.cardBackground)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
+                    )
+                }
+            }
+            .padding(.leading, contentInset)
+            .padding(.trailing, contentInset)
+        }
+        .padding(.horizontal, -contentInset)
+        .scrollClipDisabled()
+    }
+
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
@@ -185,7 +269,7 @@ struct RecipeListView: View {
     private var recipeListContent: some View {
         if filteredRecipes.isEmpty {
             Spacer()
-            Text("No recipes")
+            Text(cookbooks.isEmpty ? "No recipes" : "No recipes in this cookbook")
                 .appFont(.body)
                 .foregroundStyle(AppTheme.textSecondary)
             Spacer()
@@ -293,8 +377,8 @@ struct RecipeRowView: View {
 }
 
 #Preview("Recipe list") {
-    RecipeListView(filterOwnerId: "preview-user", addSheet: .constant(nil))
-        .modelContainer(for: Recipe.self, inMemory: false)
+    RecipeListView(filterOwnerId: "preview-user", activeCookbookId: .constant(nil), addSheet: .constant(nil))
+        .modelContainer(for: [Recipe.self, Cookbook.self], inMemory: false)
 }
 
 #Preview("Recipe row") {

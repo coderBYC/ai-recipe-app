@@ -396,6 +396,7 @@ struct AddRecipeView: View {
 
         let recipe = Recipe(
             ownerUserId: ownerId,
+            cookbookId: CookbookService.cookbookIdForNewRecipe(ownerUserId: ownerId, modelContext: modelContext),
             title: draftTitle.trimmingCharacters(in: .whitespacesAndNewlines),
             source: source,
             sourceURL: draftSourceURL.trimmingCharacters(in: .whitespacesAndNewlines),

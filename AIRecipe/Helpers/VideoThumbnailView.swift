@@ -110,6 +110,8 @@ struct RecipeListThumbnailView: View {
                         placeholder
                     }
                 }
+            } else if recipe.sourceEnum == .instagram || recipe.sourceEnum == .tiktok || recipe.sourceEnum == .photos {
+                SmartRecipeListThumbnailView(recipe: recipe, side: side)
             } else if let url = Self.playableDownloadedURL(recipe) {
                 AsyncImage(url: url) { phase in
                     switch phase {

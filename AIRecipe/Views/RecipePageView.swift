@@ -4,6 +4,12 @@ import StoreKit
 import UIKit
 import PostHog
 
+struct ImportReviewActions {
+    let cookbooks: [Cookbook]
+    let onDiscard: () -> Void
+    let onAddToCookbook: (String) -> Void
+}
+
 struct RecipePageView: View {
     @Environment(\.modelContext) private var modelContext
   
@@ -11,6 +17,7 @@ struct RecipePageView: View {
     @Bindable var recipe: Recipe
     var onDismiss: () -> Void
     var openEditOnAppear: Bool = false
+    var importReviewActions: ImportReviewActions? = nil
     @ObservedObject private var subManager = SubscriptionManager.shared
 
     @AppStorage("app.didRequestStoreReviewAfterFirstGeneratedRecipe") private var didRequestStoreReviewAfterFirstGeneratedRecipe = false
@@ -55,26 +62,49 @@ struct RecipePageView: View {
                             .foregroundStyle(AppTheme.textPrimary)
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingEdit = true
-                        PostHogSDK.shared.capture("ai_recipe_added", properties: [
-                                "meal_type": "dinner"
-                        ])
-                        print("🚀 PostHog successfully initialized via AppDelegate!")
-                    } label: {
-                        Image(systemName: "pencil")
-                            .appFont(.callout)
-                            .foregroundStyle(AppTheme.textPrimary)
+                if let importReviewActions {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button(role: .destructive) {
+                            importReviewActions.onDiscard()
+                        } label: {
+                            Image(systemName: "trash")
+                                .appFont(.callout)
+                        }
+
+                        Menu {
+                            ForEach(importReviewActions.cookbooks) { book in
+                                Button(book.name.isEmpty ? CookbookService.defaultCookbookName : book.name) {
+                                    importReviewActions.onAddToCookbook(book.id)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                                .appFont(.callout)
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
                     }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        exportRecipe()
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .appFont(.callout)
-                            .foregroundStyle(AppTheme.textPrimary)
+                } else {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showingEdit = true
+                            PostHogSDK.shared.capture("ai_recipe_added", properties: [
+                                    "meal_type": "dinner"
+                            ])
+                            print("🚀 PostHog successfully initialized via AppDelegate!")
+                        } label: {
+                            Image(systemName: "pencil")
+                                .appFont(.callout)
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            exportRecipe()
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .appFont(.callout)
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
                     }
                 }
             }

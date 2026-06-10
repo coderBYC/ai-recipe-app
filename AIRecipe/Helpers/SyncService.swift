@@ -21,6 +21,8 @@ struct RecipeSyncPayload: Codable, Sendable, Equatable {
     var createdAt: Date
     var rating: Int
     var downloadedVideoURL: String
+    var videoPlaybackURL: String?
+    var stepTimestampsContent: String?
     var dishHeroTimestampSeconds: Double
     var stepsContent: String
     var ingredientCheckmarks: String
@@ -259,6 +261,8 @@ final class SyncService: @unchecked Sendable {
             stepsContent: row.data.stepsContent,
             ingredientCheckmarks: row.data.ingredientCheckmarks,
             downloadedVideoURL: row.data.downloadedVideoURL,
+            videoPlaybackURL: row.data.videoPlaybackURL ?? "",
+            stepTimestampsContent: row.data.stepTimestampsContent ?? "",
             dishHeroTimestampSeconds: row.data.dishHeroTimestampSeconds,
             rating: row.data.rating,
             createdAt: row.data.createdAt,
@@ -296,6 +300,8 @@ extension RecipeSyncPayload {
             createdAt: recipe.createdAt,
             rating: recipe.rating,
             downloadedVideoURL: recipe.downloadedVideoURL,
+            videoPlaybackURL: recipe.videoPlaybackURL,
+            stepTimestampsContent: recipe.stepTimestampsContent,
             dishHeroTimestampSeconds: recipe.dishHeroTimestampSeconds,
             stepsContent: recipe.stepsContent,
             ingredientCheckmarks: recipe.ingredientCheckmarks,
@@ -320,6 +326,8 @@ extension Recipe {
         createdAt = payload.createdAt
         rating = payload.rating
         downloadedVideoURL = payload.downloadedVideoURL
+        videoPlaybackURL = payload.videoPlaybackURL ?? ""
+        stepTimestampsContent = payload.stepTimestampsContent ?? ""
         dishHeroTimestampSeconds = payload.dishHeroTimestampSeconds
         stepsContent = payload.stepsContent
         ingredientCheckmarks = payload.ingredientCheckmarks
