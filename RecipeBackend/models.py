@@ -39,6 +39,7 @@ class RecipeResponse(BaseModel):
     creator: str = ""
     estimated_cooking_time: str = "0"
     prep_time: str = "0"
+    estimated_servings: str = "1"
     ingredients: list
     instructions: list
     video_url: Optional[str] = None
@@ -48,3 +49,16 @@ class RecipeResponse(BaseModel):
 
 class PlanUpdateRequest(BaseModel):
     plan_type: str
+
+
+class GroceryIngredientItem(BaseModel):
+    item: str
+    amount: str = ""
+
+
+class GroceryMergeRequest(BaseModel):
+    ingredients: list[GroceryIngredientItem]
+
+
+class GroceryMergeResponse(BaseModel):
+    ingredients: list[GroceryIngredientItem]

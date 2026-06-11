@@ -5,7 +5,7 @@ import StoreKit
 import UIKit
 import RevenueCatUI
 
-/// Root view: Home (recipes + Imports/Settings toolbar), Meal Plan, Grocery (soon), Let Him Cook (soon).
+/// Root view: Home (recipes + Imports/Settings toolbar), Meal Plan, Grocery, Fridge (soon).
 struct MainView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
@@ -217,6 +217,13 @@ struct MainView: View {
     @MainActor
     private func loadSignedInTabUserId() async {
         guard let uid = await SupabaseService.shared.currentUserIdString(), !uid.isEmpty else { return }
+
+        if let result = LegacyRecipeStoreRecovery.recoverIfNeeded(modelContext: modelContext, ownerUserId: uid) {
+            #if DEBUG
+            print("[MainView] auto-recovered \(result.total) recipes for user \(uid): \(result)")
+            #endif
+        }
+
         let defaultBook = CookbookService.ensureLibrary(for: uid, modelContext: modelContext)
         activeCookbookId = CookbookService.activeCookbookId(for: uid) ?? defaultBook.id
         signedInTabUserId = uid
@@ -237,9 +244,9 @@ struct MainView: View {
                 case .mealPlan:
                     MealPlanView(filterOwnerId: signedInTabUserId)
                 case .grocery:
-                    GroceryListPlaceholderView()
-                case .cook:
-                    CookAssistantPlaceholderView()
+                    GroceryListView(filterOwnerId: signedInTabUserId)
+                case .fridge:
+                    FridgePlaceholderView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -400,7 +407,7 @@ struct MainView: View {
             .offset(y: -10)
 
             tabButton(systemIcon: "cart.fill", title: "Grocery", tab: .grocery)
-            tabButton(assetIcon: "OnboardingHolUpMeme", title: "Cook", tab: .cook)
+            tabButton(systemIcon: "refrigerator.fill", title: "Fridge", tab: .fridge)
         }
         .padding(.horizontal)
         .frame(height: 75)
@@ -454,7 +461,7 @@ struct MainView: View {
 }
 
 enum AppTab {
-    case home, mealPlan, grocery, cook
+    case home, mealPlan, grocery, fridge
 }
 
 struct ImportReviewItem: Identifiable {
@@ -1102,7 +1109,6 @@ struct SettingsView: View {
         deepLinkLegalDocument = nil
     }
 
-    @MainActor
     private func performDeleteAccount() async {
         isDeletingAccount = true
         defer { isDeletingAccount = false }

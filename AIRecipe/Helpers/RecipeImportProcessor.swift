@@ -260,6 +260,7 @@ enum RecipeImportProcessor {
     static func makeRecipe(from sub: RecipeImportSubmission, ownerUserId: String = Recipe.localOnboardingOwnerPlaceholder) -> Recipe {
         let source = RecipeSource(rawValue: sub.readySource) ?? .youtube
         return Recipe(
+            id: sub.id.uuidString,
             ownerUserId: ownerUserId,
             title: sub.readyTitle.isEmpty ? "Imported recipe" : sub.readyTitle,
             source: source,
@@ -267,6 +268,7 @@ enum RecipeImportProcessor {
             creator: sub.readyCreator,
             timestamp: "",
             ingredients: sub.readyIngredients,
+            estimatedServings: max(1, sub.readyEstimatedServings),
             estimatedCookingMinutes: sub.readyCookMinutes,
             prepMinutes: sub.readyPrepMinutes,
             totalSteps: sub.readyTotalSteps,

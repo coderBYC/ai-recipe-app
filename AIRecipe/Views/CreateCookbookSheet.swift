@@ -76,3 +76,69 @@ struct CreateCookbookSheet: View {
         dismiss()
     }
 }
+
+struct EditCookbookSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Bindable var cookbook: Cookbook
+
+    @State private var name: String = ""
+    @FocusState private var nameFocused: Bool
+
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                TextField("Cookbook name", text: $name)
+                    .textFieldStyle(.plain)
+                    .appFont(.body)
+                    .padding(14)
+                    .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.boxCornerRadius)
+                            .stroke(Color.black, lineWidth: AppTheme.boxBorderWidth)
+                    )
+                    .focused($nameFocused)
+                    .submitLabel(.done)
+                    .onSubmit { saveIfPossible() }
+
+                Spacer()
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(AppTheme.surface.ignoresSafeArea())
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .appFont(.body)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveIfPossible() }
+                        .appFont(.body)
+                        .fontWeight(.semibold)
+                        .disabled(!canSave)
+                }
+                ToolbarItem(placement: .principal) {
+                    Text("Edit Cookbook")
+                        .nanumAppFont(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(AppTheme.primary)
+                }
+            }
+            .onAppear {
+                name = cookbook.name
+                nameFocused = true
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func saveIfPossible() {
+        guard CookbookService.renameCookbook(cookbook, name: name, modelContext: modelContext) else { return }
+        dismiss()
+    }
+}

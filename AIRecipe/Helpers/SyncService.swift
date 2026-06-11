@@ -13,6 +13,7 @@ struct RecipeSyncPayload: Codable, Sendable, Equatable {
     var creator: String
     var timestamp: String
     var ingredients: String
+    var estimatedServings: Int?
     var estimatedCookingMinutes: Int
     var prepMinutes: Int
     var totalSteps: Int
@@ -28,6 +29,7 @@ struct RecipeSyncPayload: Codable, Sendable, Equatable {
     var ingredientCheckmarks: String
     /// Present for new clients; older `data` JSON may omit this key.
     var ownerUserId: String?
+    var isBookmarked: Bool?
 }
 
 private struct RecipeCloudRowUpsert: Encodable, Sendable {
@@ -253,6 +255,7 @@ final class SyncService: @unchecked Sendable {
             creator: row.data.creator,
             timestamp: row.data.timestamp,
             ingredients: row.data.ingredients,
+            estimatedServings: max(1, row.data.estimatedServings ?? 1),
             estimatedCookingMinutes: row.data.estimatedCookingMinutes,
             prepMinutes: row.data.prepMinutes,
             totalSteps: row.data.totalSteps,
@@ -265,6 +268,7 @@ final class SyncService: @unchecked Sendable {
             stepTimestampsContent: row.data.stepTimestampsContent ?? "",
             dishHeroTimestampSeconds: row.data.dishHeroTimestampSeconds,
             rating: row.data.rating,
+            isBookmarked: row.data.isBookmarked ?? false,
             createdAt: row.data.createdAt,
             updatedAt: row.updated_at,
             deletedAt: row.deleted_at
@@ -292,6 +296,7 @@ extension RecipeSyncPayload {
             creator: recipe.creator,
             timestamp: recipe.timestamp,
             ingredients: recipe.ingredients,
+            estimatedServings: recipe.estimatedServings,
             estimatedCookingMinutes: recipe.estimatedCookingMinutes,
             prepMinutes: recipe.prepMinutes,
             totalSteps: recipe.totalSteps,
@@ -305,7 +310,8 @@ extension RecipeSyncPayload {
             dishHeroTimestampSeconds: recipe.dishHeroTimestampSeconds,
             stepsContent: recipe.stepsContent,
             ingredientCheckmarks: recipe.ingredientCheckmarks,
-            ownerUserId: recipe.ownerUserId
+            ownerUserId: recipe.ownerUserId,
+            isBookmarked: recipe.isBookmarked
         )
     }
 }
@@ -318,6 +324,7 @@ extension Recipe {
         creator = payload.creator
         timestamp = payload.timestamp
         ingredients = payload.ingredients
+        estimatedServings = max(1, payload.estimatedServings ?? 1)
         estimatedCookingMinutes = payload.estimatedCookingMinutes
         prepMinutes = payload.prepMinutes
         totalSteps = payload.totalSteps
@@ -331,6 +338,7 @@ extension Recipe {
         dishHeroTimestampSeconds = payload.dishHeroTimestampSeconds
         stepsContent = payload.stepsContent
         ingredientCheckmarks = payload.ingredientCheckmarks
+        isBookmarked = payload.isBookmarked ?? false
         if let o = payload.ownerUserId, !o.isEmpty {
             ownerUserId = o
         }

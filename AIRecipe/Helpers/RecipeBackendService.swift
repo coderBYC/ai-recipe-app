@@ -59,6 +59,7 @@ struct RecipeAnalyzeResponse: Codable {
     let creator: String
     let estimated_cooking_time: String
     let prep_time: String?
+    let estimated_servings: String?
     let ingredients: [RecipeIngredientItem]
     let instructions: [RecipeInstructionItem]
     let video_url: String?
@@ -120,10 +121,10 @@ enum JSONValue: Codable {
 enum RecipeBackendConfig {
     static var baseURL: String {
         #if targetEnvironment(simulator)
-            return "http://127.0.0.1:8000"
+           return "http://127.0.0.1:8000"
         #else
-           // return "https://ai-recipe-app-1-h59j.onrender.com"
-            return "http://10.0.0.94:8000"
+           return "https://ai-recipe-app-1-h59j.onrender.com"
+
         #endif
     }
 
@@ -282,6 +283,39 @@ final class RecipeBackendService {
         return try JSONDecoder().decode([RemoteImportJob].self, from: data)
     }
 
+    /// Merge grocery ingredients via GPT-4o-mini on the backend.
+    func mergeGrocery(ingredients: [RecipeIngredientItem]) async throws -> [RecipeIngredientItem] {
+        guard let endpoint = RecipeBackendConfig.endpointURL(path: "merge_grocery") else {
+            throw RecipeBackendError.invalidURL
+        }
+        struct Body: Encodable {
+            let ingredients: [RecipeIngredientItem]
+        }
+        struct Response: Decodable {
+            let ingredients: [RecipeIngredientItem]
+        }
+
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(Body(ingredients: ingredients))
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw RecipeBackendError.network(error)
+        }
+        guard let http = response as? HTTPURLResponse else {
+            throw RecipeBackendError.invalidResponse
+        }
+        if http.statusCode != 200 {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
+        }
+        return try JSONDecoder().decode(Response.self, from: data).ingredients
+    }
+
     /// Uploads a local video file (e.g. from Photos) for the same Gemini pipeline as TikTok/Instagram downloads.
     func analyzeUploadedVideo(fileURL: URL, language: String, userId: String?, isPro: Bool? = nil) async throws -> RecipeAnalyzeResponse {
         guard let endpoint = RecipeBackendConfig.endpointURL(path: "analyze_video_upload") else {
@@ -418,7 +452,10 @@ extension RecipeAnalyzeResponse {
         let source = RecipeSource.inferred(from: sourceURL)
         let title = recipe_name.trimmingCharacters(in: .whitespacesAndNewlines)
         let notes = description.trimmingCharacters(in: .whitespacesAndNewlines)
-        let ingredientsText = ingredients.map { "\($0.item) - \($0.amount)" }.joined(separator: "\n")
+        let ingredientsText = ingredients.map {
+            IngredientLine.join(name: $0.item, amount: $0.amount)
+        }.joined(separator: "\n")
+        let servings = Self.parseMinutes(from: estimated_servings ?? "")
         let stepsText = instructions.sorted(by: { $0.step < $1.step }).map(\.description).joined(separator: "\n")
         let creator = creator.trimmingCharacters(in: .whitespacesAndNewlines)
         let estimatedCookingMinutes = Self.parseMinutes(from: estimated_cooking_time)
@@ -435,6 +472,7 @@ extension RecipeAnalyzeResponse {
             creator: creator,
             timestamp: "",
             ingredients: ingredientsText,
+            estimatedServings: max(1, servings),
             estimatedCookingMinutes: estimatedCookingMinutes,
             prepMinutes: prepMinutes,
             totalSteps: totalSteps,
@@ -456,8 +494,11 @@ extension RecipeAnalyzeResponse {
         submission.readyTitle = title.isEmpty ? "Imported recipe" : title
         submission.readyCreator = creator.trimmingCharacters(in: .whitespacesAndNewlines)
         submission.readyNotes = description.trimmingCharacters(in: .whitespacesAndNewlines)
-        submission.readyIngredients = ingredients.map { "\($0.item) - \($0.amount)" }.joined(separator: "\n")
+        submission.readyIngredients = ingredients.map {
+            IngredientLine.join(name: $0.item, amount: $0.amount)
+        }.joined(separator: "\n")
         submission.readySteps = instructions.sorted(by: { $0.step < $1.step }).map(\.description).joined(separator: "\n")
+        submission.readyEstimatedServings = max(1, Self.parseMinutes(from: estimated_servings ?? ""))
         submission.readyPrepMinutes = Self.parseMinutes(from: prep_time ?? "")
         submission.readyCookMinutes = Self.parseMinutes(from: estimated_cooking_time)
         submission.readyTotalSteps = instructions.count

@@ -19,6 +19,8 @@ extension Notification.Name {
     static let savedVideoRecipeSuggestion = Notification.Name("savedVideoRecipeSuggestion")
     /// Present `RevenueCatUI.PaywallView` from the root tab UI (e.g. share import hit free tier).
     static let presentRevenueCatPaywall = Notification.Name("presentRevenueCatPaywall")
+    /// Dismiss recipe detail and open Bookmarks sheet on Home.
+    static let openBookmarksSheet = Notification.Name("openBookmarksSheet")
 }
 
 /// Deep links: `airecipe://settings`, `airecipe://terms`, `airecipe://privacy` (RevenueCat paywall buttons, Safari tests).
@@ -157,35 +159,54 @@ struct AIRecipeApp: App {
         guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             fatalError("SwiftData: could not resolve application support directory.")
         }
-        let storeURL = appSupport.appending(path: "default.store")
         try? FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
-        // Must pass the same URL here and in recovery deletes; otherwise the catch block removes the wrong files,
-        // recovery still fails, and we fall back to an in-memory container (recipes disappear after relaunch).
-        // iOS 18+ SwiftData: use `schema` + `url` overload (no `isStoredInMemoryOnly` on disk configs).
-        let config = ModelConfiguration(schema: schema, url: storeURL)
 
-        do {
+        let primaryURL = appSupport.appending(path: "default.store")
+        let recoveryURL = appSupport.appending(path: "default.recovery.store")
+
+        func openContainer(at url: URL) throws -> ModelContainer {
+            let config = ModelConfiguration(schema: schema, url: url)
             return try ModelContainer(for: schema, configurations: [config])
-        } catch {
-            #if DEBUG
-            print("SwiftData: Failed to load store at \(storeURL.path) (\(error)). Removing store files and retrying.")
-            #endif
-            let storeDir = storeURL.deletingLastPathComponent()
-            let baseName = storeURL.lastPathComponent
+        }
+
+        func preserveStoreCopy(at storeURL: URL, backupPrefix: String) {
             let fm = FileManager.default
-            if let files = try? fm.contentsOfDirectory(at: storeDir, includingPropertiesForKeys: nil) {
-                for file in files where file.lastPathComponent.hasPrefix(baseName) {
-                    try? fm.removeItem(at: file)
+            guard fm.fileExists(atPath: storeURL.path) else { return }
+            let backupURL = appSupport.appending(
+                path: "\(backupPrefix)-\(Int(Date().timeIntervalSince1970))",
+                directoryHint: .notDirectory
+            )
+            try? fm.copyItem(at: storeURL, to: backupURL)
+            #if DEBUG
+            print("SwiftData: preserved store at \(backupURL.path)")
+            #endif
+        }
+
+        // Primary store
+        do {
+            return try openContainer(at: primaryURL)
+        } catch let primaryError {
+            #if DEBUG
+            print("SwiftData: primary store failed (\(primaryError)). Preserving file and trying recovery store.")
+            #endif
+            preserveStoreCopy(at: primaryURL, backupPrefix: "default.store.backup")
+            UserDefaults.standard.set(true, forKey: LegacyRecipeStoreRecovery.needsRecoveryImportDefaultsKey)
+
+            // Never delete the broken primary DB — LegacyRecipeStoreRecovery imports from it / backups.
+            do {
+                return try openContainer(at: recoveryURL)
+            } catch let recoveryError {
+                #if DEBUG
+                print("SwiftData: recovery store failed (\(recoveryError)). Preserving recovery file before retry.")
+                #endif
+                preserveStoreCopy(at: recoveryURL, backupPrefix: "default.recovery.store.backup")
+                UserDefaults.standard.set(true, forKey: LegacyRecipeStoreRecovery.needsRecoveryImportDefaultsKey)
+                // Last resort: retry recovery open (primary + preserved copies remain for SQLite import).
+                if let container = try? openContainer(at: recoveryURL) {
+                    return container
                 }
-            } else {
-                try? fm.removeItem(at: storeURL)
-                try? fm.removeItem(at: storeDir.appending(path: "\(baseName)-wal"))
-                try? fm.removeItem(at: storeDir.appending(path: "\(baseName)-shm"))
+                fatalError("SwiftData: could not open any persistent store. Primary: \(primaryError), recovery: \(recoveryError)")
             }
-            if let container = try? ModelContainer(for: schema, configurations: [config]) {
-                return container
-            }
-            fatalError("SwiftData: Could not open persistent store after reset. Last error: \(error)")
         }
     }()
     

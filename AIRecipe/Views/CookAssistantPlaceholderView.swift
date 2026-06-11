@@ -1,27 +1,6 @@
 import SwiftUI
 import UIKit
 
-struct CookAssistantPlaceholderView: View {
-    var body: some View {
-        NavigationStack {
-            ComingSoonTabContent(
-                title: "Let Him Cook",
-                subtitle: "Your AI kitchen assistant — ask questions while you cook.",
-                assetImage: "OnboardingHolUpMeme"
-            )
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Let Him Cook")
-                        .nanumAppFont(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundStyle(AppTheme.primary)
-                }
-            }
-        }
-    }
-}
-
 struct ComingSoonTabContent: View {
     let title: String
     let subtitle: String

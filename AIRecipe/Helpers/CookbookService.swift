@@ -177,4 +177,50 @@ enum CookbookService {
         )
         return (try? modelContext.fetch(desc)) ?? []
     }
+
+    @MainActor
+    @discardableResult
+    static func renameCookbook(_ cookbook: Cookbook, name: String, modelContext: ModelContext) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        cookbook.name = trimmed
+        try? modelContext.save()
+        return true
+    }
+
+    /// Moves recipes to the default cookbook, then deletes the cookbook. Default cookbook cannot be deleted.
+    @MainActor
+    @discardableResult
+    static func deleteCookbook(
+        _ cookbook: Cookbook,
+        ownerUserId: String,
+        modelContext: ModelContext
+    ) -> Bool {
+        guard !cookbook.isDefault else { return false }
+        let owner = ownerUserId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !owner.isEmpty, cookbook.ownerUserId == owner else { return false }
+
+        let defaultBook = fetchOrCreateDefaultCookbook(ownerUserId: owner, modelContext: modelContext)
+        let cookbookId = cookbook.id
+
+        let recipeDesc = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> {
+                $0.ownerUserId == owner && $0.cookbookId == cookbookId && $0.deletedAt == nil
+            }
+        )
+        if let recipes = try? modelContext.fetch(recipeDesc) {
+            for recipe in recipes {
+                recipe.cookbookId = defaultBook.id
+                recipe.updatedAt = Date()
+            }
+        }
+
+        if activeCookbookId(for: owner) == cookbookId {
+            setActiveCookbookId(defaultBook.id, ownerUserId: owner)
+        }
+
+        modelContext.delete(cookbook)
+        try? modelContext.save()
+        return true
+    }
 }

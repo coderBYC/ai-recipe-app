@@ -110,8 +110,6 @@ struct RecipeListThumbnailView: View {
                         placeholder
                     }
                 }
-            } else if recipe.sourceEnum == .instagram || recipe.sourceEnum == .tiktok || recipe.sourceEnum == .photos {
-                SmartRecipeListThumbnailView(recipe: recipe, side: side)
             } else if let url = Self.playableDownloadedURL(recipe) {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -131,6 +129,8 @@ struct RecipeListThumbnailView: View {
                         placeholder
                     }
                 }
+            } else if recipe.sourceEnum == .instagram || recipe.sourceEnum == .tiktok || recipe.sourceEnum == .photos {
+                SmartRecipeListThumbnailView(recipe: recipe, side: side)
             } else {
                 placeholder
             }
@@ -154,7 +154,8 @@ struct RecipeListThumbnailView: View {
 
     private static func playableDownloadedURL(_ recipe: Recipe) -> URL? {
         let raw = recipe.downloadedVideoURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.hasPrefix("asset://") else { return nil }
+        guard !raw.isEmpty, !raw.hasPrefix("asset://") else { return nil }
+        // Prefer backend / Cloudinary dish-hero image (same source as RecipePageView VideoThumbnailView).
         return RecipeBackendConfig.resolvedMediaURL(raw)
     }
 

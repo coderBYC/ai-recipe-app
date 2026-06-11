@@ -18,6 +18,8 @@ struct RecipePageView: View {
     var onDismiss: () -> Void
     var openEditOnAppear: Bool = false
     var importReviewActions: ImportReviewActions? = nil
+    /// After bookmarking, dismiss and open Home bookmarks sheet.
+    var onBookmarkNavigate: (() -> Void)? = nil
     @ObservedObject private var subManager = SubscriptionManager.shared
 
     @AppStorage("app.didRequestStoreReviewAfterFirstGeneratedRecipe") private var didRequestStoreReviewAfterFirstGeneratedRecipe = false
@@ -27,6 +29,7 @@ struct RecipePageView: View {
     @State private var showCookMode = false
     @State private var showShareSheet = false
     @State private var exportError: String?
+    @State private var displayServings: Int = 1
 
     var body: some View {
         NavigationStack {
@@ -84,7 +87,16 @@ struct RecipePageView: View {
                         }
                     }
                 } else {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button {
+                            handleBookmarkTap()
+                        } label: {
+                            Image(systemName: recipe.isBookmarked ? "bookmark.fill" : "bookmark")
+                                .appFont(.callout)
+                                .foregroundStyle(recipe.isBookmarked ? AppTheme.primary : AppTheme.textPrimary)
+                        }
+                        .accessibilityLabel(recipe.isBookmarked ? "Remove bookmark" : "Add bookmark")
+
                         Button {
                             showingEdit = true
                             PostHogSDK.shared.capture("ai_recipe_added", properties: [
@@ -96,8 +108,15 @@ struct RecipePageView: View {
                                 .appFont(.callout)
                                 .foregroundStyle(AppTheme.textPrimary)
                         }
-                    }
-                    ToolbarItem(placement: .primaryAction) {
+                        
+                        Button{
+                            showCookMode = true
+                        } label:{
+                            Image(systemName: "frying.pan.fill")
+                                .appFont(.callout)
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
+
                         Button {
                             exportRecipe()
                         } label: {
@@ -252,58 +271,67 @@ struct RecipePageView: View {
     
     private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Ingredients", systemImage: "basket.fill")
-                .appFont(.headlineBold)
-                .foregroundStyle(AppTheme.textSecondary)
+            HStack(alignment: .center) {
+                Label("Ingredients", systemImage: "basket.fill")
+                    .appFont(.headlineBold)
+                    .foregroundStyle(AppTheme.textSecondary)
+                Spacer(minLength: 8)
+                ServingStepperControl(value: $displayServings)
+            }
+
             let lines = recipe.ingredientLines
             if lines.isEmpty {
                 Text("No ingredients listed")
                     .appFont(.callout)
                     .foregroundStyle(AppTheme.textSecondary)
             } else {
+                let scale = servingScaleFactor
                 ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
-                    ingredientRow(index: index, line: line, linesCount: lines.count)
+                    ingredientRow(index: index, line: line, linesCount: lines.count, scale: scale)
                 }
             }
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        .onAppear { resetDisplayServings() }
+        .onChange(of: recipe.id) { _, _ in resetDisplayServings() }
+        .onChange(of: recipe.estimatedServings) { _, _ in resetDisplayServings() }
+    }
+
+    private var servingScaleFactor: Double {
+        let base = max(1, recipe.estimatedServings)
+        return Double(displayServings) / Double(base)
+    }
+
+    private func resetDisplayServings() {
+        displayServings = max(1, recipe.estimatedServings)
     }
     
-    private func ingredientRow(index: Int, line: String, linesCount: Int) -> some View {
-        let checked = recipe.ingredientChecked(at: index)
-        return HStack(alignment: .top, spacing: 12) {
-            Button {
-                toggleCheckmark(at: index, linesCount: linesCount)
-            } label: {
-                Image(systemName: checked ? "checkmark.circle.fill" : "circle")
-                    .appFont(.title3)
-                    .foregroundStyle(checked ? AppTheme.triedBadge : AppTheme.textSecondary)
-            }
-            .buttonStyle(.plain)
-            Text(line)
-                .appFont(.callout)
-                .foregroundStyle(checked ? AppTheme.textSecondary : AppTheme.textPrimary)
-                .strikethrough(checked)
-                .frame(maxWidth: .infinity, alignment: .leading)
+    private func ingredientRow(index: Int, line: String, linesCount: Int, scale: Double) -> some View {
+        let parsed = IngredientLine.parse(line)
+        let scaledAmount = IngredientAmountScaler.scaledAmount(parsed.amount, factor: scale)
+        return IngredientCheckRow(
+            name: parsed.name,
+            amount: scaledAmount,
+            checked: recipe.ingredientChecked(at: index)
+        ) {
+            recipe.toggleIngredientCheck(at: index, linesCount: linesCount)
+            touchRecipeForSync()
         }
-        .padding(.vertical, 4)
-    }
-    
-    private func toggleCheckmark(at index: Int, linesCount: Int) {
-        var parts = recipe.ingredientCheckmarks.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
-        while parts.count < linesCount { parts.append("0") }
-        if index < parts.count {
-            parts[index] = recipe.ingredientChecked(at: index) ? "0" : "1"
-        }
-        recipe.ingredientCheckmarks = parts.joined(separator: ",")
-        touchRecipeForSync()
     }
 
     private func touchRecipeForSync() {
         recipe.updatedAt = Date()
         try? modelContext.save()
         Task { await SyncService.shared.push(modelContainer: modelContext.container) }
+    }
+
+    private func handleBookmarkTap() {
+        if !recipe.isBookmarked {
+            recipe.isBookmarked = true
+            touchRecipeForSync()
+        }
+        onBookmarkNavigate?()
     }
     
     /// Steps: vertical circle-line timeline (1 — 2 — 3)

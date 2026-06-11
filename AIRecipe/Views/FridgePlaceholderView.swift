@@ -1,17 +1,17 @@
 import SwiftUI
 
-struct GroceryListPlaceholderView: View {
+struct FridgePlaceholderView: View {
     var body: some View {
         NavigationStack {
             ComingSoonTabContent(
-                title: "Grocery List",
-                subtitle: "Build a shopping list from your meal plan and recipes.",
-                systemImage: "cart.fill"
+                title: "Fridge",
+                subtitle: "Track what’s in your fridge and what you need to restock.",
+                systemImage: "refrigerator.fill"
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Grocery")
+                    Text("Fridge")
                         .nanumAppFont(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)

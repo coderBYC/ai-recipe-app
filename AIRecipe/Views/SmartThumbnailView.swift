@@ -102,7 +102,27 @@ struct SmartThumbnailView: View {
             return
         }
 
-        // 2) Miss → background frame capture, then persist to Kingfisher disk.
+        // 2) List hero: fall back to Cloudinary dish image (free tier — matches recipe page).
+        if case .listHero = mode, let cloudURL = listHeroCloudinaryFallbackURL {
+            if let cached = await SmartThumbnailCache.cachedImage(forKey: asset.thumbId) {
+                freeTierImage = cached
+                revealImage()
+                return
+            }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: cloudURL)
+                if let image = UIImage(data: data) {
+                    await SmartThumbnailCache.store(image, forKey: asset.thumbId)
+                    freeTierImage = image
+                    revealImage()
+                    return
+                }
+            } catch {
+                // try MP4 frame capture below
+            }
+        }
+
+        // 3) Miss → background frame capture, then persist to Kingfisher disk.
         guard let videoURL = resolvedVideoURL else {
             hasFailed = true
             return
@@ -128,6 +148,12 @@ struct SmartThumbnailView: View {
         let raw = asset.videoUrlString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !raw.isEmpty else { return nil }
         return RecipeBackendConfig.resolvedMediaURL(raw) ?? URL(string: raw)
+    }
+
+    /// Cloudinary dish-hero URL for list rows when MP4 playback is unavailable.
+    private var listHeroCloudinaryFallbackURL: URL? {
+        guard let raw = asset.premiumCloudinaryUrl else { return nil }
+        return SmartThumbnailCloudinary.resizedURL(from: raw, width: Int(side), height: Int(side))
     }
 
     // MARK: - Shared UI

@@ -14,6 +14,7 @@ struct OnboardingRecipePageView: View {
     var onOnboardingStepsTapped: (() -> Void)? = nil
 
     @State private var showingEdit = false
+    @State private var displayServings: Int = 1
 
     private var isOnboardingWalkthrough: Bool { onboardingSpotlight != nil }
 
@@ -126,37 +127,40 @@ struct OnboardingRecipePageView: View {
 
     private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Ingredients", systemImage: "basket.fill")
-                .appFont(.headlineBold)
-                .foregroundStyle(AppTheme.textSecondary)
+            HStack(alignment: .center) {
+                Label("Ingredients", systemImage: "basket.fill")
+                    .appFont(.headlineBold)
+                    .foregroundStyle(AppTheme.textSecondary)
+                Spacer(minLength: 8)
+                ServingStepperControl(value: $displayServings)
+            }
             let lines = recipe.ingredientLines
             if lines.isEmpty {
                 Text("No ingredients listed")
                     .appFont(.callout)
                     .foregroundStyle(AppTheme.textSecondary)
             } else {
+                let scale = Double(displayServings) / Double(max(1, recipe.estimatedServings))
                 ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
-                    ingredientRow(index: index, line: line, linesCount: lines.count)
+                    ingredientRow(index: index, line: line, linesCount: lines.count, scale: scale)
                 }
             }
         }
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        .onAppear { displayServings = max(1, recipe.estimatedServings) }
     }
 
-    private func ingredientRow(index: Int, line: String, linesCount: Int) -> some View {
-        let checked = recipe.ingredientChecked(at: index)
-        return HStack(alignment: .top, spacing: 12) {
-            Image(systemName: checked ? "checkmark.circle.fill" : "circle")
-                .appFont(.title3)
-                .foregroundStyle(checked ? AppTheme.triedBadge : AppTheme.textSecondary)
-            Text(line)
-                .appFont(.callout)
-                .foregroundStyle(checked ? AppTheme.textSecondary : AppTheme.textPrimary)
-                .strikethrough(checked)
-                .frame(maxWidth: .infinity, alignment: .leading)
+    private func ingredientRow(index: Int, line: String, linesCount: Int, scale: Double) -> some View {
+        let parsed = IngredientLine.parse(line)
+        let scaledAmount = IngredientAmountScaler.scaledAmount(parsed.amount, factor: scale)
+        return IngredientCheckRow(
+            name: parsed.name,
+            amount: scaledAmount,
+            checked: recipe.ingredientChecked(at: index)
+        ) {
+            recipe.toggleIngredientCheck(at: index, linesCount: linesCount)
         }
-        .padding(.vertical, 4)
     }
 
     private var stepsSection: some View {

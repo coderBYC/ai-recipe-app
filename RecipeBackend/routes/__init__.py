@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, FastAPI  # pyright: ignore[reportMissingImports]
 
-from routes import analyze, imports, thumbnails, usage, videos
+from routes import analyze, grocery, imports, thumbnails, usage, videos
 
 
 def register_routes(app: FastAPI) -> None:
@@ -14,4 +14,5 @@ def register_routes(app: FastAPI) -> None:
     api.include_router(thumbnails.router)
     api.include_router(videos.router)
     api.include_router(analyze.router)
+    api.include_router(grocery.router)
     app.include_router(api)

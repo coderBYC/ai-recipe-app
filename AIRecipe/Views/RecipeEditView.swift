@@ -35,6 +35,7 @@ struct RecipeEditView: View {
     @State private var draftNotes = ""
     @State private var draftPrepMinutes = 0
     @State private var draftCookMinutes = 0
+    @State private var draftServings = 1
 
     @State private var ingredientLines: [EditableLine] = []
     @State private var stepLines: [EditableLine] = []
@@ -245,6 +246,7 @@ struct RecipeEditView: View {
 
     private var totalTimeBlock: some View {
         VStack(alignment: .leading, spacing: 14) {
+            timeRow(label: "Servings", value: $draftServings, minValue: 1, isCookingTime: false)
             timeRow(label: "Prep time", value: $draftPrepMinutes, isCookingTime: false)
             timeRow(label: "Cooking time", value: $draftCookMinutes, isCookingTime: true)
         }
@@ -254,7 +256,7 @@ struct RecipeEditView: View {
         .boxStyle()
     }
 
-    private func timeRow(label: String, value: Binding<Int>, isCookingTime: Bool = false) -> some View {
+    private func timeRow(label: String, value: Binding<Int>, minValue: Int = 0, isCookingTime: Bool = false) -> some View {
         HStack {
             Text(label)
                 .appFont(.callout)
@@ -262,7 +264,7 @@ struct RecipeEditView: View {
             Spacer()
             HStack(spacing: 10) {
                 Button {
-                    value.wrappedValue = max(0, value.wrappedValue - 1)
+                    value.wrappedValue = max(minValue, value.wrappedValue - 1)
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
                     Image(systemName: "minus.circle.fill")
@@ -270,7 +272,7 @@ struct RecipeEditView: View {
                         .foregroundStyle(.red.opacity(0.85))
                 }
                 .buttonStyle(.plain)
-                .disabled(isOnboardingWalkthrough)
+                .disabled(isOnboardingWalkthrough || value.wrappedValue <= minValue)
 
                 Text("\(value.wrappedValue)")
                     .appFont(.title3)
@@ -400,6 +402,7 @@ struct RecipeEditView: View {
         draftNotes = recipe.notes
         draftPrepMinutes = recipe.prepMinutes
         draftCookMinutes = recipe.estimatedCookingMinutes
+        draftServings = max(1, recipe.estimatedServings)
 
         let ing = recipe.ingredientLines
         if ing.isEmpty {
@@ -455,6 +458,7 @@ struct RecipeEditView: View {
         recipe.notes = draftNotes
         recipe.prepMinutes = draftPrepMinutes
         recipe.estimatedCookingMinutes = draftCookMinutes
+        recipe.estimatedServings = max(1, draftServings)
 
         var ingOut: [String] = []
         var ingChecksOut: [String] = []

@@ -31,6 +31,7 @@ final class RecipeImportSubmission {
     var readyIngredients: String
     var readySteps: String
     var readyPrepMinutes: Int
+    var readyEstimatedServings: Int
     var readyCookMinutes: Int
     var readyTotalSteps: Int
     var readySource: String
@@ -61,6 +62,7 @@ final class RecipeImportSubmission {
         self.readyIngredients = ""
         self.readySteps = ""
         self.readyPrepMinutes = 0
+        self.readyEstimatedServings = 1
         self.readyCookMinutes = 0
         self.readyTotalSteps = 0
         self.readySource = RecipeSource.youtube.rawValue

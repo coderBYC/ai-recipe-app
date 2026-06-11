@@ -51,5 +51,7 @@
 		<string>nanum-myeongjo-latin-700-normal.ttf</string>
 		<string>nanum-myeongjo-latin-800-normal.ttf</string>
 	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>

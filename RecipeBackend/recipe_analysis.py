@@ -27,6 +27,7 @@ def build_prompt(language: str) -> str:
     "creator": "Name of the creator",
     "prep_time": "5",
     "estimated_cooking_time": "10",
+    "estimated_servings": "4",
     "description": "A short summary of the dish based on the video context",
     "ingredients": [
         {{
@@ -49,6 +50,7 @@ def build_prompt(language: str) -> str:
     3. Try add some icons to each ingredient in the front.
     4. Make sure each step is concise, don't include timestamps.
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
+    5b. Set "estimated_servings" to how many people the recipe serves, as a numeric string (e.g. "2", "4"). If unclear, use your best estimate; minimum "1".
     6. Make sure the creator name is right if it's a youtube video.
     7. Use language code {lang} for all user-facing text values (keys must stay in English).
     8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the best moment the final dish is shown clearly and in focus. If you don't know, use the last second of the video.

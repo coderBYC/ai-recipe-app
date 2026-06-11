@@ -2526,7 +2526,6 @@
 		1A6BD6D22FD3469700E03090 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6BD6D12FD3469700E03090 /* GoogleSignIn */; };
 		1A6BD6D42FD3469700E03090 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6BD6D32FD3469700E03090 /* GoogleSignInSwift */; };
 		1A86DB902FBE1617009E8391 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 1A86DB8F2FBE1617009E8391 /* PostHog */; };
-		1A86DC122FCAAA01009E8391 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1A86DC112FCAAA01009E8391 /* Kingfisher */; };
 		1A86DB922FC227F9009E8391 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DB912FC227F9009E8391 /* OnboardingView.swift */; };
 		1A86DB942FC23AF6009E8391 /* OnboardingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DB932FC23AE4009E8391 /* OnboardingState.swift */; };
 		1A86DC042FC99900009E8391 /* OnboardingDemoRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC012FC99900009E8391 /* OnboardingDemoRecipe.swift */; };
@@ -2536,6 +2535,7 @@
 		1A86DC092FC99920009E8391 /* LoopingVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC082FC99920009E8391 /* LoopingVideoPlayer.swift */; };
 		1A86DC0B2FC99930009E8391 /* FreeTierLimits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC0A2FC99930009E8391 /* FreeTierLimits.swift */; };
 		1A86DC0D2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A86DC0C2FC99930009E8391 /* ShareExtensionQuotaSnapshot.swift */; };
+		1A86DC122FCAAA01009E8391 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1A86DC112FCAAA01009E8391 /* Kingfisher */; };
 		1A9211932F7C696C005252F5 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1A9211892F7C696C005252F5 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1A9F400B2F5F70D900DFA8EF /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9F400A2F5F70D900DFA8EF /* SupabaseService.swift */; };
 		1A9F40142F5F772E00DFA8EF /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9F40132F5F772E00DFA8EF /* Auth */; };
@@ -2580,12 +2580,16 @@
 		B0010021 /* RecipeImportProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001001C /* RecipeImportProcessor.swift */; };
 		B0010022 /* Cookbook.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010020 /* Cookbook.swift */; };
 		B0010023 /* CookbookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010021 /* CookbookService.swift */; };
-		B0010024 /* GroceryListPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010022 /* GroceryListPlaceholderView.swift */; };
+		B0010024 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010022 /* GroceryListView.swift */; };
+		B0010033 /* GroceryManualStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010031 /* GroceryManualStore.swift */; };
 		B0010025 /* CookAssistantPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010023 /* CookAssistantPlaceholderView.swift */; };
 		B0010026 /* CreateCookbookSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010024 /* CreateCookbookSheet.swift */; };
 		B0010027 /* SmartThumbnailAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010025 /* SmartThumbnailAsset.swift */; };
 		B0010028 /* SmartThumbnailFrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010026 /* SmartThumbnailFrameExtractor.swift */; };
 		B0010029 /* SmartThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010027 /* SmartThumbnailView.swift */; };
+		B0010030 /* FridgePlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010028 /* FridgePlaceholderView.swift */; };
+		B0010031 /* BookmarksSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010029 /* BookmarksSheetView.swift */; };
+		B0010032 /* LegacyRecipeStoreRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010030 /* LegacyRecipeStoreRecovery.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -3508,12 +3512,16 @@
 		F001001C /* RecipeImportProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportProcessor.swift; sourceTree = "<group>"; };
 		F0010020 /* Cookbook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cookbook.swift; sourceTree = "<group>"; };
 		F0010021 /* CookbookService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookbookService.swift; sourceTree = "<group>"; };
-		F0010022 /* GroceryListPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryListPlaceholderView.swift; sourceTree = "<group>"; };
+		F0010022 /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryListView.swift; sourceTree = "<group>"; };
+		F0010031 /* GroceryManualStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryManualStore.swift; sourceTree = "<group>"; };
 		F0010023 /* CookAssistantPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookAssistantPlaceholderView.swift; sourceTree = "<group>"; };
 		F0010024 /* CreateCookbookSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCookbookSheet.swift; sourceTree = "<group>"; };
 		F0010025 /* SmartThumbnailAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailAsset.swift; sourceTree = "<group>"; };
 		F0010026 /* SmartThumbnailFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailFrameExtractor.swift; sourceTree = "<group>"; };
 		F0010027 /* SmartThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailView.swift; sourceTree = "<group>"; };
+		F0010028 /* FridgePlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgePlaceholderView.swift; sourceTree = "<group>"; };
+		F0010029 /* BookmarksSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksSheetView.swift; sourceTree = "<group>"; };
+		F0010030 /* LegacyRecipeStoreRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyRecipeStoreRecovery.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -4496,8 +4504,10 @@
 				F0010019 /* PhotoLibraryVideoImportView.swift */,
 				1A9F403A2F62254400DFA8EF /* CookModeView.swift */,
 				1A86DB912FC227F9009E8391 /* OnboardingView.swift */,
-				F0010022 /* GroceryListPlaceholderView.swift */,
+				F0010022 /* GroceryListView.swift */,
 				F0010023 /* CookAssistantPlaceholderView.swift */,
+				F0010028 /* FridgePlaceholderView.swift */,
+				F0010029 /* BookmarksSheetView.swift */,
 				F0010024 /* CreateCookbookSheet.swift */,
 				F0010027 /* SmartThumbnailView.swift */,
 			);
@@ -4530,6 +4540,8 @@
 				1A9F41AF2F90000100DFA8EF /* SyncService.swift */,
 				1A9F41C02F90000200DFA8EF /* GoogleSignInService.swift */,
 				F0010021 /* CookbookService.swift */,
+				F0010031 /* GroceryManualStore.swift */,
+				F0010030 /* LegacyRecipeStoreRecovery.swift */,
 				F0010026 /* SmartThumbnailFrameExtractor.swift */,
 			);
 			path = Helpers;
@@ -7281,8 +7293,12 @@
 				B0010021 /* RecipeImportProcessor.swift in Sources */,
 				B0010022 /* Cookbook.swift in Sources */,
 				B0010023 /* CookbookService.swift in Sources */,
-				B0010024 /* GroceryListPlaceholderView.swift in Sources */,
+				B0010024 /* GroceryListView.swift in Sources */,
+				B0010033 /* GroceryManualStore.swift in Sources */,
 				B0010025 /* CookAssistantPlaceholderView.swift in Sources */,
+				B0010030 /* FridgePlaceholderView.swift in Sources */,
+				B0010031 /* BookmarksSheetView.swift in Sources */,
+				B0010032 /* LegacyRecipeStoreRecovery.swift in Sources */,
 				B0010026 /* CreateCookbookSheet.swift in Sources */,
 				B0010027 /* SmartThumbnailAsset.swift in Sources */,
 				B0010028 /* SmartThumbnailFrameExtractor.swift in Sources */,
@@ -7570,6 +7586,7 @@
 				INFOPLIST_FILE = AIRecipe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
@@ -7615,6 +7632,7 @@
 				INFOPLIST_FILE = AIRecipe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
@@ -7702,6 +7720,14 @@
 				minimumVersion = 3.58.3;
 			};
 		};
+		1A86DC102FCAAA01009E8391 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		1A9F40122F5F772E00DFA8EF /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift.git";
@@ -7716,14 +7742,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.66.0;
-			};
-		};
-		1A86DC102FCAAA01009E8391 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -7743,6 +7761,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1A86DB8E2FBE12F8009E8391 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;
+		};
+		1A86DC112FCAAA01009E8391 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1A86DC102FCAAA01009E8391 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		1A9F40132F5F772E00DFA8EF /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -7783,11 +7806,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1A9F41A32F6F7E4100DFA8EF /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
-		};
-		1A86DC112FCAAA01009E8391 /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1A86DC102FCAAA01009E8391 /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

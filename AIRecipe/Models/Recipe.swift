@@ -52,6 +52,8 @@ final class Recipe: Identifiable {
     var creator: String
     var timestamp: String
     var ingredients: String
+    /// Recipe yield in servings (from AI or user edit); ingredient amounts are written for this count.
+    var estimatedServings: Int
     var estimatedCookingMinutes: Int
     var prepMinutes: Int
     var totalSteps: Int
@@ -76,11 +78,14 @@ final class Recipe: Identifiable {
     var stepsContent: String
     /// Comma-separated "1" or "0" for each ingredient line (checked or not).
     var ingredientCheckmarks: String
+    /// Saved to the Bookmarks sheet on Home.
+    var isBookmarked: Bool
 
     /// Recipes created in the pre-auth onboarding chrome use this so they never mix with a signed-in user’s library.
     static let localOnboardingOwnerPlaceholder = "__onboarding_local__"
 
     private static let ownerMigrationDefaultsKey = "recipeOwnerUserIdMigration_v1"
+    private static let servingsMigrationDefaultsKey = "recipeEstimatedServingsMigration_v1"
 
     init(
         id: String = "",
@@ -92,6 +97,7 @@ final class Recipe: Identifiable {
         creator: String = "",
         timestamp: String = "",
         ingredients: String = "",
+        estimatedServings: Int = 1,
         estimatedCookingMinutes: Int = 0,
         prepMinutes: Int = 0,
         totalSteps: Int = 0,
@@ -104,6 +110,7 @@ final class Recipe: Identifiable {
         stepTimestampsContent: String = "",
         dishHeroTimestampSeconds: Double = 1,
         rating: Int = 0,
+        isBookmarked: Bool = false,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         deletedAt: Date? = nil
@@ -118,6 +125,7 @@ final class Recipe: Identifiable {
         self.creator = creator
         self.timestamp = timestamp
         self.ingredients = ingredients
+        self.estimatedServings = max(1, estimatedServings)
         self.estimatedCookingMinutes = estimatedCookingMinutes
         self.prepMinutes = prepMinutes
         self.totalSteps = totalSteps
@@ -133,6 +141,7 @@ final class Recipe: Identifiable {
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
         self.rating = rating
+        self.isBookmarked = isBookmarked
     }
     
     var sourceEnum: RecipeSource {
@@ -233,6 +242,19 @@ final class Recipe: Identifiable {
         return parts[index].trimmingCharacters(in: .whitespaces) == "1"
     }
 
+    func setIngredientChecked(at index: Int, checked: Bool, linesCount: Int? = nil) {
+        let count = linesCount ?? ingredientLines.count
+        var parts = ingredientCheckmarks.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+        while parts.count < count { parts.append("0") }
+        guard index >= 0, index < parts.count else { return }
+        parts[index] = checked ? "1" : "0"
+        ingredientCheckmarks = parts.joined(separator: ",")
+    }
+
+    func toggleIngredientCheck(at index: Int, linesCount: Int? = nil) {
+        setIngredientChecked(at: index, checked: !ingredientChecked(at: index), linesCount: linesCount)
+    }
+
     /// Plain-text representation for export/share; counts as one export when shared.
     var shareableExportText: String {
         var lines: [String] = []
@@ -249,6 +271,18 @@ final class Recipe: Identifiable {
         return lines.joined(separator: "\n")
     }
 
+    /// One-time: existing recipes before `estimatedServings` default to 1 serving.
+    @MainActor
+    static func migrateEstimatedServingsOnce(modelContext: ModelContext) {
+        guard !UserDefaults.standard.bool(forKey: servingsMigrationDefaultsKey) else { return }
+        let desc = FetchDescriptor<Recipe>(predicate: #Predicate<Recipe> { $0.estimatedServings <= 0 })
+        if let rows = try? modelContext.fetch(desc) {
+            for row in rows { row.estimatedServings = 1 }
+            try? modelContext.save()
+        }
+        UserDefaults.standard.set(true, forKey: servingsMigrationDefaultsKey)
+    }
+
     /// One-time: legacy rows had no owner; assign them to the first signed-in user on this install so lists stay consistent.
     @MainActor
     static func migrateUnassignedOwnersOnce(modelContext: ModelContext, assignedTo: String) {
@@ -262,5 +296,120 @@ final class Recipe: Identifiable {
         for r in rows { r.ownerUserId = assignedTo }
         try? modelContext.save()
         UserDefaults.standard.set(true, forKey: ownerMigrationDefaultsKey)
+    }
+}
+
+// MARK: - Ingredient line parsing & serving scale
+
+enum IngredientLine {
+    private static let storageSeparator = "\t"
+
+    static func join(name: String, amount: String) -> String {
+        let item = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let qty = amount.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !item.isEmpty else { return qty }
+        guard !qty.isEmpty else { return item }
+        return "\(item)\(storageSeparator)\(qty)"
+    }
+
+    static func parse(_ line: String) -> (name: String, amount: String) {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return ("", "") }
+        if let tab = trimmed.firstIndex(of: "\t") {
+            let name = String(trimmed[..<tab]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let amount = String(trimmed[trimmed.index(after: tab)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            return (name, amount)
+        }
+        if let range = trimmed.range(of: " - ") {
+            let name = String(trimmed[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let amount = String(trimmed[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            return (name, amount)
+        }
+        return (trimmed, "")
+    }
+}
+
+enum IngredientAmountScaler {
+    private static let skipPhrases = [
+        "as needed", "to taste", "optional", "pinch", "dash", "handful", "some", "a few",
+    ]
+
+    static func scaledAmount(_ amount: String, factor: Double) -> String {
+        guard factor.isFinite, abs(factor - 1.0) > 0.001 else { return amount }
+        let trimmed = amount.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return amount }
+        let lower = trimmed.lowercased()
+        if skipPhrases.contains(where: { lower.contains($0) }) { return amount }
+
+        guard let match = leadingQuantity(in: trimmed) else { return amount }
+        let scaled = match.value * factor
+        guard scaled > 0 else { return amount }
+        let formatted = formatQuantity(scaled)
+        let suffix = trimmed[match.suffixStart...].trimmingCharacters(in: .whitespacesAndNewlines)
+        return suffix.isEmpty ? formatted : "\(formatted) \(suffix)"
+    }
+
+    private struct QuantityMatch {
+        let value: Double
+        let suffixStart: String.Index
+    }
+
+    private static func leadingQuantity(in text: String) -> QuantityMatch? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        // Mixed number: "1 1/2 tbsp"
+        if let mixed = trimmed.range(of: #"^(\d+)\s+(\d+)/(\d+)"#, options: .regularExpression) {
+            let token = String(trimmed[mixed])
+            let parts = token.split(separator: " ", omittingEmptySubsequences: true)
+            if parts.count == 2, let whole = Double(parts[0]) {
+                let fracParts = parts[1].split(separator: "/")
+                if fracParts.count == 2,
+                   let num = Double(fracParts[0]),
+                   let den = Double(fracParts[1]), den != 0 {
+                    return QuantityMatch(value: whole + num / den, suffixStart: mixed.upperBound)
+                }
+            }
+        }
+
+        // Simple fraction: "1/2 cup"
+        if let frac = trimmed.range(of: #"^(\d+)/(\d+)"#, options: .regularExpression) {
+            let token = String(trimmed[frac])
+            let fracParts = token.split(separator: "/")
+            if fracParts.count == 2,
+               let num = Double(fracParts[0]),
+               let den = Double(fracParts[1]), den != 0 {
+                return QuantityMatch(value: num / den, suffixStart: frac.upperBound)
+            }
+        }
+
+        // Decimal / whole: "2.5 tbsp", "2 tbsp"
+        if let decimal = trimmed.range(of: #"^(\d+(?:[.,]\d+)?)"#, options: .regularExpression) {
+            let token = String(trimmed[decimal]).replacingOccurrences(of: ",", with: ".")
+            if let value = Double(token) {
+                return QuantityMatch(value: value, suffixStart: decimal.upperBound)
+            }
+        }
+
+        return nil
+    }
+
+    private static func formatQuantity(_ value: Double) -> String {
+        let rounded = (value * 100).rounded() / 100
+        if abs(rounded - rounded.rounded()) < 0.06 {
+            return String(Int(rounded.rounded()))
+        }
+        let commonFractions: [(Double, String)] = [
+            (0.25, "1/4"), (0.33, "1/3"), (0.5, "1/2"), (0.67, "2/3"), (0.75, "3/4"),
+        ]
+        let whole = floor(rounded)
+        let frac = rounded - whole
+        if let match = commonFractions.min(by: { abs($0.0 - frac) < abs($1.0 - frac) }), abs(match.0 - frac) < 0.08 {
+            if whole >= 1 { return "\(Int(whole)) \(match.1)" }
+            return match.1
+        }
+        var text = String(format: "%.1f", rounded)
+        if text.hasSuffix(".0") { text.removeLast(2) }
+        return text
     }
 }
