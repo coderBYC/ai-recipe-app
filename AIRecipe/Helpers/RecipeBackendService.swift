@@ -185,6 +185,15 @@ final class RecipeBackendService {
         return URLSession(configuration: config)
     }()
 
+    /// Grocery merge + other LLM calls that can exceed URLSession.shared's ~60s limit (Render cold start, OpenAI latency).
+    private static let aiTextSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 180
+        config.timeoutIntervalForResource = 300
+        config.waitsForConnectivity = true
+        return URLSession(configuration: config)
+    }()
+
     private init() {}
 
     /// Sends the video URL (and language) to the backend and returns the analyzed recipe response.
@@ -302,8 +311,14 @@ final class RecipeBackendService {
 
         let (data, response): (Data, URLResponse)
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await Self.aiTextSession.data(for: request)
         } catch {
+            let ns = error as NSError
+            if ns.domain == NSURLErrorDomain, ns.code == NSURLErrorTimedOut {
+                throw RecipeBackendError.serverError(
+                    "Request timed out. If you're on a device, confirm the backend is reachable and try again."
+                )
+            }
             throw RecipeBackendError.network(error)
         }
         guard let http = response as? HTTPURLResponse else {
