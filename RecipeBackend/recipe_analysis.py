@@ -16,8 +16,20 @@ from google import genai
 from google.genai import errors as genai_errors  # pyright: ignore[reportMissingImports]
 
 
-def build_prompt(language: str) -> str:
+def build_prompt(language: str, *, include_nutrition: bool = False) -> str:
     lang = language.lower()
+    nutrition_block = ""
+    nutrition_guideline = ""
+    if include_nutrition:
+        nutrition_block = """,
+    "nutrition": {
+    "calories": 450,
+    "protein_g": 32,
+    "carbs_g": 28,
+    "fat_g": 18
+    }"""
+        nutrition_guideline = """
+    10. Include a "nutrition" object with estimated **per-serving** values from the ingredients: "calories" (integer kcal), "protein_g", "carbs_g", "fat_g" (integer grams). Use reasonable estimates when exact values are unknown."""
     print(lang)
     return f"""Analyze the attached cooking video. 
     Extract the recipe and output the result strictly in JSON format. JSON keys must be English.
@@ -42,7 +54,7 @@ def build_prompt(language: str) -> str:
         "timestamp_seconds": "12.5"
         }},
     ],
-    "dish_hero_timestamp_seconds": "0"
+    "dish_hero_timestamp_seconds": "0"{nutrition_block}
     }}
     Guidelines:
     1. If specific quantities are not mentioned, use "As needed".
@@ -54,7 +66,7 @@ def build_prompt(language: str) -> str:
     6. Make sure the creator name is right if it's a youtube video.
     7. Use language code {lang} for all user-facing text values (keys must stay in English).
     8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the best moment the final dish is shown clearly and in focus. If you don't know, use the last second of the video.
-    9. For EVERY instruction, set "timestamp_seconds" to the video time (seconds from start, as a string) when that step is shown on screen. Use the clearest frame for that step. Steps must be in ascending time order."""
+    9. For EVERY instruction, set "timestamp_seconds" to the video time (seconds from start, as a string) when that step is shown on screen. Use the clearest frame for that step. Steps must be in ascending time order.{nutrition_guideline}"""
 
 
 def normalize_timestamp_seconds(raw) -> str:
@@ -93,6 +105,34 @@ def normalize_instruction_timestamps(data: dict) -> None:
 
 def normalize_dish_hero_timestamp_seconds(data: dict) -> str:
     return normalize_timestamp_seconds(data.get("dish_hero_timestamp_seconds"))
+
+
+def nutrition_info_from_data(data: dict):
+    """Parse optional nutrition object from model JSON."""
+    from models import NutritionInfo
+
+    raw = data.get("nutrition")
+    if not isinstance(raw, dict):
+        return None
+
+    def _int(key: str) -> Optional[int]:
+        value = raw.get(key)
+        if value is None:
+            return None
+        try:
+            return max(0, int(float(str(value).strip().replace(",", "."))))
+        except (ValueError, TypeError):
+            return None
+
+    parsed = {
+        "calories": _int("calories"),
+        "protein_g": _int("protein_g"),
+        "carbs_g": _int("carbs_g"),
+        "fat_g": _int("fat_g"),
+    }
+    if all(v is None for v in parsed.values()):
+        return None
+    return NutritionInfo(**{k: v for k, v in parsed.items() if v is not None})
 
 
 def extract_json_from_response(raw: str) -> dict:
@@ -229,8 +269,10 @@ async def analyze_local_video_path(
     video_path: str,
     language: str,
     extra_context: Optional[list[str]] = None,
+    *,
+    include_nutrition: bool = False,
 ) -> str:
-    prompt = build_prompt(language)
+    prompt = build_prompt(language, include_nutrition=include_nutrition)
     errors: list[tuple[str, BaseException]] = []
     chain = recipe_ai_provider_chain()
 

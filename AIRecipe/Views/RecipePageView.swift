@@ -27,7 +27,11 @@ struct RecipePageView: View {
     @State private var showingEdit = false
     @State private var showingImport = false
     @State private var showCookMode = false
-    @State private var showShareSheet = false
+    @State private var showShareTextSheet = false
+    @State private var showPDFPreview = false
+    @State private var pdfPreviewHTML = ""
+    @State private var exportedPDFURL: URL?
+    @State private var isExportingPDF = false
     @State private var exportError: String?
     @State private var displayServings: Int = 1
 
@@ -47,6 +51,9 @@ struct RecipePageView: View {
                         ingredientsSection
                         stepsSection
                         NoteSection
+                        if subManager.isPremium, recipe.hasNutrition {
+                            nutritionSection
+                        }
                         ratingSection
                         if !recipe.sourceURL.isEmpty {
                             openLinkSection
@@ -117,13 +124,23 @@ struct RecipePageView: View {
                                 .foregroundStyle(AppTheme.textPrimary)
                         }
 
-                        Button {
-                            exportRecipe()
+                        Menu {
+                            Button {
+                                sharePDF()
+                            } label: {
+                                Label("Share PDF", systemImage: "doc.richtext")
+                            }
+                            Button {
+                                shareRecipeText()
+                            } label: {
+                                Label("Share Recipe Text", systemImage: "text.alignleft")
+                            }
                         } label: {
                             Image(systemName: "square.and.arrow.up")
                                 .appFont(.callout)
                                 .foregroundStyle(AppTheme.textPrimary)
                         }
+                        .accessibilityLabel("Share")
                     }
                 }
             }
@@ -150,8 +167,21 @@ struct RecipePageView: View {
             .fullScreenCover(isPresented: $showCookMode) {
                 CookModeView(recipe: recipe)
             }
-            .sheet(isPresented: $showShareSheet) {
+            .overlay {
+                if isExportingPDF {
+                    Color.black.opacity(0.2).ignoresSafeArea()
+                    ProgressView("Preparing PDF…")
+                        .padding(20)
+                        .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            .sheet(isPresented: $showShareTextSheet) {
                 ShareSheet(activityItems: [recipe.shareableExportText])
+            }
+            .sheet(isPresented: $showPDFPreview) {
+                if let exportedPDFURL {
+                    RecipePDFPreviewSheet(html: pdfPreviewHTML, pdfURL: exportedPDFURL)
+                }
             }
             .errorPopup(message: $exportError)
             .task {
@@ -165,7 +195,7 @@ struct RecipePageView: View {
         true
     }
 
-    private func exportRecipe() {
+    private func shareRecipeText() {
         Task { @MainActor in
             exportError = nil
             do {
@@ -174,7 +204,29 @@ struct RecipePageView: View {
                     return
                 }
                 try await RecipeBackendService.shared.recordExportUsage(userId: userId)
-                showShareSheet = true
+                showShareTextSheet = true
+            } catch {
+                exportError = error.localizedDescription
+            }
+        }
+    }
+
+    private func sharePDF() {
+        Task { @MainActor in
+            exportError = nil
+            isExportingPDF = true
+            defer { isExportingPDF = false }
+            do {
+                guard let userId = await SupabaseService.shared.currentUserIdString() else {
+                    exportError = "Not signed in."
+                    return
+                }
+                try await RecipeBackendService.shared.recordExportUsage(userId: userId)
+                let html = RecipePDFHTMLBuilder.buildHTML(from: recipe, servings: displayServings)
+                let pdfData = try await RecipePDFExportService.generatePDF(html: html)
+                exportedPDFURL = try recipe.temporaryPDFExportURL(data: pdfData)
+                pdfPreviewHTML = html
+                showPDFPreview = true
             } catch {
                 exportError = error.localizedDescription
             }
@@ -423,6 +475,23 @@ struct RecipePageView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(minHeight: 72)
                 .padding(12)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .boxStyle()
+    }
+
+    private var nutritionSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Nutrition", systemImage: "chart.pie.fill")
+                .appFont(.headlineBold)
+                .foregroundStyle(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            NutritionIndicatorView(
+                calories: max(recipe.nutritionCalories, 0),
+                macros: recipe.nutritionMacroMetrics
+            )
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

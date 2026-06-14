@@ -246,7 +246,7 @@ struct MainView: View {
                 case .grocery:
                     GroceryListView(filterOwnerId: signedInTabUserId)
                 case .fridge:
-                    FridgePlaceholderView()
+                    FridgeView(filterOwnerId: signedInTabUserId)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

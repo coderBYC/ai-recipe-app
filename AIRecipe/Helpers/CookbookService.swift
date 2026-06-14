@@ -33,6 +33,10 @@ enum CookbookService {
 
         let defaultBook = fetchOrCreateDefaultCookbook(ownerUserId: owner, modelContext: modelContext)
         migrateRecipesWithoutCookbook(ownerUserId: owner, defaultCookbookId: defaultBook.id, modelContext: modelContext)
+        _ = LegacyRecipeStoreRecovery.reassignHiddenLocalRecipes(
+            modelContext: modelContext,
+            ownerUserId: owner
+        )
 
         if activeCookbookId(for: owner) == nil {
             setActiveCookbookId(defaultBook.id, ownerUserId: owner)

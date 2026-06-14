@@ -147,10 +147,12 @@ enum RecipeImportProcessor {
                 try? ctx.save()
                 return
             }
+            let isPremium = await MainActor.run { SubscriptionManager.shared.isPremium }
             let queued = try await RecipeBackendService.shared.enqueueImport(
                 url: sub.sourceURL,
                 language: sub.languageCode,
-                userId: userId
+                userId: userId,
+                isPro: isPremium
             )
             sub.backendJobId = queued.job_id
             sub.status = .processing
@@ -279,7 +281,11 @@ enum RecipeImportProcessor {
             videoPlaybackURL: sub.readyVideoPlaybackURL,
             stepTimestampsContent: sub.readyStepTimestamps,
             dishHeroTimestampSeconds: sub.readyDishHeroSeconds,
-            rating: 0
+            rating: 0,
+            nutritionCalories: sub.readyNutritionCalories,
+            nutritionProteinGrams: sub.readyNutritionProteinGrams,
+            nutritionCarbsGrams: sub.readyNutritionCarbsGrams,
+            nutritionFatGrams: sub.readyNutritionFatGrams
         )
     }
 

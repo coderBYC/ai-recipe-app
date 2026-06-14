@@ -10,11 +10,10 @@ enum LegacyRecipeStoreRecovery {
         var importedFromBackups: Int = 0
         var importedFromAlternateStores: Int = 0
         var reassignedHidden: Int = 0
-        var restoredSoftDeleted: Int = 0
 
         var total: Int {
             importedFromAppGroup + importedFromBackups + importedFromAlternateStores
-                + reassignedHidden + restoredSoftDeleted
+                + reassignedHidden
         }
     }
 
@@ -56,7 +55,7 @@ enum LegacyRecipeStoreRecovery {
         guard shouldRecover else { return nil }
 
         let result = recoverAll(modelContext: modelContext, ownerUserId: owner)
-        if result.total > 0 || result.reassignedHidden > 0 || result.restoredSoftDeleted > 0 {
+        if result.total > 0 || result.reassignedHidden > 0 {
             UserDefaults.standard.set(false, forKey: needsRecoveryImportDefaultsKey)
         }
         return result
@@ -138,12 +137,8 @@ enum LegacyRecipeStoreRecovery {
             modelContext: modelContext,
             ownerUserId: owner
         )
-        result.restoredSoftDeleted = restoreSoftDeletedRecipes(
-            modelContext: modelContext,
-            ownerUserId: owner
-        )
 
-        if result.total > 0 {
+        if result.total > 0 || result.reassignedHidden > 0 {
             CookbookService.setActiveCookbookId(defaultCookbookId, ownerUserId: owner)
             try? modelContext.save()
             #if DEBUG
@@ -185,30 +180,6 @@ enum LegacyRecipeStoreRecovery {
         return rows.count
     }
 
-    @MainActor
-    @discardableResult
-    static func restoreSoftDeletedRecipes(
-        modelContext: ModelContext,
-        ownerUserId: String
-    ) -> Int {
-        let owner = ownerUserId.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !owner.isEmpty else { return 0 }
-
-        let desc = FetchDescriptor<Recipe>(
-            predicate: #Predicate<Recipe> {
-                $0.ownerUserId == owner && $0.deletedAt != nil
-            }
-        )
-        guard let rows = try? modelContext.fetch(desc), !rows.isEmpty else { return 0 }
-
-        for recipe in rows {
-            recipe.deletedAt = nil
-            recipe.updatedAt = Date()
-        }
-        try? modelContext.save()
-        return rows.count
-    }
-
     // MARK: - Store discovery
 
     static func activeApplicationSupportDirectory() -> URL? {
@@ -229,7 +200,13 @@ enum LegacyRecipeStoreRecovery {
             return []
         }
         return files
-            .filter { $0.lastPathComponent.hasPrefix("default.store.backup-") }
+            .filter {
+                let name = $0.lastPathComponent
+                return (name.hasPrefix("default.store.backup-")
+                    || name.hasPrefix("default.recovery.store.backup-")
+                    || name.hasPrefix("default.recovery.store.archived-"))
+                    && name.hasSuffix(".store")
+            }
             .sorted { $0.lastPathComponent > $1.lastPathComponent }
     }
 

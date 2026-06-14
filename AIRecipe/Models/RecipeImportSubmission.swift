@@ -40,6 +40,10 @@ final class RecipeImportSubmission {
     var readyVideoPlaybackURL: String
     var readyStepTimestamps: String
     var readyDishHeroSeconds: Double
+    var readyNutritionCalories: Int
+    var readyNutritionProteinGrams: Int
+    var readyNutritionCarbsGrams: Int
+    var readyNutritionFatGrams: Int
 
     var status: RecipeImportStatus {
         get { RecipeImportStatus(rawValue: statusRaw) ?? .processing }
@@ -71,5 +75,9 @@ final class RecipeImportSubmission {
         self.readyVideoPlaybackURL = ""
         self.readyStepTimestamps = ""
         self.readyDishHeroSeconds = 0
+        self.readyNutritionCalories = 0
+        self.readyNutritionProteinGrams = 0
+        self.readyNutritionCarbsGrams = 0
+        self.readyNutritionFatGrams = 0
     }
 }

@@ -30,6 +30,10 @@ struct RecipeSyncPayload: Codable, Sendable, Equatable {
     /// Present for new clients; older `data` JSON may omit this key.
     var ownerUserId: String?
     var isBookmarked: Bool?
+    var nutritionCalories: Int?
+    var nutritionProteinGrams: Int?
+    var nutritionCarbsGrams: Int?
+    var nutritionFatGrams: Int?
 }
 
 private struct RecipeCloudRowUpsert: Encodable, Sendable {
@@ -131,6 +135,10 @@ final class SyncService: @unchecked Sendable {
 
         if !remoteRows.isEmpty {
             try await applyRemoteRows(remoteRows, modelContainer: modelContainer)
+            await MainActor.run {
+                let context = ModelContext(modelContainer)
+                _ = CookbookService.ensureLibrary(for: userId.uuidString, modelContext: context)
+            }
         }
 
         writeLastSync(Date(), for: userId)
@@ -269,6 +277,10 @@ final class SyncService: @unchecked Sendable {
             dishHeroTimestampSeconds: row.data.dishHeroTimestampSeconds,
             rating: row.data.rating,
             isBookmarked: row.data.isBookmarked ?? false,
+            nutritionCalories: max(0, row.data.nutritionCalories ?? 0),
+            nutritionProteinGrams: max(0, row.data.nutritionProteinGrams ?? 0),
+            nutritionCarbsGrams: max(0, row.data.nutritionCarbsGrams ?? 0),
+            nutritionFatGrams: max(0, row.data.nutritionFatGrams ?? 0),
             createdAt: row.data.createdAt,
             updatedAt: row.updated_at,
             deletedAt: row.deleted_at
@@ -311,7 +323,11 @@ extension RecipeSyncPayload {
             stepsContent: recipe.stepsContent,
             ingredientCheckmarks: recipe.ingredientCheckmarks,
             ownerUserId: recipe.ownerUserId,
-            isBookmarked: recipe.isBookmarked
+            isBookmarked: recipe.isBookmarked,
+            nutritionCalories: recipe.nutritionCalories > 0 ? recipe.nutritionCalories : nil,
+            nutritionProteinGrams: recipe.nutritionProteinGrams > 0 ? recipe.nutritionProteinGrams : nil,
+            nutritionCarbsGrams: recipe.nutritionCarbsGrams > 0 ? recipe.nutritionCarbsGrams : nil,
+            nutritionFatGrams: recipe.nutritionFatGrams > 0 ? recipe.nutritionFatGrams : nil
         )
     }
 }
@@ -339,6 +355,10 @@ extension Recipe {
         stepsContent = payload.stepsContent
         ingredientCheckmarks = payload.ingredientCheckmarks
         isBookmarked = payload.isBookmarked ?? false
+        if let calories = payload.nutritionCalories { nutritionCalories = max(0, calories) }
+        if let protein = payload.nutritionProteinGrams { nutritionProteinGrams = max(0, protein) }
+        if let carbs = payload.nutritionCarbsGrams { nutritionCarbsGrams = max(0, carbs) }
+        if let fat = payload.nutritionFatGrams { nutritionFatGrams = max(0, fat) }
         if let o = payload.ownerUserId, !o.isEmpty {
             ownerUserId = o
         }

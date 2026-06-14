@@ -155,7 +155,13 @@ struct AIRecipeApp: App {
         GoogleSignInService.configure()
     }
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Recipe.self, Cookbook.self, PlannedMeal.self, RecipeImportSubmission.self])
+        let schema = Schema([
+            Recipe.self,
+            Cookbook.self,
+            PlannedMeal.self,
+            RecipeImportSubmission.self,
+            FridgeItem.self,
+        ])
         guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             fatalError("SwiftData: could not resolve application support directory.")
         }
@@ -164,6 +170,15 @@ struct AIRecipeApp: App {
         let primaryURL = appSupport.appending(path: "default.store")
         let recoveryURL = appSupport.appending(path: "default.recovery.store")
 
+        func relatedStoreFileURLs(for storeURL: URL) -> [URL] {
+            let base = storeURL.path
+            return [
+                storeURL,
+                URL(fileURLWithPath: base + "-shm"),
+                URL(fileURLWithPath: base + "-wal"),
+            ]
+        }
+
         func openContainer(at url: URL) throws -> ModelContainer {
             let config = ModelConfiguration(schema: schema, url: url)
             return try ModelContainer(for: schema, configurations: [config])
@@ -171,15 +186,37 @@ struct AIRecipeApp: App {
 
         func preserveStoreCopy(at storeURL: URL, backupPrefix: String) {
             let fm = FileManager.default
-            guard fm.fileExists(atPath: storeURL.path) else { return }
-            let backupURL = appSupport.appending(
-                path: "\(backupPrefix)-\(Int(Date().timeIntervalSince1970))",
-                directoryHint: .notDirectory
-            )
-            try? fm.copyItem(at: storeURL, to: backupURL)
-            #if DEBUG
-            print("SwiftData: preserved store at \(backupURL.path)")
-            #endif
+            let stamp = Int(Date().timeIntervalSince1970)
+            for src in relatedStoreFileURLs(for: storeURL) where fm.fileExists(atPath: src.path) {
+                let backupURL = appSupport.appending(
+                    path: "\(backupPrefix)-\(stamp)-\(src.lastPathComponent)",
+                    directoryHint: .notDirectory
+                )
+                try? fm.copyItem(at: src, to: backupURL)
+                #if DEBUG
+                print("SwiftData: preserved store at \(backupURL.path)")
+                #endif
+            }
+        }
+
+        /// Moves aside an incompatible store so a fresh file can be created at the same path.
+        func archiveStoreFiles(at storeURL: URL, archivePrefix: String) {
+            let fm = FileManager.default
+            let stamp = Int(Date().timeIntervalSince1970)
+            for src in relatedStoreFileURLs(for: storeURL) where fm.fileExists(atPath: src.path) {
+                let archivedURL = appSupport.appending(
+                    path: "\(archivePrefix)-\(stamp)-\(src.lastPathComponent)",
+                    directoryHint: .notDirectory
+                )
+                try? fm.moveItem(at: src, to: archivedURL)
+                #if DEBUG
+                print("SwiftData: archived store at \(archivedURL.path)")
+                #endif
+            }
+        }
+
+        func flagRecoveryImportNeeded() {
+            UserDefaults.standard.set(true, forKey: LegacyRecipeStoreRecovery.needsRecoveryImportDefaultsKey)
         }
 
         // Primary store
@@ -190,22 +227,26 @@ struct AIRecipeApp: App {
             print("SwiftData: primary store failed (\(primaryError)). Preserving file and trying recovery store.")
             #endif
             preserveStoreCopy(at: primaryURL, backupPrefix: "default.store.backup")
-            UserDefaults.standard.set(true, forKey: LegacyRecipeStoreRecovery.needsRecoveryImportDefaultsKey)
+            flagRecoveryImportNeeded()
 
-            // Never delete the broken primary DB — LegacyRecipeStoreRecovery imports from it / backups.
             do {
                 return try openContainer(at: recoveryURL)
             } catch let recoveryError {
                 #if DEBUG
-                print("SwiftData: recovery store failed (\(recoveryError)). Preserving recovery file before retry.")
+                print("SwiftData: recovery store failed (\(recoveryError)). Creating fresh recovery store.")
                 #endif
                 preserveStoreCopy(at: recoveryURL, backupPrefix: "default.recovery.store.backup")
-                UserDefaults.standard.set(true, forKey: LegacyRecipeStoreRecovery.needsRecoveryImportDefaultsKey)
-                // Last resort: retry recovery open (primary + preserved copies remain for SQLite import).
-                if let container = try? openContainer(at: recoveryURL) {
-                    return container
+                archiveStoreFiles(at: recoveryURL, archivePrefix: "default.recovery.store.archived")
+                flagRecoveryImportNeeded()
+
+                do {
+                    return try openContainer(at: recoveryURL)
+                } catch let freshError {
+                    fatalError(
+                        "SwiftData: could not open any persistent store. "
+                        + "Primary: \(primaryError), recovery: \(recoveryError), fresh: \(freshError)"
+                    )
                 }
-                fatalError("SwiftData: could not open any persistent store. Primary: \(primaryError), recovery: \(recoveryError)")
             }
         }
     }()

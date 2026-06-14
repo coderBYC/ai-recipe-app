@@ -53,6 +53,13 @@ struct RecipeInstructionItem: Codable {
     }
 }
 
+struct RecipeNutritionItem: Codable {
+    let calories: Int?
+    let protein_g: Int?
+    let carbs_g: Int?
+    let fat_g: Int?
+}
+
 struct RecipeAnalyzeResponse: Codable {
     let recipe_name: String
     let description: String
@@ -65,6 +72,7 @@ struct RecipeAnalyzeResponse: Codable {
     let video_url: String?
     let thumbnail_url: String?
     let dish_hero_timestamp_seconds: String?
+    let nutrition: RecipeNutritionItem?
 }
 
 struct ImportEnqueueResponse: Codable {
@@ -235,7 +243,7 @@ final class RecipeBackendService {
     }
 
     /// Queue a link import server-side and return backend job id.
-    func enqueueImport(url: String, language: String, userId: String) async throws -> ImportEnqueueResponse {
+    func enqueueImport(url: String, language: String, userId: String, isPro: Bool? = nil) async throws -> ImportEnqueueResponse {
         guard let endpoint = RecipeBackendConfig.endpointURL(path: "import") else {
             throw RecipeBackendError.invalidURL
         }
@@ -243,6 +251,9 @@ final class RecipeBackendService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(userId, forHTTPHeaderField: "X-User-Id")
+        if let isPro {
+            request.setValue(isPro ? "true" : "false", forHTTPHeaderField: "X-Is-Pro")
+        }
         request.httpBody = try JSONEncoder().encode(AnalyzeReelRequest(url: url, language: language))
         let (data, response): (Data, URLResponse)
         do {
@@ -499,6 +510,7 @@ extension RecipeAnalyzeResponse {
             stepTimestampsContent: Self.joinedStepTimestamps(from: instructions),
             dishHeroTimestampSeconds: heroSeconds
         )
+        Self.applyNutrition(nutrition, to: recipe)
         modelContext.insert(recipe)
         return recipe
     }
@@ -523,6 +535,23 @@ extension RecipeAnalyzeResponse {
         submission.readyVideoPlaybackURL = Self.storedVideoPlaybackURLString(video_url: video_url)
         submission.readyStepTimestamps = Self.joinedStepTimestamps(from: instructions)
         submission.readyDishHeroSeconds = Self.parseHeroSeconds(from: dish_hero_timestamp_seconds)
+        Self.applyNutrition(nutrition, to: submission)
+    }
+
+    static func applyNutrition(_ nutrition: RecipeNutritionItem?, to recipe: Recipe) {
+        guard let nutrition else { return }
+        recipe.nutritionCalories = max(0, nutrition.calories ?? 0)
+        recipe.nutritionProteinGrams = max(0, nutrition.protein_g ?? 0)
+        recipe.nutritionCarbsGrams = max(0, nutrition.carbs_g ?? 0)
+        recipe.nutritionFatGrams = max(0, nutrition.fat_g ?? 0)
+    }
+
+    static func applyNutrition(_ nutrition: RecipeNutritionItem?, to submission: RecipeImportSubmission) {
+        guard let nutrition else { return }
+        submission.readyNutritionCalories = max(0, nutrition.calories ?? 0)
+        submission.readyNutritionProteinGrams = max(0, nutrition.protein_g ?? 0)
+        submission.readyNutritionCarbsGrams = max(0, nutrition.carbs_g ?? 0)
+        submission.readyNutritionFatGrams = max(0, nutrition.fat_g ?? 0)
     }
 
     static func parseHeroSeconds(from raw: String?) -> Double {

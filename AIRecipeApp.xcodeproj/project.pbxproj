@@ -2587,9 +2587,13 @@
 		B0010027 /* SmartThumbnailAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010025 /* SmartThumbnailAsset.swift */; };
 		B0010028 /* SmartThumbnailFrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010026 /* SmartThumbnailFrameExtractor.swift */; };
 		B0010029 /* SmartThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010027 /* SmartThumbnailView.swift */; };
-		B0010030 /* FridgePlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010028 /* FridgePlaceholderView.swift */; };
+		B0010030 /* FridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010028 /* FridgeView.swift */; };
 		B0010031 /* BookmarksSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010029 /* BookmarksSheetView.swift */; };
 		B0010032 /* LegacyRecipeStoreRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010030 /* LegacyRecipeStoreRecovery.swift */; };
+		B0010034 /* FridgeItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010032 /* FridgeItem.swift */; };
+		B0010035 /* FridgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010033 /* FridgeService.swift */; };
+		B0010036 /* RecipePDFExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010034 /* RecipePDFExportService.swift */; };
+		B0010037 /* NutritionIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010035 /* NutritionIndicatorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -3519,9 +3523,13 @@
 		F0010025 /* SmartThumbnailAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailAsset.swift; sourceTree = "<group>"; };
 		F0010026 /* SmartThumbnailFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailFrameExtractor.swift; sourceTree = "<group>"; };
 		F0010027 /* SmartThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailView.swift; sourceTree = "<group>"; };
-		F0010028 /* FridgePlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgePlaceholderView.swift; sourceTree = "<group>"; };
+		F0010028 /* FridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeView.swift; sourceTree = "<group>"; };
 		F0010029 /* BookmarksSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksSheetView.swift; sourceTree = "<group>"; };
 		F0010030 /* LegacyRecipeStoreRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyRecipeStoreRecovery.swift; sourceTree = "<group>"; };
+		F0010032 /* FridgeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeItem.swift; sourceTree = "<group>"; };
+		F0010033 /* FridgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeService.swift; sourceTree = "<group>"; };
+		F0010034 /* RecipePDFExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePDFExportService.swift; sourceTree = "<group>"; };
+		F0010035 /* NutritionIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionIndicatorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -4506,7 +4514,8 @@
 				1A86DB912FC227F9009E8391 /* OnboardingView.swift */,
 				F0010022 /* GroceryListView.swift */,
 				F0010023 /* CookAssistantPlaceholderView.swift */,
-				F0010028 /* FridgePlaceholderView.swift */,
+				F0010028 /* FridgeView.swift */,
+				F0010035 /* NutritionIndicatorView.swift */,
 				F0010029 /* BookmarksSheetView.swift */,
 				F0010024 /* CreateCookbookSheet.swift */,
 				F0010027 /* SmartThumbnailView.swift */,
@@ -4542,6 +4551,8 @@
 				F0010021 /* CookbookService.swift */,
 				F0010031 /* GroceryManualStore.swift */,
 				F0010030 /* LegacyRecipeStoreRecovery.swift */,
+				F0010033 /* FridgeService.swift */,
+				F0010034 /* RecipePDFExportService.swift */,
 				F0010026 /* SmartThumbnailFrameExtractor.swift */,
 			);
 			path = Helpers;
@@ -4563,6 +4574,7 @@
 				F001001B /* RecipeImportSubmission.swift */,
 				F0010020 /* Cookbook.swift */,
 				F0010025 /* SmartThumbnailAsset.swift */,
+				F0010032 /* FridgeItem.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -7296,9 +7308,13 @@
 				B0010024 /* GroceryListView.swift in Sources */,
 				B0010033 /* GroceryManualStore.swift in Sources */,
 				B0010025 /* CookAssistantPlaceholderView.swift in Sources */,
-				B0010030 /* FridgePlaceholderView.swift in Sources */,
+				B0010030 /* FridgeView.swift in Sources */,
 				B0010031 /* BookmarksSheetView.swift in Sources */,
 				B0010032 /* LegacyRecipeStoreRecovery.swift in Sources */,
+				B0010034 /* FridgeItem.swift in Sources */,
+				B0010035 /* FridgeService.swift in Sources */,
+				B0010036 /* RecipePDFExportService.swift in Sources */,
+				B0010037 /* NutritionIndicatorView.swift in Sources */,
 				B0010026 /* CreateCookbookSheet.swift in Sources */,
 				B0010027 /* SmartThumbnailAsset.swift in Sources */,
 				B0010028 /* SmartThumbnailFrameExtractor.swift in Sources */,
@@ -7331,7 +7347,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
@@ -7343,7 +7359,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.airecipe.app.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -7362,7 +7378,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
@@ -7374,7 +7390,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.airecipe.app.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -7393,7 +7409,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
@@ -7405,7 +7421,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.airecipe.app.RecipeShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -7423,7 +7439,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
@@ -7435,7 +7451,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.airecipe.app.RecipeShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -7578,7 +7594,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = AIRecipeApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				ENABLE_PREVIEWS = YES;
@@ -7601,7 +7617,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.airecipe.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -7624,7 +7640,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = AIRecipeApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = XWJ2KKP2XQ;
 				ENABLE_PREVIEWS = YES;
@@ -7647,7 +7663,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.airecipe.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

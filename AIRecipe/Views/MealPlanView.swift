@@ -32,8 +32,8 @@ struct MealPlanView: View {
 
     init(filterOwnerId: String) {
         self.filterOwnerId = filterOwnerId
-        _allPlanned = Query(sort: \PlannedMeal.weekStart)
         let oid = filterOwnerId
+        _allPlanned = Query(sort: \PlannedMeal.weekStart)
         _recipes = Query(
             filter: #Predicate<Recipe> { r in
                 r.deletedAt == nil && r.ownerUserId == oid
@@ -47,7 +47,7 @@ struct MealPlanView: View {
 
     /// Hides a slot assignment if it points at another account’s recipe (e.g. after switching users).
     private func recipeForCurrentOwner(in planned: PlannedMeal?) -> Recipe? {
-        guard let r = planned?.recipe, r.ownerUserId == filterOwnerId else { return nil }
+        guard let r = planned?.recipe, r.deletedAt == nil, r.ownerUserId == filterOwnerId else { return nil }
         return r
     }
 

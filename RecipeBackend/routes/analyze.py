@@ -23,12 +23,13 @@ from import_jobs_service import (
     wait_for_job_result,
 )
 from models import AnalyzeRequest, RecipeResponse
-from quota import enforce_import_quota, require_user_id
+from quota import enforce_import_quota, is_pro_user, require_user_id
 from recipe_analysis import (
     analyze_local_video_path,
     extract_json_from_response,
     normalize_dish_hero_timestamp_seconds,
     normalize_instruction_timestamps,
+    nutrition_info_from_data,
     require_recipe_ai_configured,
 )
 from served_videos import persist_served_video
@@ -36,6 +37,29 @@ from thumbnails import save_thumbnail_from_video, upload_suffix
 from url_utils import is_tiktok_url, is_youtube_url, youtube_oembed_author_name
 
 router = APIRouter(tags=["analyze"])
+
+
+def _recipe_response_from_data(
+    data: dict,
+    *,
+    creator: str,
+    video_url: Optional[str],
+    thumbnail_url: Optional[str],
+) -> RecipeResponse:
+    return RecipeResponse(
+        recipe_name=data.get("recipe_name", "Untitled Recipe"),
+        description=data.get("description", ""),
+        creator=creator,
+        estimated_cooking_time=str(data.get("estimated_cooking_time", "0")),
+        prep_time=str(data.get("prep_time", "0")),
+        estimated_servings=str(data.get("estimated_servings", "1")),
+        ingredients=data.get("ingredients", []),
+        instructions=data.get("instructions", []),
+        video_url=video_url,
+        thumbnail_url=thumbnail_url,
+        dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
+        nutrition=nutrition_info_from_data(data),
+    )
 
 
 @router.post("/analyze_reel")
@@ -69,6 +93,7 @@ async def analyze_reel_enqueue(request: Request, req: AnalyzeRequest, wait: bool
         video_url=payload.get("video_url"),
         thumbnail_url=payload.get("thumbnail_url"),
         dish_hero_timestamp_seconds=str(payload.get("dish_hero_timestamp_seconds", "0")),
+        nutrition=nutrition_info_from_data(payload),
     )
 
 
@@ -85,6 +110,7 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
         source_kind = "tiktok"
     await enforce_import_quota(request, source_kind)
     require_recipe_ai_configured()
+    include_nutrition = await is_pro_user(request)
 
     thumbnail_url = None
     video_url: Optional[str] = None
@@ -104,6 +130,7 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
                 local_video_path,
                 req.language,
                 [f"Original source URL: {url}"],
+                include_nutrition=include_nutrition,
             )
         elif is_tiktok_url(url):
             tk_result = download_tiktok_video(url)
@@ -119,6 +146,7 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
                 video_name,
                 req.language,
                 [f"Original source URL: {url}"],
+                include_nutrition=include_nutrition,
             )
         else:
             ig_result = download_instagram_reel(url)
@@ -134,7 +162,12 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
                 extra.append(
                     f"Instagram caption context (may include ingredients or steps):\n{instagram_caption}"
                 )
-            raw_text = await analyze_local_video_path(video_name, req.language, extra)
+            raw_text = await analyze_local_video_path(
+                video_name,
+                req.language,
+                extra,
+                include_nutrition=include_nutrition,
+            )
     except InstagramBlockedError as e:
         raise HTTPException(
             status_code=429,
@@ -189,18 +222,11 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             except OSError:
                 pass
 
-    return RecipeResponse(
-        recipe_name=data.get("recipe_name", "Untitled Recipe"),
-        description=data.get("description", ""),
+    return _recipe_response_from_data(
+        data,
         creator=creator_name,
-        estimated_cooking_time=str(data.get("estimated_cooking_time", "0")),
-        prep_time=str(data.get("prep_time", "0")),
-        estimated_servings=str(data.get("estimated_servings", "1")),
-        ingredients=data.get("ingredients", []),
-        instructions=data.get("instructions", []),
         video_url=video_url,
         thumbnail_url=thumbnail_url,
-        dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )
 
 
@@ -212,6 +238,7 @@ async def analyze_video_upload(
 ):
     require_recipe_ai_configured()
     await enforce_import_quota(request, "upload")
+    include_nutrition = await is_pro_user(request)
 
     thumbnail_url = None
     video_url: Optional[str] = None
@@ -238,7 +265,11 @@ async def analyze_video_upload(
         if total == 0:
             raise HTTPException(status_code=400, detail="Empty upload")
 
-        raw_text = await analyze_local_video_path(tmp_path, language)
+        raw_text = await analyze_local_video_path(
+            tmp_path,
+            language,
+            include_nutrition=include_nutrition,
+        )
         data = extract_json_from_response(raw_text)
         normalize_instruction_timestamps(data)
         creator_name = creator_name or str(data.get("creator", "") or "")
@@ -271,16 +302,9 @@ async def analyze_video_upload(
             except OSError:
                 pass
 
-    return RecipeResponse(
-        recipe_name=data.get("recipe_name", "Untitled Recipe"),
-        description=data.get("description", ""),
+    return _recipe_response_from_data(
+        data,
         creator=creator_name,
-        estimated_cooking_time=str(data.get("estimated_cooking_time", "0")),
-        prep_time=str(data.get("prep_time", "0")),
-        estimated_servings=str(data.get("estimated_servings", "1")),
-        ingredients=data.get("ingredients", []),
-        instructions=data.get("instructions", []),
         video_url=video_url,
         thumbnail_url=thumbnail_url,
-        dish_hero_timestamp_seconds=normalize_dish_hero_timestamp_seconds(data),
     )

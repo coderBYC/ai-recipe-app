@@ -33,6 +33,13 @@ class ImportJobView(BaseModel):
     result_json: Optional[dict[str, Any]] = None
 
 
+class NutritionInfo(BaseModel):
+    calories: Optional[int] = None
+    protein_g: Optional[int] = None
+    carbs_g: Optional[int] = None
+    fat_g: Optional[int] = None
+
+
 class RecipeResponse(BaseModel):
     recipe_name: str
     description: str
@@ -45,6 +52,7 @@ class RecipeResponse(BaseModel):
     video_url: Optional[str] = None
     thumbnail_url: Optional[str] = None
     dish_hero_timestamp_seconds: str = "0"
+    nutrition: Optional[NutritionInfo] = None
 
 
 class PlanUpdateRequest(BaseModel):

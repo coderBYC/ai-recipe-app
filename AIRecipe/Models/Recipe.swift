@@ -80,6 +80,11 @@ final class Recipe: Identifiable {
     var ingredientCheckmarks: String
     /// Saved to the Bookmarks sheet on Home.
     var isBookmarked: Bool
+    /// Per-serving nutrition (Pro AI); 0 = unset.
+    var nutritionCalories: Int
+    var nutritionProteinGrams: Int
+    var nutritionCarbsGrams: Int
+    var nutritionFatGrams: Int
 
     /// Recipes created in the pre-auth onboarding chrome use this so they never mix with a signed-in user’s library.
     static let localOnboardingOwnerPlaceholder = "__onboarding_local__"
@@ -111,6 +116,10 @@ final class Recipe: Identifiable {
         dishHeroTimestampSeconds: Double = 1,
         rating: Int = 0,
         isBookmarked: Bool = false,
+        nutritionCalories: Int = 0,
+        nutritionProteinGrams: Int = 0,
+        nutritionCarbsGrams: Int = 0,
+        nutritionFatGrams: Int = 0,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         deletedAt: Date? = nil
@@ -142,6 +151,10 @@ final class Recipe: Identifiable {
         self.deletedAt = deletedAt
         self.rating = rating
         self.isBookmarked = isBookmarked
+        self.nutritionCalories = max(0, nutritionCalories)
+        self.nutritionProteinGrams = max(0, nutritionProteinGrams)
+        self.nutritionCarbsGrams = max(0, nutritionCarbsGrams)
+        self.nutritionFatGrams = max(0, nutritionFatGrams)
     }
     
     var sourceEnum: RecipeSource {
