@@ -447,7 +447,7 @@ struct CookbookRecipesSheetView: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.height(650)])
         .presentationDragIndicator(.visible)
     }
 }

@@ -60,6 +60,16 @@ struct RecipeNutritionItem: Codable {
     let fat_g: Int?
 }
 
+struct FridgeScanItem: Codable {
+    let name: String
+    let quantity_display: String?
+    let expiration_date: String?
+}
+
+struct FridgeScanResponse: Codable {
+    let items: [FridgeScanItem]
+}
+
 struct RecipeAnalyzeResponse: Codable {
     let recipe_name: String
     let description: String
@@ -340,6 +350,47 @@ final class RecipeBackendService {
             throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
         }
         return try JSONDecoder().decode(Response.self, from: data).ingredients
+    }
+
+    /// Scan a fridge zone photo with Gemini on the backend; returns detected items (photo is not stored).
+    func scanFridge(zone: String, imageData: Data, mimeType: String = "image/jpeg") async throws -> [FridgeScanItem] {
+        guard let endpoint = RecipeBackendConfig.endpointURL(path: "scan-fridge") else {
+            throw RecipeBackendError.invalidURL
+        }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        let filename = mimeType.contains("png") ? "fridge.png" : "fridge.jpg"
+        var body = Data()
+        func append(_ string: String) {
+            body.append(Data(string.utf8))
+        }
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"zone\"\r\n\r\n\(zone)\r\n")
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
+        append("Content-Type: \(mimeType)\r\n\r\n")
+        body.append(imageData)
+        append("\r\n--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await Self.aiTextSession.data(for: request)
+        } catch {
+            throw RecipeBackendError.network(error)
+        }
+        guard let http = response as? HTTPURLResponse else {
+            throw RecipeBackendError.invalidResponse
+        }
+        if http.statusCode != 200 {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw RecipeBackendError.serverError("\(http.statusCode): \(message)")
+        }
+        return try JSONDecoder().decode(FridgeScanResponse.self, from: data).items
     }
 
     /// Uploads a local video file (e.g. from Photos) for the same Gemini pipeline as TikTok/Instagram downloads.

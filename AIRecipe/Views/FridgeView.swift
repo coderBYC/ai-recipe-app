@@ -1,5 +1,7 @@
+import PhotosUI
 import SwiftData
 import SwiftUI
+import UIKit
 
 // MARK: - Main tab
 
@@ -7,20 +9,50 @@ struct FridgeView: View {
     let filterOwnerId: String
 
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedZone: FridgeZone?
+    @Query private var allItems: [FridgeItem]
+    @State private var addItemZone: FridgeZone?
+    @State private var editingItem: FridgeItem?
+    @State private var cameraZone: FridgeZone?
+    @State private var isScanning = false
+    @State private var scanError: String?
+
+    init(filterOwnerId: String) {
+        self.filterOwnerId = filterOwnerId
+        let oid = filterOwnerId
+        _allItems = Query(
+            filter: #Predicate<FridgeItem> { $0.ownerUserId == oid },
+            sort: [
+                SortDescriptor(\.expirationDate),
+                SortDescriptor(\.name),
+            ]
+        )
+    }
+
+    private var itemsByZone: [FridgeZone: [FridgeItem]] {
+        Dictionary(grouping: allItems, by: \.zone)
+    }
+
+    private var totalItemCount: Int { allItems.count }
 
     var body: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                InteractiveFridgeGraphic(hotspots: FridgeLayout.hotspots) { zone in
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    selectedZone = zone
+            ZStack {
+                Group {
+                    if totalItemCount == 0 {
+                        emptyState
+                    } else {
+                        listContent
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 32)
+                .background(AppTheme.surface.ignoresSafeArea())
+
+                if isScanning {
+                    Color.black.opacity(0.2).ignoresSafeArea()
+                    ProgressView("Scanning fridge…")
+                        .padding(20)
+                        .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+                }
             }
-            .background(AppTheme.surface.ignoresSafeArea())
             .onAppear {
                 FridgeService.migrateLegacyZoneLabels(modelContext: modelContext)
             }
@@ -33,183 +65,298 @@ struct FridgeView: View {
                         .foregroundStyle(AppTheme.primary)
                 }
             }
-            .sheet(item: $selectedZone) { zone in
-                FridgeZoneItemsSheet(zone: zone, filterOwnerId: filterOwnerId)
+            .sheet(item: $addItemZone) { zone in
+                FridgeItemFormSheet(mode: .add(zone: zone), filterOwnerId: filterOwnerId)
+            }
+            .sheet(item: $editingItem) { item in
+                FridgeItemFormSheet(mode: .edit(item: item), filterOwnerId: filterOwnerId)
+            }
+            .fullScreenCover(item: $cameraZone) { zone in
+                FridgeCameraPicker { image in
+                    cameraZone = nil
+                    Task { await scanImage(image, zone: zone) }
+                } onCancel: {
+                    cameraZone = nil
+                }
+            }
+            .alert("Could not scan photo", isPresented: Binding(
+                get: { scanError != nil },
+                set: { if !$0 { scanError = nil } }
+            )) {
+                Button("OK", role: .cancel) { scanError = nil }
+            } message: {
+                Text(scanError ?? "")
             }
         }
     }
-}
 
-// MARK: - Illustration + hotspots
+    private var emptyState: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                Image(systemName: "refrigerator.fill")
+                    .font(.system(size: 52))
+                    .foregroundStyle(AppTheme.primary.opacity(0.85))
+                    .padding(.top, 40)
 
-private struct FridgeHotspot: Identifiable {
-    let zone: FridgeZone
-    /// Normalized rect within the fridge image (0…1).
-    let rect: CGRect
+                Text("Your fridge is empty")
+                    .appFont(.title3)
+                    .foregroundStyle(AppTheme.textPrimary)
 
-    var id: String { zone.id }
-}
+                Text("Use + or the camera on a zone below to track what you have and when it expires.")
+                    .appFont(.callout)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
 
-private enum FridgeLayout {
-    /// Normalized tap rects for `fridge` asset (760×900 interior photo).
-    static let hotspots: [FridgeHotspot] = [
-        // Upper cavity — left / right halves
-        FridgeHotspot(zone: .leftDoor, rect: CGRect(x: 0.03, y: 0.14, width: 0.47, height: 0.58)),
-        FridgeHotspot(zone: .rightDoor, rect: CGRect(x: 0.50, y: 0.14, width: 0.47, height: 0.58)),
-        FridgeHotspot(zone: .bottomShelf, rect: CGRect(x: 0.50, y: 0.14, width: 0.47, height: 0.58)),
-        FridgeHotspot(zone: .middleShelf, rect: CGRect(x: 0.50, y: 0.14, width: 0.47, height: 0.58)),
-        FridgeHotspot(zone: .topShelf, rect: CGRect(x: 0.50, y: 0.14, width: 0.47, height: 0.58)),
-        // Bottom crisper drawers — product preserver
-        FridgeHotspot(zone: .crisperDrawer, rect: CGRect(x: 0.03, y: 0.74, width: 0.94, height: 0.22)),
-        FridgeHotspot(zone: .freezer, rect: CGRect(x: 0.03, y: 0.74, width: 0.94, height: 0.22)),
-    ]
-}
-
-private struct InteractiveFridgeGraphic: View {
-    let hotspots: [FridgeHotspot]
-    var showsHotspotOverlay: Bool = false
-    var onZoneTapped: (FridgeZone) -> Void
-
-    var body: some View {
-        Image("fridge")
-            .resizable()
-            .scaledToFit()
-            .frame(maxWidth: .infinity)
-            .overlay {
-                GeometryReader { proxy in
-                    let width = proxy.size.width
-                    let height = proxy.size.height
-
-                    ForEach(hotspots) { hotspot in
-                        Button {
-                            onZoneTapped(hotspot.zone)
-                        } label: {
-                            ZStack {
-                                if showsHotspotOverlay {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(overlayColor(for: hotspot.zone).opacity(0.38))
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .stroke(overlayColor(for: hotspot.zone), lineWidth: 2)
-                                        }
-                                    Text(hotspot.zone.rawValue)
-                                        .font(.caption2.weight(.bold))
-                                        .foregroundStyle(.white)
-                                        .padding(6)
-                                        .background(.black.opacity(0.55), in: Capsule())
-                                } else {
-                                    Color.clear
-                                }
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .frame(
-                            width: hotspot.rect.width * width,
-                            height: hotspot.rect.height * height
-                        )
-                        .position(
-                            x: hotspot.rect.midX * width,
-                            y: hotspot.rect.midY * height
-                        )
-                        .accessibilityLabel(hotspot.zone.rawValue)
-                        .accessibilityHint("Shows items stored in this area")
-                    }
-                }
+                zoneCards
             }
-            .accessibilityHidden(!showsHotspotOverlay)
-    }
-
-    private func overlayColor(for zone: FridgeZone) -> Color {
-        switch zone {
-        case .leftDoor: return .blue
-        case .rightDoor: return .green
-        case .crisperDrawer: return .orange
-        default: return .purple
+            .padding(.bottom, 24)
         }
     }
-}
 
-// MARK: - Zone item list sheet
+    private var listContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("\(totalItemCount) item\(totalItemCount == 1 ? "" : "s") tracked")
+                    .appFont(.callout)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.horizontal, 16)
 
-private struct FridgeZoneItemsSheet: View {
-    let zone: FridgeZone
-    let filterOwnerId: String
-
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
-    @Query private var items: [FridgeItem]
-    @State private var showAddItemSheet = false
-
-    init(zone: FridgeZone, filterOwnerId: String) {
-        self.zone = zone
-        self.filterOwnerId = filterOwnerId
-        let oid = filterOwnerId
-        let zoneRaw = zone.rawValue
-        _items = Query(
-            filter: #Predicate<FridgeItem> {
-                $0.ownerUserId == oid && $0.zoneRaw == zoneRaw
-            },
-            sort: [
-                SortDescriptor(\.expirationDate),
-                SortDescriptor(\.name),
-            ]
-        )
+                zoneCards
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 24)
+        }
     }
 
-    var body: some View {
-        NavigationStack {
-            Group {
-                if items.isEmpty {
-                    ContentUnavailableView(
-                        "Nothing here yet",
-                        systemImage: zone.sfSymbol,
-                        description: Text("Tap + to add food to \(zone.rawValue.lowercased()).")
-                    )
-                } else {
-                    List {
-                        ForEach(items) { item in
-                            FridgeItemRow(item: item)
-                        }
-                        .onDelete(perform: deleteItems)
-                    }
-                    .listStyle(.plain)
-                }
+    private var zoneCards: some View {
+        VStack(spacing: 16) {
+            ForEach(FridgeZone.displayZones) { zone in
+                FridgeZoneCard(
+                    zone: zone,
+                    items: itemsByZone[zone] ?? [],
+                    onAdd: { addItemZone = zone },
+                    onOpenCamera: { cameraZone = zone },
+                    onScanImage: { data, mimeType, scanZone in
+                        Task { await scanImageData(data, mimeType: mimeType, zone: scanZone) }
+                    },
+                    onEdit: { editingItem = $0 }
+                )
             }
-            .navigationTitle(zone.rawValue)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
+        }
+    }
+
+    @MainActor
+    private func scanImage(_ image: UIImage, zone: FridgeZone) async {
+        guard let data = image.jpegData(compressionQuality: 0.85) else {
+            scanError = "Could not prepare the photo."
+            return
+        }
+        await scanImageData(data, mimeType: "image/jpeg", zone: zone)
+    }
+
+    @MainActor
+    private func scanImageData(_ data: Data, mimeType: String, zone: FridgeZone) async {
+        guard !filterOwnerId.isEmpty else {
+            scanError = "Sign in to scan fridge photos."
+            return
+        }
+
+        isScanning = true
+        scanError = nil
+        defer { isScanning = false }
+
+        do {
+            let detected = try await RecipeBackendService.shared.scanFridge(
+                zone: zone.rawValue,
+                imageData: data,
+                mimeType: mimeType
+            )
+            guard !detected.isEmpty else {
+                scanError = "No food items were detected in that photo."
+                return
+            }
+
+            for item in detected {
+                let name = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !name.isEmpty else { continue }
+                _ = FridgeService.addItem(
+                    name: name,
+                    zone: zone,
+                    expirationDate: Self.parseExpirationDate(item.expiration_date),
+                    quantityDisplay: item.quantity_display ?? "",
+                    ownerUserId: filterOwnerId,
+                    modelContext: modelContext
+                )
+            }
+        } catch let error as RecipeBackendError {
+            switch error {
+            case .serverError(let msg): scanError = msg
+            case .network(let err): scanError = err.localizedDescription
+            case .invalidURL: scanError = "Invalid server URL."
+            case .invalidResponse: scanError = "Invalid server response."
+            }
+        } catch {
+            scanError = error.localizedDescription
+        }
+    }
+
+    private static func parseExpirationDate(_ raw: String?) -> Date {
+        let trimmed = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        if !trimmed.isEmpty, let date = formatter.date(from: String(trimmed.prefix(10))) {
+            return date
+        }
+        return Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+    }
+}
+
+// MARK: - Zone card
+
+private struct FridgeZoneCard: View {
+    let zone: FridgeZone
+    let items: [FridgeItem]
+    var onAdd: () -> Void
+    var onOpenCamera: () -> Void
+    var onScanImage: (Data, String, FridgeZone) -> Void
+    var onEdit: (FridgeItem) -> Void
+
+    @State private var libraryPickerItem: PhotosPickerItem?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Label(zone.rawValue, systemImage: zone.sfSymbol)
+                    .appFont(.headlineBold)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+
+                Spacer(minLength: 8)
+
+                Menu {
+                    PhotosPicker(selection: $libraryPickerItem, matching: .images, photoLibrary: .shared()) {
+                        Label("Photo Library", systemImage: "photo.on.rectangle")
+                    }
                     Button {
-                        showAddItemSheet = true
+                        onOpenCamera()
                     } label: {
-                        Image(systemName: "plus")
-                            .font(AppTheme.bitterFont(size: 18, weight: .regular))
-                            .foregroundStyle(AppTheme.textPrimary)
+                        Label("Take Photo", systemImage: "camera")
                     }
-                    .accessibilityLabel("Add item")
+                } label: {
+                    Image(systemName: "camera")
+                        .font(AppTheme.bitterFont(size: 18, weight: .regular))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .frame(width: 32, height: 32)
+                }
+                .accessibilityLabel("Add items from photo in \(zone.rawValue)")
+
+                Button(action: onAdd) {
+                    Image(systemName: "plus")
+                        .font(AppTheme.bitterFont(size: 18, weight: .regular))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .frame(width: 32, height: 32)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add item to \(zone.rawValue)")
+            }
+
+            if items.isEmpty {
+                Text("Nothing here yet")
+                    .appFont(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.vertical, 4)
+            } else {
+                ForEach(items) { item in
+                    FridgeItemRow(
+                        item: item,
+                        onEdit: { onEdit(item) }
+                    )
                 }
             }
-            .sheet(isPresented: $showAddItemSheet) {
-                AddFridgeItemSheet(zone: zone, filterOwnerId: filterOwnerId)
+        }
+        .padding(14)
+        .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
+        .padding(.horizontal, 16)
+        .onChange(of: libraryPickerItem) { _, item in
+            guard let item else { return }
+            Task {
+                await handleLibrarySelection(item)
+                libraryPickerItem = nil
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
     }
 
-    private func deleteItems(at offsets: IndexSet) {
-        for index in offsets {
-            FridgeService.deleteItem(items[index], modelContext: modelContext)
+    @MainActor
+    private func handleLibrarySelection(_ item: PhotosPickerItem) async {
+        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+        let jpeg: Data
+        let mime: String
+        if let image = UIImage(data: data), let converted = image.jpegData(compressionQuality: 0.85) {
+            jpeg = converted
+            mime = "image/jpeg"
+        } else {
+            jpeg = data
+            mime = "image/jpeg"
+        }
+        onScanImage(jpeg, mime, zone)
+    }
+}
+
+// MARK: - Camera picker
+
+private struct FridgeCameraPicker: UIViewControllerRepresentable {
+    var onImage: (UIImage) -> Void
+    var onCancel: () -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = UIImagePickerController.isSourceTypeAvailable(.camera) ? .camera : .photoLibrary
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onImage: onImage, onCancel: onCancel)
+    }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let onImage: (UIImage) -> Void
+        let onCancel: () -> Void
+
+        init(onImage: @escaping (UIImage) -> Void, onCancel: @escaping () -> Void) {
+            self.onImage = onImage
+            self.onCancel = onCancel
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            onCancel()
+        }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+        ) {
+            if let image = info[.originalImage] as? UIImage {
+                onImage(image)
+            } else {
+                onCancel()
+            }
         }
     }
 }
+
+// MARK: - Item row
 
 private struct FridgeItemRow: View {
     let item: FridgeItem
+    var onEdit: () -> Void
 
     private static let expirationFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -219,34 +366,43 @@ private struct FridgeItemRow: View {
     }()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(item.name)
-                    .appFont(.callout)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(AppTheme.textPrimary)
-                Spacer()
-                if item.isExpired {
-                    statusBadge("Expired", color: .red.opacity(0.85))
-                } else if item.isExpiringSoon {
-                    statusBadge("Soon", color: .orange.opacity(0.9))
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Text(item.name)
+                        .appFont(.callout)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if item.isExpired {
+                        statusBadge("Expired", color: .red.opacity(0.85))
+                    } else if item.isExpiringSoon {
+                        statusBadge("Soon", color: .orange.opacity(0.9))
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    Label(
+                        Self.expirationFormatter.string(from: item.expirationDate),
+                        systemImage: "calendar"
+                    )
+                    .appFont(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+
+                    if !item.quantityDisplay.isEmpty {
+                        Label(item.quantityDisplay, systemImage: "scalemass")
+                            .appFont(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
                 }
             }
 
-            HStack(spacing: 12) {
-                Label(
-                    Self.expirationFormatter.string(from: item.expirationDate),
-                    systemImage: "calendar"
-                )
+            Button("Edit", action: onEdit)
                 .appFont(.caption)
-                .foregroundStyle(AppTheme.textSecondary)
-
-                if !item.quantityDisplay.isEmpty {
-                    Label(item.quantityDisplay, systemImage: "scalemass")
-                        .appFont(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-            }
+                .fontWeight(.semibold)
+                .foregroundStyle(AppTheme.primary)
+                .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
     }
@@ -262,10 +418,22 @@ private struct FridgeItemRow: View {
     }
 }
 
-// MARK: - Add item sheet
+// MARK: - Add / edit sheet
 
-private struct AddFridgeItemSheet: View {
-    let zone: FridgeZone
+private enum FridgeItemFormMode: Identifiable {
+    case add(zone: FridgeZone)
+    case edit(item: FridgeItem)
+
+    var id: String {
+        switch self {
+        case .add(let zone): return "add-\(zone.id)"
+        case .edit(let item): return "edit-\(item.id.uuidString)"
+        }
+    }
+}
+
+private struct FridgeItemFormSheet: View {
+    let mode: FridgeItemFormMode
     let filterOwnerId: String
 
     @Environment(\.modelContext) private var modelContext
@@ -279,10 +447,24 @@ private struct AddFridgeItemSheet: View {
 
     private enum Field { case name, quantity }
 
-    init(zone: FridgeZone, filterOwnerId: String) {
-        self.zone = zone
+    init(mode: FridgeItemFormMode, filterOwnerId: String) {
+        self.mode = mode
         self.filterOwnerId = filterOwnerId
-        _selectedZone = State(initialValue: zone)
+
+        switch mode {
+        case .add(let zone):
+            _selectedZone = State(initialValue: zone)
+        case .edit(let item):
+            _name = State(initialValue: item.name)
+            _quantityDisplay = State(initialValue: item.quantityDisplay)
+            _expirationDate = State(initialValue: item.expirationDate)
+            _selectedZone = State(initialValue: item.zone)
+        }
+    }
+
+    private var isEditing: Bool {
+        if case .edit = mode { return true }
+        return false
     }
 
     private var canSave: Bool {
@@ -339,7 +521,7 @@ private struct AddFridgeItemSheet: View {
                         .appFont(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                     Picker("Zone", selection: $selectedZone) {
-                        ForEach(FridgeZone.interactiveZones) { z in
+                        ForEach(FridgeZone.displayZones) { z in
                             Label(z.rawValue, systemImage: z.sfSymbol)
                                 .tag(z)
                         }
@@ -347,6 +529,17 @@ private struct AddFridgeItemSheet: View {
                     .pickerStyle(.menu)
                     .padding(14)
                     .boxStyle()
+                }
+
+                if isEditing, case .edit(let item) = mode {
+                    Button(role: .destructive) {
+                        FridgeService.deleteItem(item, modelContext: modelContext)
+                        dismiss()
+                    } label: {
+                        Text("Delete item")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .padding(.top, 8)
                 }
 
                 Spacer()
@@ -360,31 +553,45 @@ private struct AddFridgeItemSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") { save() }
+                    Button(isEditing ? "Save" : "Add") { save() }
                         .fontWeight(.semibold)
                         .disabled(!canSave)
                 }
                 ToolbarItem(placement: .principal) {
-                    Text("Add item")
+                    Text(isEditing ? "Edit item" : "Add item")
                         .nanumAppFont(.headline)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.primary)
                 }
             }
-            .onAppear { focusedField = .name }
+            .onAppear {
+                if !isEditing { focusedField = .name }
+            }
         }
         .presentationDetents([.large])
     }
 
     private func save() {
-        guard FridgeService.addItem(
-            name: name,
-            zone: selectedZone,
-            expirationDate: expirationDate,
-            quantityDisplay: quantityDisplay,
-            ownerUserId: filterOwnerId,
-            modelContext: modelContext
-        ) != nil else { return }
+        switch mode {
+        case .add:
+            guard FridgeService.addItem(
+                name: name,
+                zone: selectedZone,
+                expirationDate: expirationDate,
+                quantityDisplay: quantityDisplay,
+                ownerUserId: filterOwnerId,
+                modelContext: modelContext
+            ) != nil else { return }
+        case .edit(let item):
+            guard FridgeService.updateItem(
+                item,
+                name: name,
+                zone: selectedZone,
+                expirationDate: expirationDate,
+                quantityDisplay: quantityDisplay,
+                modelContext: modelContext
+            ) else { return }
+        }
         dismiss()
     }
 }
@@ -392,139 +599,6 @@ private struct AddFridgeItemSheet: View {
 // MARK: - Previews
 
 #if DEBUG
-private struct FridgeHotspotTuningPreview: View {
-    @State private var rects: [FridgeZone: CGRect] = [
-        .leftDoor: CGRect(x: 0.00, y: 0.07, width: 0.21, height: 0.81),
-        .rightDoor: CGRect(x: 0.72, y: 0.70, width: 0.23, height: 0.80),
-        .crisperDrawer: CGRect(x: 0.24, y: 0.71, width: 0.43, height: 0.84),
-        .bottomShelf: CGRect(x: 0.03, y: 0.40, width: 0.94, height: 0.30),
-        .middleShelf: CGRect(x: 0.03, y: 0.30, width: 0.94, height: 0.10),
-        .topShelf: CGRect(x: 0.03, y: 0.00, width: 0.94, height: 0.30),
-        .freezer: CGRect(x: 0.03, y: 0.22, width: 0.94, height: 0.10)
-    ]
-    @State private var selectedZone: FridgeZone = .leftDoor
-
-    private var hotspots: [FridgeHotspot] {
-        FridgeZone.interactiveZones.compactMap { zone in
-            guard let rect = rects[zone] else { return nil }
-            return FridgeHotspot(zone: zone, rect: rect)
-        }
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    InteractiveFridgeGraphic(
-                        hotspots: hotspots,
-                        showsHotspotOverlay: true
-                    ) { zone in
-                        selectedZone = zone
-                    }
-                    .padding(.horizontal, 20)
-
-                    tuningControls
-                    copyPasteBlock
-                }
-                .padding(.bottom, 24)
-            }
-            .background(AppTheme.surface)
-            .navigationTitle("Hotspot tuning")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-
-    private var tuningControls: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Selected zone")
-                .appFont(.caption)
-                .foregroundStyle(AppTheme.textSecondary)
-
-            Picker("Zone", selection: $selectedZone) {
-                ForEach(FridgeZone.interactiveZones) { zone in
-                    Text(zone.rawValue).tag(zone)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            sliderRow("X", value: rectBinding(\.origin.x), range: 0...0.95)
-            sliderRow("Y", value: rectBinding(\.origin.y), range: 0...0.95)
-            sliderRow("Width", value: rectBinding(\.size.width), range: 0.05...1)
-            sliderRow("Height", value: rectBinding(\.size.height), range: 0.05...1)
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private var copyPasteBlock: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Paste into FridgeLayout.hotspots")
-                .appFont(.caption)
-                .foregroundStyle(AppTheme.textSecondary)
-
-            Text(hotspotCodeSnippet)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(AppTheme.textPrimary)
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .boxStyle()
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private var hotspotCodeSnippet: String {
-        let lines = FridgeZone.interactiveZones.compactMap { zone -> String? in
-            guard let r = rects[zone] else { return nil }
-            let caseName: String
-            switch zone {
-            case .leftDoor: caseName = "leftDoor"
-            case .rightDoor: caseName = "rightDoor"
-            case .crisperDrawer: caseName = "crisperDrawer"
-            default: caseName = zone.rawValue
-            }
-            return String(
-                format: "FridgeHotspot(zone: .%@, rect: CGRect(x: %.2f, y: %.2f, width: %.2f, height: %.2f)),",
-                caseName,
-                r.origin.x, r.origin.y, r.size.width, r.size.height
-            )
-        }
-        return lines.joined(separator: "\n")
-    }
-
-    private func sliderRow(
-        _ label: String,
-        value: Binding<CGFloat>,
-        range: ClosedRange<CGFloat>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(label)
-                    .appFont(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
-                Spacer()
-                Text(String(format: "%.2f", value.wrappedValue))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(AppTheme.textPrimary)
-            }
-            Slider(value: value, in: range, step: 0.01)
-        }
-    }
-
-    private func rectBinding(_ keyPath: WritableKeyPath<CGRect, CGFloat>) -> Binding<CGFloat> {
-        Binding(
-            get: { rects[selectedZone]?[keyPath: keyPath] ?? 0 },
-            set: { newValue in
-                var rect = rects[selectedZone] ?? .zero
-                rect[keyPath: keyPath] = newValue
-                rects[selectedZone] = rect
-            }
-        )
-    }
-}
-
-#Preview("Fridge — hotspot tuning") {
-    FridgeHotspotTuningPreview()
-}
-
 #Preview("Fridge tab") {
     FridgeView(filterOwnerId: "preview-user")
         .modelContainer(for: [FridgeItem.self], inMemory: true)

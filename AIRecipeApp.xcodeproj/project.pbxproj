@@ -7605,6 +7605,7 @@
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Let Him Cook uses the camera to scan food in your fridge and suggest items to track.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cook mode can listen for short commands like “next,” “back,” and timer phrases so you can move through steps hands-free.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -7651,6 +7652,7 @@
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Let Him Cook uses the camera to scan food in your fridge and suggest items to track.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cook mode can listen for short commands like “next,” “back,” and timer phrases so you can move through steps hands-free.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

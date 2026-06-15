@@ -12,15 +12,20 @@ enum FridgeZone: String, CaseIterable, Codable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Zones exposed as tappable regions on the fridge illustration.
-    static let interactiveZones: [FridgeZone] = [.leftDoor, .rightDoor, .crisperDrawer]
+    /// Zones shown as cards on the Fridge tab.
+    static let displayZones: [FridgeZone] = [
+        .leftDoor, .rightDoor, .topShelf, .middleShelf, .bottomShelf, .crisperDrawer, .freezer,
+    ]
+
+    /// Legacy alias for previews and migrations.
+    static let interactiveZones: [FridgeZone] = displayZones
 
     var sfSymbol: String {
         switch self {
-        case .topShelf: return "rectangle.split.3x1"
-        case .middleShelf: return "rectangle.split.3x1.fill"
-        case .bottomShelf: return "square.split.bottom.quarter"
-        case .crisperDrawer: return "leaf.box.fill"
+        case .topShelf: return "square.tophalf.filled"
+        case .middleShelf: return "square.3.stack.3d.middle.filled"
+        case .bottomShelf: return "square.bottomhalf.filled"
+        case .crisperDrawer: return "leaf.fill"
         case .leftDoor: return "door.left.hand.open"
         case .rightDoor: return "door.right.hand.open"
         case .freezer: return "snowflake"

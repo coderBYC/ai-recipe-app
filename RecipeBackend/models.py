@@ -70,3 +70,13 @@ class GroceryMergeRequest(BaseModel):
 
 class GroceryMergeResponse(BaseModel):
     ingredients: list[GroceryIngredientItem]
+
+
+class FridgeScanItem(BaseModel):
+    name: str
+    quantity_display: str = ""
+    expiration_date: str = ""
+
+
+class FridgeScanResponse(BaseModel):
+    items: list[FridgeScanItem]

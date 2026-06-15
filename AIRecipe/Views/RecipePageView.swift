@@ -490,6 +490,9 @@ struct RecipePageView: View {
 
             NutritionIndicatorView(
                 calories: max(recipe.nutritionCalories, 0),
+                proteinGrams: recipe.nutritionProteinGrams,
+                carbsGrams: recipe.nutritionCarbsGrams,
+                fatGrams: recipe.nutritionFatGrams,
                 macros: recipe.nutritionMacroMetrics
             )
         }
