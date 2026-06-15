@@ -353,7 +353,12 @@ final class RecipeBackendService {
     }
 
     /// Scan a fridge zone photo with Gemini on the backend; returns detected items (photo is not stored).
-    func scanFridge(zone: String, imageData: Data, mimeType: String = "image/jpeg") async throws -> [FridgeScanItem] {
+    func scanFridge(
+        zone: String,
+        imageData: Data,
+        mimeType: String = "image/jpeg",
+        existingItems: [String] = []
+    ) async throws -> [FridgeScanItem] {
         guard let endpoint = RecipeBackendConfig.endpointURL(path: "scan-fridge") else {
             throw RecipeBackendError.invalidURL
         }
@@ -364,12 +369,24 @@ final class RecipeBackendService {
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         let filename = mimeType.contains("png") ? "fridge.png" : "fridge.jpg"
+        let existingJSON: String
+        if existingItems.isEmpty {
+            existingJSON = "[]"
+        } else if let data = try? JSONEncoder().encode(existingItems),
+                  let text = String(data: data, encoding: .utf8) {
+            existingJSON = text
+        } else {
+            existingJSON = "[]"
+        }
+
         var body = Data()
         func append(_ string: String) {
             body.append(Data(string.utf8))
         }
         append("--\(boundary)\r\n")
         append("Content-Disposition: form-data; name=\"zone\"\r\n\r\n\(zone)\r\n")
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"existing_items\"\r\n\r\n\(existingJSON)\r\n")
         append("--\(boundary)\r\n")
         append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
         append("Content-Type: \(mimeType)\r\n\r\n")

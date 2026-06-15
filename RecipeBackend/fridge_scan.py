@@ -20,20 +20,29 @@ class FridgeScanError(Exception):
     """Raised when scan fails; route maps to HTTP status."""
 
 
-def _build_scan_prompt(zone: str, today: date) -> str:
+def _build_scan_prompt(zone: str, today: date, existing_items: list[str] | None = None) -> str:
+    existing_block = ""
+    if existing_items:
+        names = ", ".join(existing_items[:80])
+        existing_block = f"""
+The user already tracks these items in this zone (from earlier scans or manual entry):
+{names}
+
+Only return items visible in THIS photo that are NOT already in that list. If you see a new item, include it. Do not re-list items already tracked."""
+
     return f"""Analyze this photo of a refrigerator zone.
 
-The photo shows the **{zone}** section of the fridge (this is where these items are stored).
+The photo shows the **{zone}** section of the fridge (this is where these items are stored).{existing_block}
 
 Identify every distinct food or drink item you can see. For each item return:
-- "name": clear, concise item name (no emoji)
+- "name": clear, concise item name with a fitting food emoji at the start (e.g. "🥛 Milk")
 - "quantity_display": estimated amount (e.g. "1 bottle", "half full", "6 eggs") or "" if unknown
-- "expiration_date": ISO date YYYY-MM-DD if printed on packaging; otherwise your best estimate from typical shelf life starting today ({today.isoformat()}); use null only if you truly cannot estimate
+- "expiration_date": ISO date YYYY-MM-DD if printed on packaging; otherwise your best estimate from typical shelf life starting today ({today.isoformat()}); only estimate ones with a clear expiration date written
 
 Return valid JSON only, no markdown:
-{{"items": [{{"name": "Greek yogurt", "quantity_display": "1 tub", "expiration_date": "2026-06-15"}}]}}
+{{"items": [{{"name": "🥛 Greek yogurt", "quantity_display": "1 tub", "expiration_date": "2026-06-15"}}]}}
 
-If nothing edible is visible, return {{"items": []}}."""
+If nothing new and edible is visible, return {{"items": []}}."""
 
 
 def _normalize_expiration(raw, *, reference: date) -> str:
@@ -52,7 +61,12 @@ def _normalize_expiration(raw, *, reference: date) -> str:
     return default
 
 
-def scan_fridge_photo(zone: str, image_bytes: bytes, mime_type: str) -> list[dict]:
+def scan_fridge_photo(
+    zone: str,
+    image_bytes: bytes,
+    mime_type: str,
+    existing_items: list[str] | None = None,
+) -> list[dict]:
     zone_name = (zone or "").strip()
     if not zone_name:
         raise FridgeScanError("Zone is required")
@@ -69,7 +83,8 @@ def scan_fridge_photo(zone: str, image_bytes: bytes, mime_type: str) -> list[dic
         mime = "image/jpeg"
 
     today = date.today()
-    prompt = _build_scan_prompt(zone_name, today)
+    cleaned_existing = [str(n).strip() for n in (existing_items or []) if str(n).strip()]
+    prompt = _build_scan_prompt(zone_name, today, cleaned_existing or None)
     client = genai.Client(api_key=GEMINI_API_KEY)
     image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime)
     contents = [prompt, image_part]

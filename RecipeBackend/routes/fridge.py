@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 
 from config import MAX_VIDEO_UPLOAD_BYTES
@@ -15,10 +16,24 @@ router = APIRouter(tags=["fridge"])
 _MAX_IMAGE_BYTES = min(15 * 1024 * 1024, MAX_VIDEO_UPLOAD_BYTES)
 
 
+def _parse_existing_items(raw: str) -> list[str]:
+    text = (raw or "").strip()
+    if not text:
+        return []
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(parsed, list):
+        return []
+    return [str(item).strip() for item in parsed if str(item).strip()]
+
+
 @router.post("/scan-fridge", response_model=FridgeScanResponse)
 async def scan_fridge(
     zone: str = Form(...),
     file: UploadFile = File(...),
+    existing_items: str = Form("[]"),
 ):
     zone_name = (zone or "").strip()
     if not zone_name:
@@ -40,12 +55,14 @@ async def scan_fridge(
         raise HTTPException(status_code=400, detail="Image is too large (max 15 MB)")
 
     print(f"[FridgeScan] request zone={zone_name!r} size={len(image_bytes)} type={content_type}")
+    known = _parse_existing_items(existing_items)
     try:
         rows = await asyncio.to_thread(
             scan_fridge_photo,
             zone_name,
             image_bytes,
             content_type or "image/jpeg",
+            known,
         )
     except FridgeScanError as e:
         print(f"[FridgeScan] failed after {time.monotonic() - started:.1f}s: {e}")

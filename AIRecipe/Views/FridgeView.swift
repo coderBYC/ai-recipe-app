@@ -1,7 +1,60 @@
+import CoreTransferable
 import PhotosUI
 import SwiftData
 import SwiftUI
 import UIKit
+
+private enum FridgePhotoLoader {
+    static func jpegData(from item: PhotosPickerItem) async -> Data? {
+        if let payload = try? await item.loadTransferable(type: FridgePickedImage.self) {
+            return payload.jpegData
+        }
+        if let data = try? await item.loadTransferable(type: Data.self) {
+            return jpegData(fromRaw: data)
+        }
+        return nil
+    }
+
+    static func jpegData(fromRaw data: Data) -> Data? {
+        guard let image = UIImage(data: data) else { return nil }
+        return image.jpegData(compressionQuality: 0.85)
+    }
+}
+
+private struct FridgePickedImage: Transferable {
+    let jpegData: Data
+
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(importedContentType: .jpeg) { data in
+            guard let jpeg = FridgePhotoLoader.jpegData(fromRaw: data) else {
+                throw TransferError.importFailed
+            }
+            return FridgePickedImage(jpegData: jpeg)
+        }
+        DataRepresentation(importedContentType: .heic) { data in
+            guard let jpeg = FridgePhotoLoader.jpegData(fromRaw: data) else {
+                throw TransferError.importFailed
+            }
+            return FridgePickedImage(jpegData: jpeg)
+        }
+        DataRepresentation(importedContentType: .png) { data in
+            guard let jpeg = FridgePhotoLoader.jpegData(fromRaw: data) else {
+                throw TransferError.importFailed
+            }
+            return FridgePickedImage(jpegData: jpeg)
+        }
+        DataRepresentation(importedContentType: .image) { data in
+            guard let jpeg = FridgePhotoLoader.jpegData(fromRaw: data) else {
+                throw TransferError.importFailed
+            }
+            return FridgePickedImage(jpegData: jpeg)
+        }
+    }
+
+    enum TransferError: Error {
+        case importFailed
+    }
+}
 
 // MARK: - Main tab
 
@@ -13,7 +66,11 @@ struct FridgeView: View {
     @State private var addItemZone: FridgeZone?
     @State private var editingItem: FridgeItem?
     @State private var cameraZone: FridgeZone?
+    @State private var libraryPickerZone: FridgeZone?
+    @State private var showPhotoPicker = false
+    @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var isScanning = false
+    @State private var scanStatus: String?
     @State private var scanError: String?
 
     init(filterOwnerId: String) {
@@ -32,6 +89,11 @@ struct FridgeView: View {
         Dictionary(grouping: allItems, by: \.zone)
     }
 
+    /// Items in the order they were added (each scan appends at the bottom).
+    private func items(for zone: FridgeZone) -> [FridgeItem] {
+        (itemsByZone[zone] ?? []).sorted { $0.createdAt < $1.createdAt }
+    }
+
     private var totalItemCount: Int { allItems.count }
 
     var body: some View {
@@ -48,10 +110,26 @@ struct FridgeView: View {
 
                 if isScanning {
                     Color.black.opacity(0.2).ignoresSafeArea()
-                    ProgressView("Scanning fridge…")
+                    ProgressView(scanStatus ?? "Scanning fridge…")
                         .padding(20)
                         .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 12))
                 }
+            }
+            .photosPicker(
+                isPresented: $showPhotoPicker,
+                selection: $selectedPhotos,
+                maxSelectionCount: 3,
+                matching: .images,
+                photoLibrary: .shared()
+            )
+            .onChange(of: showPhotoPicker) { _, isPresented in
+                guard !isPresented else { return }
+                guard let zone = libraryPickerZone else { return }
+                let batch = selectedPhotos
+                libraryPickerZone = nil
+                selectedPhotos = []
+                guard !batch.isEmpty else { return }
+                Task { await scanPhotoBatch(batch, zone: zone) }
             }
             .onAppear {
                 FridgeService.migrateLegacyZoneLabels(modelContext: modelContext)
@@ -117,6 +195,10 @@ struct FridgeView: View {
     private var listContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                Text("⚠️ Warning: Always rely on your physical inspection over AI-generated expiration dates and smart scanner readings.")
+                    .appFont(.callout)
+                    .foregroundStyle(Color.red)
+                    .padding(.horizontal, 16)
                 Text("\(totalItemCount) item\(totalItemCount == 1 ? "" : "s") tracked")
                     .appFont(.callout)
                     .foregroundStyle(AppTheme.textSecondary)
@@ -126,6 +208,8 @@ struct FridgeView: View {
             }
             .padding(.top, 8)
             .padding(.bottom, 24)
+            
+            
         }
     }
 
@@ -134,16 +218,40 @@ struct FridgeView: View {
             ForEach(FridgeZone.displayZones) { zone in
                 FridgeZoneCard(
                     zone: zone,
-                    items: itemsByZone[zone] ?? [],
+                    items: items(for: zone),
                     onAdd: { addItemZone = zone },
-                    onOpenCamera: { cameraZone = zone },
-                    onScanImage: { data, mimeType, scanZone in
-                        Task { await scanImageData(data, mimeType: mimeType, zone: scanZone) }
+                    onOpenLibrary: {
+                        libraryPickerZone = zone
+                        selectedPhotos = []
+                        showPhotoPicker = true
                     },
+                    onOpenCamera: { cameraZone = zone },
                     onEdit: { editingItem = $0 }
                 )
             }
         }
+    }
+
+    @MainActor
+    private func scanPhotoBatch(_ items: [PhotosPickerItem], zone: FridgeZone) async {
+        guard !filterOwnerId.isEmpty else {
+            scanError = "Sign in to scan fridge photos."
+            return
+        }
+
+        var payloads: [Data] = []
+        for item in items.prefix(3) {
+            if let data = await FridgePhotoLoader.jpegData(from: item) {
+                payloads.append(data)
+            }
+        }
+
+        guard !payloads.isEmpty else {
+            scanError = "Could not read the selected photos. Try JPEG or PNG images."
+            return
+        }
+
+        await scanImagePayloads(payloads, zone: zone)
     }
 
     @MainActor
@@ -152,11 +260,11 @@ struct FridgeView: View {
             scanError = "Could not prepare the photo."
             return
         }
-        await scanImageData(data, mimeType: "image/jpeg", zone: zone)
+        await scanImagePayloads([data], zone: zone)
     }
 
     @MainActor
-    private func scanImageData(_ data: Data, mimeType: String, zone: FridgeZone) async {
+    private func scanImagePayloads(_ payloads: [Data], zone: FridgeZone) async {
         guard !filterOwnerId.isEmpty else {
             scanError = "Sign in to scan fridge photos."
             return
@@ -164,41 +272,65 @@ struct FridgeView: View {
 
         isScanning = true
         scanError = nil
-        defer { isScanning = false }
+        defer {
+            isScanning = false
+            scanStatus = nil
+        }
 
-        do {
-            let detected = try await RecipeBackendService.shared.scanFridge(
-                zone: zone.rawValue,
-                imageData: data,
-                mimeType: mimeType
-            )
-            guard !detected.isEmpty else {
-                scanError = "No food items were detected in that photo."
+        var totalAdded = 0
+
+        for (index, data) in payloads.enumerated() {
+            if payloads.count > 1 {
+                scanStatus = "Scanning photo \(index + 1) of \(payloads.count)…"
+            }
+
+            do {
+                let detected = try await RecipeBackendService.shared.scanFridge(
+                    zone: zone.rawValue,
+                    imageData: data,
+                    mimeType: "image/jpeg",
+                    existingItems: items(for: zone).map(\.name)
+                )
+                let added = appendDetectedItems(detected, zone: zone)
+                totalAdded += added
+            } catch let error as RecipeBackendError {
+                switch error {
+                case .serverError(let msg): scanError = msg
+                case .network(let err): scanError = err.localizedDescription
+                case .invalidURL: scanError = "Invalid server URL."
+                case .invalidResponse: scanError = "Invalid server response."
+                }
+                return
+            } catch {
+                scanError = error.localizedDescription
                 return
             }
-
-            for item in detected {
-                let name = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !name.isEmpty else { continue }
-                _ = FridgeService.addItem(
-                    name: name,
-                    zone: zone,
-                    expirationDate: Self.parseExpirationDate(item.expiration_date),
-                    quantityDisplay: item.quantity_display ?? "",
-                    ownerUserId: filterOwnerId,
-                    modelContext: modelContext
-                )
-            }
-        } catch let error as RecipeBackendError {
-            switch error {
-            case .serverError(let msg): scanError = msg
-            case .network(let err): scanError = err.localizedDescription
-            case .invalidURL: scanError = "Invalid server URL."
-            case .invalidResponse: scanError = "Invalid server response."
-            }
-        } catch {
-            scanError = error.localizedDescription
         }
+
+        if totalAdded == 0 {
+            scanError = payloads.count == 1
+                ? "No food items were detected in that photo."
+                : "No food items were detected in those photos."
+        }
+    }
+
+    @MainActor
+    private func appendDetectedItems(_ detected: [FridgeScanItem], zone: FridgeZone) -> Int {
+        var added = 0
+        for item in detected {
+            let name = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { continue }
+            _ = FridgeService.addItem(
+                name: name,
+                zone: zone,
+                expirationDate: Self.parseExpirationDate(item.expiration_date),
+                quantityDisplay: item.quantity_display ?? "",
+                ownerUserId: filterOwnerId,
+                modelContext: modelContext
+            )
+            added += 1
+        }
+        return added
     }
 
     private static func parseExpirationDate(_ raw: String?) -> Date {
@@ -221,11 +353,9 @@ private struct FridgeZoneCard: View {
     let zone: FridgeZone
     let items: [FridgeItem]
     var onAdd: () -> Void
+    var onOpenLibrary: () -> Void
     var onOpenCamera: () -> Void
-    var onScanImage: (Data, String, FridgeZone) -> Void
     var onEdit: (FridgeItem) -> Void
-
-    @State private var libraryPickerItem: PhotosPickerItem?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -239,12 +369,10 @@ private struct FridgeZoneCard: View {
                 Spacer(minLength: 8)
 
                 Menu {
-                    PhotosPicker(selection: $libraryPickerItem, matching: .images, photoLibrary: .shared()) {
-                        Label("Photo Library", systemImage: "photo.on.rectangle")
+                    Button(action: onOpenLibrary) {
+                        Label("Photo Library (up to 3)", systemImage: "photo.on.rectangle")
                     }
-                    Button {
-                        onOpenCamera()
-                    } label: {
+                    Button(action: onOpenCamera) {
                         Label("Take Photo", systemImage: "camera")
                     }
                 } label: {
@@ -282,28 +410,6 @@ private struct FridgeZoneCard: View {
         .padding(14)
         .boxStyle(cornerRadius: AppTheme.boxCornerRadius)
         .padding(.horizontal, 16)
-        .onChange(of: libraryPickerItem) { _, item in
-            guard let item else { return }
-            Task {
-                await handleLibrarySelection(item)
-                libraryPickerItem = nil
-            }
-        }
-    }
-
-    @MainActor
-    private func handleLibrarySelection(_ item: PhotosPickerItem) async {
-        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-        let jpeg: Data
-        let mime: String
-        if let image = UIImage(data: data), let converted = image.jpegData(compressionQuality: 0.85) {
-            jpeg = converted
-            mime = "image/jpeg"
-        } else {
-            jpeg = data
-            mime = "image/jpeg"
-        }
-        onScanImage(jpeg, mime, zone)
     }
 }
 
