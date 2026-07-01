@@ -264,6 +264,88 @@ _IPHONE_UA = (
     "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 )
 
+_INSTAGRAM_SHORTCODE_RE = re.compile(
+    r"(?:instagram\.com|instagr\.am)/(?:reel|reels|p|tv)/([A-Za-z0-9_-]+)",
+    re.IGNORECASE,
+)
+
+
+def _instagram_shortcode_from_url(url: str) -> Optional[str]:
+    m = _INSTAGRAM_SHORTCODE_RE.search((url or "").strip())
+    return m.group(1) if m else None
+
+
+def _instagram_error_looks_blocked(msg: str) -> bool:
+    lower = (msg or "").lower()
+    return any(
+        token in lower
+        for token in (
+            "please wait a few minutes",
+            "401 unauthorized",
+            "403 forbidden",
+            "challenge_required",
+            "login_required",
+            "bad response",
+            "fetching post metadata failed",
+            "nonetype",
+            "rate limit",
+            "feedback_required",
+        )
+    )
+
+
+def _download_instagram_via_ytdlp(
+    url: str, target_dir: str, shortcode: str
+) -> Optional[Tuple[str, str, str]]:
+    """Fallback when instaloader metadata/download fails (uses same stack as YouTube)."""
+    os.makedirs(target_dir, exist_ok=True)
+    stem = f"ig_{shortcode}_{uuid.uuid4().hex[:8]}"
+    out_template = os.path.join(target_dir, f"{stem}.%(ext)s")
+    cookiefile = _youtube_cookiefile()
+    ydl_opts: dict[str, Any] = {
+        "outtmpl": out_template,
+        "format": "best[ext=mp4]/best",
+        "quiet": True,
+        "no_warnings": True,
+        "socket_timeout": 120,
+        "retries": 2,
+        "noprogress": True,
+        "noplaylist": True,
+    }
+    if cookiefile:
+        ydl_opts["cookiefile"] = cookiefile
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            if not info or info.get("entries"):
+                return None
+            path = ydl.prepare_filename(info)
+            creator = (
+                (info.get("uploader") or info.get("channel") or info.get("creator") or "")
+                .strip()
+            )
+            caption = (info.get("description") or "").strip()
+            if len(caption) > 2000:
+                caption = caption[:2000]
+        if not path or not os.path.isfile(path):
+            matches = glob.glob(os.path.join(target_dir, f"{stem}.*"))
+            matches = [p for p in matches if os.path.isfile(p) and not p.endswith(".part")]
+            path = max(matches, key=os.path.getmtime) if matches else ""
+        if not path or not os.path.isfile(path) or os.path.getsize(path) <= 0:
+            return None
+        final_path = os.path.join(target_dir, f"{shortcode}.mp4")
+        if os.path.exists(final_path):
+            os.remove(final_path)
+        os.rename(path, final_path)
+        return final_path, creator, caption
+    except DownloadError as e:
+        print(f"⚠️ Instagram yt-dlp fallback failed: {e}")
+        return None
+    except Exception as e:
+        print(f"⚠️ Instagram yt-dlp fallback error: {e}")
+        traceback.print_exc()
+        return None
+
 
 def download_instagram_reel(url, target_dir="downloads") -> Optional[Tuple[str, str, str]]:
     # Optional courtesy delay before hitting Instagram (was 2–5s random). Set INSTAGRAM_PRE_FETCH_DELAY_SEC=0 to skip.
@@ -289,21 +371,25 @@ def download_instagram_reel(url, target_dir="downloads") -> Optional[Tuple[str, 
             L.load_session_from_file(session_user)
         except Exception as se:
             print(f"⚠️ Could not load Instagram session for {session_user}: {se}")
+    shortcode = _instagram_shortcode_from_url(url)
+    if not shortcode:
+        print(f"❌ Could not parse Instagram shortcode from URL: {url}")
+        return None
+
+    os.makedirs(target_dir, exist_ok=True)
+
     try:
-        # Extract the 'shortcode' from the URL (e.g., 'C12345' from /reels/C12345/)
-        shortcode = url.split("/")[-2]
         post = instaloader.Post.from_shortcode(L.context, shortcode)
         author = post.owner_profile.full_name
         caption = (post.caption or "").strip()
         if len(caption) > 2000:
             caption = caption[:2000]
         print(shortcode)
-        # Download the reel
         L.download_post(post, target=target_dir)
         time.sleep(0.25)
         files = glob.glob(os.path.join(target_dir, "*.mp4"))
         if not files:
-            return None
+            raise RuntimeError("Instaloader completed but no .mp4 was written")
         old_file = max(files, key=os.path.getctime)
         new_file = os.path.join(target_dir, f"{shortcode}.mp4")
         if os.path.exists(new_file):
@@ -311,13 +397,17 @@ def download_instagram_reel(url, target_dir="downloads") -> Optional[Tuple[str, 
         os.rename(old_file, new_file)
         return new_file, author, caption
     except Exception as e:
-        print(f"❌ Error in download_instagram_reel: {e}")
+        print(f"❌ Error in download_instagram_reel (instaloader): {e}")
         traceback.print_exc()
-        msg = str(e).lower()
-        if ("please wait a few minutes" in msg
-                or "401 unauthorized" in msg
-                or "403 forbidden" in msg
-                or "challenge_required" in msg
-                or "login_required" in msg):
-            raise InstagramBlockedError(str(e))
+        msg = str(e)
+        if _instagram_error_looks_blocked(msg):
+            fallback = _download_instagram_via_ytdlp(url, target_dir, shortcode)
+            if fallback:
+                print("✅ Instagram reel downloaded via yt-dlp fallback")
+                return fallback
+            raise InstagramBlockedError(msg)
+        fallback = _download_instagram_via_ytdlp(url, target_dir, shortcode)
+        if fallback:
+            print("✅ Instagram reel downloaded via yt-dlp fallback")
+            return fallback
         return None

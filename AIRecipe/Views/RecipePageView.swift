@@ -34,6 +34,7 @@ struct RecipePageView: View {
     @State private var isExportingPDF = false
     @State private var exportError: String?
     @State private var displayServings: Int = 1
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -51,7 +52,7 @@ struct RecipePageView: View {
                         ingredientsSection
                         stepsSection
                         NoteSection
-                        if subManager.isPremium, recipe.hasNutrition {
+                        if recipe.hasNutrition {
                             nutritionSection
                         }
                         ratingSection
@@ -128,7 +129,12 @@ struct RecipePageView: View {
                             Button {
                                 sharePDF()
                             } label: {
-                                Label("Share PDF", systemImage: "doc.richtext")
+                                HStack {
+                                    Label("Share PDF", systemImage: "doc.richtext")
+                                    if !subManager.isPremium {
+                                        Image(systemName: "lock.fill")
+                                    }
+                                }
                             }
                             Button {
                                 shareRecipeText()
@@ -187,6 +193,7 @@ struct RecipePageView: View {
             .task {
                 await subManager.checkStatus()
             }
+            .proPaywallSheet(isPresented: $showPaywall)
         }
     }
 
@@ -212,6 +219,10 @@ struct RecipePageView: View {
     }
 
     private func sharePDF() {
+        guard subManager.isPremium else {
+            showPaywall = true
+            return
+        }
         Task { @MainActor in
             exportError = nil
             isExportingPDF = true
@@ -379,11 +390,12 @@ struct RecipePageView: View {
     }
 
     private func handleBookmarkTap() {
-        if !recipe.isBookmarked {
-            recipe.isBookmarked = true
-            touchRecipeForSync()
+        let wasBookmarked = recipe.isBookmarked
+        recipe.isBookmarked.toggle()
+        touchRecipeForSync()
+        if !wasBookmarked {
+            onBookmarkNavigate?()
         }
-        onBookmarkNavigate?()
     }
     
     /// Steps: vertical circle-line timeline (1 — 2 — 3)
@@ -488,13 +500,15 @@ struct RecipePageView: View {
                 .foregroundStyle(AppTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            NutritionIndicatorView(
-                calories: max(recipe.nutritionCalories, 0),
-                proteinGrams: recipe.nutritionProteinGrams,
-                carbsGrams: recipe.nutritionCarbsGrams,
-                fatGrams: recipe.nutritionFatGrams,
-                macros: recipe.nutritionMacroMetrics
-            )
+            ProLockedOverlay(isLocked: !subManager.isPremium, onUnlock: { showPaywall = true }) {
+                NutritionIndicatorView(
+                    calories: max(recipe.nutritionCalories, 0),
+                    proteinGrams: recipe.nutritionProteinGrams,
+                    carbsGrams: recipe.nutritionCarbsGrams,
+                    fatGrams: recipe.nutritionFatGrams,
+                    macros: recipe.nutritionMacroMetrics
+                )
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

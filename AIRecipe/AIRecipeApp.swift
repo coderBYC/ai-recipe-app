@@ -267,24 +267,15 @@ struct AIRecipeApp: App {
 /// Hosts `MainView`, auth, and deep links.
 private struct AppLifecycleRoot: View {
     @State private var authManager = AuthManager(service: SupabaseService.shared)
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+
     var body: some View {
-        Group{
-            if hasCompletedOnboarding {
-                MainView()
-                    .environment(authManager)
-                    .onOpenURL { url in
-                        Task {
-                            await handleIncomingURL(url)
-                        }
-                    }
-            } else {
-                OnboardingView()
-                    .environment(authManager)
+        MainView()
+            .environment(authManager)
+            .onOpenURL { url in
+                Task {
+                    await handleIncomingURL(url)
+                }
             }
-        }
-        
-       
     }
 
     @MainActor

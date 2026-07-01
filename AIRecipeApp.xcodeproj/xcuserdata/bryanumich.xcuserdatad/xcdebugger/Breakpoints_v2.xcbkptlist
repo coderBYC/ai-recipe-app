@@ -96,6 +96,15 @@
             symbolName = "[UIImage imageNamed:]"
             moduleName = "">
             <Locations>
+               <Location
+                  uuid = "DDAB9222-B370-4D1B-A794-176F678EDDB0 - 9cc70c83f07c02e4"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "+[UIImage imageNamed:]"
+                  moduleName = "UIKitCore"
+                  usesParentBreakpointCondition = "Yes">
+               </Location>
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
@@ -111,6 +120,15 @@
             symbolName = "[UIImage imageNamed:inBundle:withConfiguration:]"
             moduleName = "">
             <Locations>
+               <Location
+                  uuid = "A0F265DB-B631-4C89-9055-9E9052FAAA90 - 64c8fc4b586500c8"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "+[UIImage imageNamed:inBundle:withConfiguration:]"
+                  moduleName = "UIKitCore"
+                  usesParentBreakpointCondition = "Yes">
+               </Location>
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
@@ -126,6 +144,15 @@
             symbolName = "[UIImage systemImageNamed:compatibleWithTraitCollection:]"
             moduleName = "">
             <Locations>
+               <Location
+                  uuid = "708F2258-ADE1-4E7E-9F17-DE2E3CAA011F - 75366fab48bbff33"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "+[UIImage systemImageNamed:compatibleWithTraitCollection:]"
+                  moduleName = "UIKitCore"
+                  usesParentBreakpointCondition = "Yes">
+               </Location>
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>

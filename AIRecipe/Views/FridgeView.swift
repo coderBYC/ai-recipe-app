@@ -62,6 +62,7 @@ struct FridgeView: View {
     let filterOwnerId: String
 
     @Environment(\.modelContext) private var modelContext
+    @ObservedObject private var subManager = SubscriptionManager.shared
     @Query private var allItems: [FridgeItem]
     @State private var addItemZone: FridgeZone?
     @State private var editingItem: FridgeItem?
@@ -72,6 +73,7 @@ struct FridgeView: View {
     @State private var isScanning = false
     @State private var scanStatus: String?
     @State private var scanError: String?
+    @State private var showPaywall = false
 
     init(filterOwnerId: String) {
         self.filterOwnerId = filterOwnerId
@@ -97,6 +99,14 @@ struct FridgeView: View {
     private var totalItemCount: Int { allItems.count }
 
     var body: some View {
+        ProLockedOverlay(isLocked: !subManager.isPremium, onUnlock: { showPaywall = true }) {
+            fridgeContent
+        }
+        .task { await subManager.checkStatus() }
+        .proPaywallSheet(isPresented: $showPaywall)
+    }
+
+    private var fridgeContent: some View {
         NavigationStack {
             ZStack {
                 Group {
@@ -195,15 +205,10 @@ struct FridgeView: View {
     private var listContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("⚠️ Warning: Always rely on your physical inspection over AI-generated expiration dates and smart scanner readings.")
-                    .appFont(.callout)
+                Text("⚠️ Warning: Default expiration day is after a week from now. Always rely on your physical inspection over AI-generated expiration dates and smart scanner readings.")
+                    .appFont(.caption2)
                     .foregroundStyle(Color.red)
                     .padding(.horizontal, 16)
-                Text("\(totalItemCount) item\(totalItemCount == 1 ? "" : "s") tracked")
-                    .appFont(.callout)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .padding(.horizontal, 16)
-
                 zoneCards
             }
             .padding(.top, 8)

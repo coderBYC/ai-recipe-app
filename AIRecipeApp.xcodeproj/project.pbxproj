@@ -2581,7 +2581,6 @@
 		B0010022 /* Cookbook.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010020 /* Cookbook.swift */; };
 		B0010023 /* CookbookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010021 /* CookbookService.swift */; };
 		B0010024 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010022 /* GroceryListView.swift */; };
-		B0010033 /* GroceryManualStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010031 /* GroceryManualStore.swift */; };
 		B0010025 /* CookAssistantPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010023 /* CookAssistantPlaceholderView.swift */; };
 		B0010026 /* CreateCookbookSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010024 /* CreateCookbookSheet.swift */; };
 		B0010027 /* SmartThumbnailAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010025 /* SmartThumbnailAsset.swift */; };
@@ -2590,10 +2589,12 @@
 		B0010030 /* FridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010028 /* FridgeView.swift */; };
 		B0010031 /* BookmarksSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010029 /* BookmarksSheetView.swift */; };
 		B0010032 /* LegacyRecipeStoreRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010030 /* LegacyRecipeStoreRecovery.swift */; };
+		B0010033 /* GroceryManualStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010031 /* GroceryManualStore.swift */; };
 		B0010034 /* FridgeItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010032 /* FridgeItem.swift */; };
 		B0010035 /* FridgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010033 /* FridgeService.swift */; };
 		B0010036 /* RecipePDFExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010034 /* RecipePDFExportService.swift */; };
 		B0010037 /* NutritionIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010035 /* NutritionIndicatorView.swift */; };
+		B0010038 /* ProFeatureGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0010036 /* ProFeatureGate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -3517,7 +3518,6 @@
 		F0010020 /* Cookbook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cookbook.swift; sourceTree = "<group>"; };
 		F0010021 /* CookbookService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookbookService.swift; sourceTree = "<group>"; };
 		F0010022 /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryListView.swift; sourceTree = "<group>"; };
-		F0010031 /* GroceryManualStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryManualStore.swift; sourceTree = "<group>"; };
 		F0010023 /* CookAssistantPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookAssistantPlaceholderView.swift; sourceTree = "<group>"; };
 		F0010024 /* CreateCookbookSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCookbookSheet.swift; sourceTree = "<group>"; };
 		F0010025 /* SmartThumbnailAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartThumbnailAsset.swift; sourceTree = "<group>"; };
@@ -3526,10 +3526,12 @@
 		F0010028 /* FridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeView.swift; sourceTree = "<group>"; };
 		F0010029 /* BookmarksSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksSheetView.swift; sourceTree = "<group>"; };
 		F0010030 /* LegacyRecipeStoreRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyRecipeStoreRecovery.swift; sourceTree = "<group>"; };
+		F0010031 /* GroceryManualStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryManualStore.swift; sourceTree = "<group>"; };
 		F0010032 /* FridgeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeItem.swift; sourceTree = "<group>"; };
 		F0010033 /* FridgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeService.swift; sourceTree = "<group>"; };
 		F0010034 /* RecipePDFExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePDFExportService.swift; sourceTree = "<group>"; };
 		F0010035 /* NutritionIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionIndicatorView.swift; sourceTree = "<group>"; };
+		F0010036 /* ProFeatureGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProFeatureGate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -4516,6 +4518,7 @@
 				F0010023 /* CookAssistantPlaceholderView.swift */,
 				F0010028 /* FridgeView.swift */,
 				F0010035 /* NutritionIndicatorView.swift */,
+				F0010036 /* ProFeatureGate.swift */,
 				F0010029 /* BookmarksSheetView.swift */,
 				F0010024 /* CreateCookbookSheet.swift */,
 				F0010027 /* SmartThumbnailView.swift */,
@@ -7315,6 +7318,7 @@
 				B0010035 /* FridgeService.swift in Sources */,
 				B0010036 /* RecipePDFExportService.swift in Sources */,
 				B0010037 /* NutritionIndicatorView.swift in Sources */,
+				B0010038 /* ProFeatureGate.swift in Sources */,
 				B0010026 /* CreateCookbookSheet.swift in Sources */,
 				B0010027 /* SmartThumbnailAsset.swift in Sources */,
 				B0010028 /* SmartThumbnailFrameExtractor.swift in Sources */,
@@ -7603,9 +7607,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Let Him Cook uses the camera to scan food in your fridge and suggest items to track, and to scan fridge photos you choose to identify food items.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Let Him Cook uses the camera to scan food in your fridge and suggest items to track.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cook mode can listen for short commands like “next,” “back,” and timer phrases so you can move through steps hands-free.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -7650,9 +7654,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Let Him Cook";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Let Him Cook uses the camera to scan food in your fridge and suggest items to track, and to scan fridge photos you choose to identify food items.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "In app Purchase for authentication";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cook mode uses the microphone only while this screen is open to detect those voice commands.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Let Him Cook uses the camera to scan food in your fridge and suggest items to track.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Let Him Cook can read your photo library to detect recently saved cooking videos (for example after you download from another app), suggest turning them into recipes, and let you pick a video to analyze.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cook mode can listen for short commands like “next,” “back,” and timer phrases so you can move through steps hands-free.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

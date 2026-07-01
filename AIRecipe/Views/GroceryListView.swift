@@ -6,12 +6,14 @@ struct GroceryListView: View {
     let filterOwnerId: String
     @Environment(\.modelContext) private var modelContext
     @Query private var recipes: [Recipe]
+    @ObservedObject private var subManager = SubscriptionManager.shared
     @State private var showAddItemSheet = false
     @State private var manualItems: [ManualGroceryItem] = []
     @State private var mergedItems: [ManualGroceryItem] = []
     @State private var isShowingMerged = false
     @State private var isMerging = false
     @State private var mergeError: String?
+    @State private var showPaywall = false
 
     init(filterOwnerId: String) {
         self.filterOwnerId = filterOwnerId
@@ -59,6 +61,10 @@ struct GroceryListView: View {
         !isMerging && (sections.reduce(0) { $0 + $1.items.count } + uncheckedManualItems.count) > 0
     }
 
+    private var mergeButtonEnabled: Bool {
+        subManager.isPremium ? canMerge : true
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -88,17 +94,28 @@ struct GroceryListView: View {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        guard subManager.isPremium else {
+                            showPaywall = true
+                            return
+                        }
                         Task { await runMerge() }
                     } label: {
-                        Image(systemName: "wand.and.sparkles.inverse")
-                            .appFont(.callout)
-                            .foregroundStyle(canMerge ? AppTheme.textPrimary : AppTheme.textSecondary)
-                        Text("Merge Recipe")
-                            .nanumAppFont(.caption)
-                            .fontWeight(.bold)
-                            .foregroundStyle(canMerge ? AppTheme.primary : AppTheme.textSecondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "wand.and.sparkles.inverse")
+                                .appFont(.callout)
+                                .foregroundStyle(mergeButtonEnabled ? AppTheme.textPrimary : AppTheme.textSecondary)
+                            Text("Merge Recipe")
+                                .nanumAppFont(.caption)
+                                .fontWeight(.bold)
+                                .foregroundStyle(mergeButtonEnabled ? AppTheme.primary : AppTheme.textSecondary)
+                            if !subManager.isPremium {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            }
+                        }
                     }
-                    .disabled(!canMerge)
+                    .disabled(subManager.isPremium && !canMerge)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -126,6 +143,8 @@ struct GroceryListView: View {
             }
             .onAppear { reloadStoredItems() }
             .onChange(of: filterOwnerId) { _, _ in reloadStoredItems() }
+            .task { await subManager.checkStatus() }
+            .proPaywallSheet(isPresented: $showPaywall)
         }
     }
 

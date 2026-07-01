@@ -21,6 +21,7 @@ struct MainView: View {
     @State private var showGlobalPaywall = false
     /// When set with Settings tab, `SettingsView` presents the matching legal sheet.
     @State private var deepLinkLegalDocument: LegalDocumentKind?
+    @ObservedObject private var subManager = SubscriptionManager.shared
     @Environment(AuthManager.self) private var authManager
     /// Resolved after sign-in so Home / Meal Plan `@Query` scopes to this Supabase user only.
     @State private var signedInTabUserId: String = ""
@@ -431,6 +432,11 @@ struct MainView: View {
 
     private func tabButton(systemIcon: String? = nil, assetIcon: String? = nil, title: String, tab: AppTab) -> some View {
         Button {
+            if tab == .fridge, !subManager.isPremium {
+                selectedTab = .fridge
+                showGlobalPaywall = true
+                return
+            }
             selectedTab = tab
         } label: {
             VStack(spacing: 4) {

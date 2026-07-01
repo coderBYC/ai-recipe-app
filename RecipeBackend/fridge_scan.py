@@ -37,7 +37,7 @@ The photo shows the **{zone}** section of the fridge (this is where these items 
 Identify every distinct food or drink item you can see. For each item return:
 - "name": clear, concise item name with a fitting food emoji at the start (e.g. "🥛 Milk")
 - "quantity_display": estimated amount (e.g. "1 bottle", "half full", "6 eggs") or "" if unknown
-- "expiration_date": ISO date YYYY-MM-DD if printed on packaging; otherwise your best estimate from typical shelf life starting today ({today.isoformat()}); only estimate ones with a clear expiration date written
+- OPTIONAL:"expiration_date": ISO date YYYY-MM-DD if printed on packaging; Write this only if you are 100% sure about the expiration date.
 
 Return valid JSON only, no markdown:
 {{"items": [{{"name": "🥛 Greek yogurt", "quantity_display": "1 tub", "expiration_date": "2026-06-15"}}]}}
