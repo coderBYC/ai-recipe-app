@@ -11,7 +11,7 @@ ENV NODE_EXECUTABLE=/usr/bin/node
 # Node 22 + npm (NodeSource), native deps for npm `canvas` (@tobyg74/tiktok-api-dl).
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-     ca-certificates curl gnupg bash \
+     ca-certificates curl gnupg bash git \
      build-essential pkg-config \
      libcairo2-dev libpango1.0-dev libjpeg-dev libpng-dev libgif-dev librsvg2-dev \
   && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
