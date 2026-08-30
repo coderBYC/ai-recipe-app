@@ -14,7 +14,6 @@ from download import (
     TikTokBlockedError,
     download_instagram_reel,
     download_tiktok_video,
-    download_youtube_video,
 )
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile  # pyright: ignore[reportMissingImports]
 from import_jobs_service import (
@@ -26,6 +25,7 @@ from models import AnalyzeRequest, RecipeResponse
 from quota import enforce_import_quota, is_pro_user, require_user_id
 from recipe_analysis import (
     analyze_local_video_path,
+    analyze_youtube_url,
     extract_json_from_response,
     normalize_dish_hero_timestamp_seconds,
     normalize_instruction_timestamps,
@@ -34,7 +34,13 @@ from recipe_analysis import (
 )
 from served_videos import persist_served_video
 from thumbnails import save_thumbnail_from_video, upload_suffix
-from url_utils import is_tiktok_url, is_youtube_url, youtube_oembed_author_name
+from url_utils import (
+    is_tiktok_url,
+    is_youtube_url,
+    youtube_oembed_author_name,
+    youtube_thumbnail_url,
+    youtube_watch_url,
+)
 
 router = APIRouter(tags=["analyze"])
 
@@ -122,16 +128,18 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
 
     try:
         if is_youtube_url(url):
-            yt_result = download_youtube_video(url)
-            if not yt_result:
-                raise HTTPException(status_code=500, detail="Failed to download YouTube video")
-            local_video_path, creator_name = yt_result[0], yt_result[1] or ""
-            raw_text = await analyze_local_video_path(
-                local_video_path,
+            watch_url = youtube_watch_url(url)
+            if not watch_url:
+                raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+            creator_name = await youtube_oembed_author_name(watch_url)
+            raw_text = await analyze_youtube_url(
+                watch_url,
                 req.language,
-                [f"Original source URL: {url}"],
+                [f"Original source URL: {watch_url}"],
                 include_nutrition=include_nutrition,
             )
+            video_url = watch_url
+            thumbnail_url = youtube_thumbnail_url(watch_url) or None
         elif is_tiktok_url(url):
             tk_result = download_tiktok_video(url)
             if isinstance(tk_result, tuple):
@@ -198,11 +206,15 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
         normalize_instruction_timestamps(data)
         creator_name = creator_name or data.get("creator", "")
         if is_youtube_url(url):
-            yt_author = await youtube_oembed_author_name(url)
+            yt_author = await youtube_oembed_author_name(youtube_watch_url(url))
             if yt_author:
                 creator_name = yt_author
-        hero_seconds = float(normalize_dish_hero_timestamp_seconds(data))
-        if local_video_path and os.path.isfile(local_video_path):
+            if not video_url:
+                video_url = youtube_watch_url(url)
+            if not thumbnail_url:
+                thumbnail_url = youtube_thumbnail_url(url) or None
+        elif local_video_path and os.path.isfile(local_video_path):
+            hero_seconds = float(normalize_dish_hero_timestamp_seconds(data))
             thumbnail_url = save_thumbnail_from_video(local_video_path, request, hero_seconds)
             video_url = persist_served_video(local_video_path, request)
     except json.JSONDecodeError as e:

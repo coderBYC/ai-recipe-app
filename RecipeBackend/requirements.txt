@@ -4,8 +4,8 @@ uvicorn[standard]
 pydantic
 google-genai
 openai>=1.68.0
-# PR #2706 fix (Instagram deprecated doc_id 8845758582119845). Pin until upstream release.
-instaloader @ git+https://github.com/hyperplural/instaloader.git@master
+# Instagram metadata fix (PR #2706) shipped in 4.15.3+.
+instaloader>=4.15.3
 httpx
 python-dotenv
 opencv-python-headless

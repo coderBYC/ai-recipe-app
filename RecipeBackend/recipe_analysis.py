@@ -14,10 +14,45 @@ from config import GEMINI_API_KEY
 from fastapi import HTTPException  # pyright: ignore[reportMissingImports]
 from google import genai
 from google.genai import errors as genai_errors  # pyright: ignore[reportMissingImports]
+from google.genai import types  # pyright: ignore[reportMissingImports]
+
+from url_utils import youtube_watch_url
+
+
+def normalize_recipe_language(language: str) -> str:
+    """Map client language codes to the form used in prompts."""
+    raw = (language or "en").strip().lower().replace("_", "-")
+    if raw in ("zh", "zh-tw", "zh-hant", "zh-hk", "cmn-hant", "mandarin"):
+        return "zh-TW"
+    if raw in ("zh-cn", "zh-hans", "zh-sg"):
+        return "zh-CN"
+    if raw in ("es", "spanish"):
+        return "es"
+    if raw in ("hi", "hindi"):
+        return "hi"
+    if raw in ("ko", "korean"):
+        return "ko"
+    if raw in ("en", "english", "system", ""):
+        return "en"
+    return raw or "en"
+
+
+def _audience_guidelines(lang: str) -> str:
+    """Extra locale-specific instructions for user-facing recipe text."""
+    if lang == "zh-TW":
+        return """
+    7. Audience: This content is for Taiwanese users.
+    7a. Write ALL user-facing text values in Traditional Chinese (繁體中文) as used in Taiwan (language code zh-TW). Do NOT use Simplified Chinese.
+    7b. Prefer Taiwanese culinary wording and units people use in Taiwan (e.g. 起司 not 奶酪, 醬料/調味 familiar in TW markets). Keep JSON keys in English."""
+    if lang == "zh-CN":
+        return """
+    7. Write ALL user-facing text values in Simplified Chinese (简体中文). Keep JSON keys in English."""
+    return f"""
+    7. Use language code {lang} for all user-facing text values (keys must stay in English)."""
 
 
 def build_prompt(language: str, *, include_nutrition: bool = False) -> str:
-    lang = language.lower()
+    lang = normalize_recipe_language(language)
     nutrition_block = ""
     nutrition_guideline = ""
     if include_nutrition:
@@ -30,7 +65,8 @@ def build_prompt(language: str, *, include_nutrition: bool = False) -> str:
     }"""
         nutrition_guideline = """
     10. Include a "nutrition" object with estimated **per-serving** values from the ingredients: "calories" (integer kcal), "protein_g", "carbs_g", "fat_g" (integer grams). Use reasonable estimates when exact values are unknown."""
-    print(lang)
+    audience = _audience_guidelines(lang)
+    print(f"[RecipeAnalysis] language={lang}")
     return f"""Analyze the attached cooking video. 
     Extract the recipe and output the result strictly in JSON format. JSON keys must be English.
     The JSON structure must match this template:
@@ -57,14 +93,13 @@ def build_prompt(language: str, *, include_nutrition: bool = False) -> str:
     "dish_hero_timestamp_seconds": "0"{nutrition_block}
     }}
     Guidelines:
-    1. If specific quantities are not mentioned, use "As needed".
+    1. If specific quantities are not mentioned, use "As needed" (or the equivalent in the target language).
     2. Ensure the output is valid JSON only, with no introductory or concluding text.
     3. Try add some icons to each ingredient in the front.
     4. Make sure each step is concise, don't include timestamps.
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
     5b. Set "estimated_servings" to how many people the recipe serves, as a numeric string (e.g. "2", "4"). If unclear, use your best estimate; minimum "1".
-    6. Make sure the creator name is right if it's a youtube video.
-    7. Use language code {lang} for all user-facing text values (keys must stay in English).
+    6. Make sure the creator name is right if it's a youtube video.{audience}
     8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the best moment the final dish is shown clearly and in focus. If you don't know, use the last second of the video.
     9. For EVERY instruction, set "timestamp_seconds" to the video time (seconds from start, as a string) when that step is shown on screen. Use the clearest frame for that step. Steps must be in ascending time order.{nutrition_guideline}"""
 
@@ -263,6 +298,46 @@ async def _gemini_analyze_local_video(
         contents.extend(extra_context)
     contents.append(video_file)
     return _generate_content_with_retry(client, contents)
+
+
+async def _gemini_analyze_youtube_url(
+    client: genai.Client,
+    youtube_url: str,
+    prompt: str,
+    extra_context: Optional[list[str]] = None,
+):
+    """Analyze a public YouTube video via Gemini file_uri attachment (no local download)."""
+    watch_url = youtube_watch_url(youtube_url)
+    if not watch_url:
+        raise ValueError("Invalid YouTube URL")
+    video_part = types.Part(
+        file_data=types.FileData(file_uri=watch_url),
+    )
+    contents: list[Any] = [prompt]
+    if extra_context:
+        contents.extend(extra_context)
+    contents.append(video_part)
+    print(f"[Gemini] YouTube attachment: {watch_url}")
+    return _generate_content_with_retry(client, contents)
+
+
+async def analyze_youtube_url(
+    youtube_url: str,
+    language: str,
+    extra_context: Optional[list[str]] = None,
+    *,
+    include_nutrition: bool = False,
+) -> str:
+    """YouTube imports use Gemini with the watch URL as attachment (no yt-dlp download)."""
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is required for YouTube imports")
+    prompt = build_prompt(language, include_nutrition=include_nutrition)
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    response = await _gemini_analyze_youtube_url(
+        client, youtube_url, prompt, extra_context
+    )
+    print("[RecipeAI] Gemini YouTube URL analysis succeeded")
+    return getattr(response, "text", None) or ""
 
 
 async def analyze_local_video_path(
