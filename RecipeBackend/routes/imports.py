@@ -24,7 +24,13 @@ async def enqueue_import(request: Request, body: ImportEnqueueRequest):
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     language = (body.language or "en").strip() or "en"
-    row = await enqueue_import_job(user_id=user_id, url=url, language=language)
+    adjustments = (body.adjustments or "").strip()
+    row = await enqueue_import_job(
+        user_id=user_id,
+        url=url,
+        language=language,
+        adjustments=adjustments,
+    )
     return {"job_id": row["id"], "status": "pending"}
 
 

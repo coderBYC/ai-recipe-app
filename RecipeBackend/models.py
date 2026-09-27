@@ -10,11 +10,13 @@ from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 class AnalyzeRequest(BaseModel):
     url: str
     language: str
+    adjustments: str = ""
 
 
 class ImportEnqueueRequest(BaseModel):
     url: str
     language: str = "en"
+    adjustments: str = ""
 
 
 class ImportBatchEnqueueRequest(BaseModel):

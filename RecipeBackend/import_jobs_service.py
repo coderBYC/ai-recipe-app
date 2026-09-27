@@ -19,8 +19,13 @@ from supabase_client import api_error_detail, get_supabase, supabase_call
 from url_utils import source_type_for_url
 
 
-async def enqueue_import_job(*, user_id: str, url: str, language: str) -> dict[str, Any]:
-    _ = language  # reserved for future per-job language on worker row
+async def enqueue_import_job(
+    *,
+    user_id: str,
+    url: str,
+    language: str,
+    adjustments: str = "",
+) -> dict[str, Any]:
     sb = get_supabase()
     if not sb:
         raise HTTPException(status_code=503, detail="Supabase is not configured on the server.")
@@ -34,6 +39,12 @@ async def enqueue_import_job(*, user_id: str, url: str, language: str) -> dict[s
                     "user_id": user_id,
                     "source_type": source_type_for_url(url),
                     "status": "pending",
+                    "result_json": {
+                        "_queue": {
+                            "language": (language or "en").strip() or "en",
+                            "adjustments": (adjustments or "").strip(),
+                        }
+                    },
                 }
             )
             .execute()

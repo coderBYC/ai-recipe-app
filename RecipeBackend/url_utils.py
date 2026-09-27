@@ -71,6 +71,20 @@ def is_instagram_url(url: str) -> bool:
     return "instagram.com" in u or "instagr.am" in u
 
 
+def is_http_url(url: str) -> bool:
+    parsed = urlparse((url or "").strip())
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+def is_social_media_url(url: str) -> bool:
+    return is_youtube_url(url) or is_tiktok_url(url) or is_instagram_url(url)
+
+
+def is_website_recipe_url(url: str) -> bool:
+    """Written recipe pages (BBC, NYT, blogs) — not Instagram / TikTok / YouTube."""
+    return is_http_url(url) and not is_social_media_url(url)
+
+
 def source_type_for_url(url: str) -> str:
     u = (url or "").lower()
     if "instagram.com" in u or "instagr.am" in u:
@@ -79,6 +93,8 @@ def source_type_for_url(url: str) -> str:
         return "tiktok"
     if "youtube.com" in u or "youtu.be" in u:
         return "youtube"
+    if is_website_recipe_url(url):
+        return "website"
     return "other"
 
 

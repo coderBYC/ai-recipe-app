@@ -51,7 +51,17 @@ def _audience_guidelines(lang: str) -> str:
     7. Use language code {lang} for all user-facing text values (keys must stay in English)."""
 
 
-def build_prompt(language: str, *, include_nutrition: bool = False) -> str:
+def user_adjustment_guidelines(adjustments: str) -> str:
+    text = (adjustments or "").strip()
+    if not text:
+        return ""
+    return f"""
+    11. The user asked to customize this recipe: {text}
+    Adapt ingredients, amounts, and steps to satisfy those preferences while keeping the same dish recognizable.
+    Mention the customization briefly in the description."""
+
+
+def build_prompt(language: str, *, include_nutrition: bool = False, adjustments: str = "") -> str:
     lang = normalize_recipe_language(language)
     nutrition_block = ""
     nutrition_guideline = ""
@@ -101,7 +111,138 @@ def build_prompt(language: str, *, include_nutrition: bool = False) -> str:
     5b. Set "estimated_servings" to how many people the recipe serves, as a numeric string (e.g. "2", "4"). If unclear, use your best estimate; minimum "1".
     6. Make sure the creator name is right if it's a youtube video.{audience}
     8. Set "dish_hero_timestamp_seconds" to a single number as a string (seconds from the start of the video, e.g. "42" or "12.5") for the best moment the final dish is shown clearly and in focus. If you don't know, use the last second of the video.
-    9. For EVERY instruction, set "timestamp_seconds" to the video time (seconds from start, as a string) when that step is shown on screen. Use the clearest frame for that step. Steps must be in ascending time order.{nutrition_guideline}"""
+    9. For EVERY instruction, set "timestamp_seconds" to the video time (seconds from start, as a string) when that step is shown on screen. Use the clearest frame for that step. Steps must be in ascending time order.{nutrition_guideline}{user_adjustment_guidelines(adjustments)}"""
+
+
+def build_website_extract_prompt(language: str, *, include_nutrition: bool = False, adjustments: str = "") -> str:
+    """Prompt for written recipes scraped from a website. Extract only — do not invent."""
+    lang = normalize_recipe_language(language)
+    nutrition_block = ""
+    nutrition_guideline = ""
+    if include_nutrition:
+        nutrition_block = """,
+    "nutrition": {
+    "calories": 450,
+    "protein_g": 32,
+    "carbs_g": 28,
+    "fat_g": 18
+    }"""
+        nutrition_guideline = """
+    10. Include a "nutrition" object ONLY if calories / protein / carbs / fat appear in the SOURCE TEXT. Copy those values; do not estimate or invent macros."""
+    audience = _audience_guidelines(lang)
+    print(f"[WebsiteRecipe] language={lang}")
+    return f"""You are reformatting a recipe that was already extracted from a website (JSON-LD / Schema.org).
+
+CRITICAL RULES:
+- EXTRACT and reformat only. Do NOT invent, guess, or complete missing steps or ingredients.
+- Do NOT add ingredients that are not in the source text.
+- Do NOT add cooking steps that are not in the source text.
+- Do NOT "improve", rewrite into a new recipe, or fill gaps from general cooking knowledge.
+- If a quantity is missing in the source, use "As needed" (or the equivalent in the target language). Do not invent a number.
+- If a field is missing in the source, use an empty string or a safe default listed below — never fabricate content.
+
+Output valid JSON only. JSON keys must stay in English.
+The JSON structure must match this template:
+{{
+    "recipe_name": "Title of the dish",
+    "creator": "Name of the creator or site",
+    "prep_time": "5",
+    "estimated_cooking_time": "10",
+    "estimated_servings": "4",
+    "description": "Short summary copied or lightly condensed from the source — do not invent a new story",
+    "ingredients": [
+        {{
+        "item": "🍔Ingredient Name",
+        "amount": "Quantity and unit"
+        }}
+    ],
+    "instructions": [
+        {{
+        "step": 1,
+        "description": "This cooking step as written in the source",
+        "timestamp_seconds": "0"
+        }}
+    ],
+    "dish_hero_timestamp_seconds": "0"{nutrition_block}
+}}
+Guidelines:
+    1. Every ingredient and every instruction must come from the SOURCE TEXT below.
+    2. Valid JSON only — no markdown, no intro, no outro.
+    3. You may add a fitting emoji at the start of each ingredient name.
+    4. Keep steps concise; do not add new technique.
+    5. prep_time and estimated_cooking_time are MINUTES as numeric strings (e.g. "5", "10") only if the source states them. Otherwise "0".
+    5b. estimated_servings is a numeric string only if the source states yield/servings. Otherwise "1".
+    6. creator is the author or publication from the source, if present.{audience}
+    8. There is no video. Set "dish_hero_timestamp_seconds" to "0".
+    9. Set every instruction "timestamp_seconds" to "0".{nutrition_guideline}{user_adjustment_guidelines(adjustments)}
+
+SOURCE TEXT:
+"""
+
+
+def build_website_url_prompt(language: str, page_url: str, *, include_nutrition: bool = False, adjustments: str = "") -> str:
+    """When the page has no usable HTML/JSON-LD, send the URL itself to GPT."""
+    lang = normalize_recipe_language(language)
+    nutrition_block = ""
+    nutrition_guideline = ""
+    if include_nutrition:
+        nutrition_block = """,
+    "nutrition": {
+    "calories": 450,
+    "protein_g": 32,
+    "carbs_g": 28,
+    "fat_g": 18
+    }"""
+        nutrition_guideline = """
+    10. Include a "nutrition" object ONLY if the page states calories / protein / carbs / fat. Do not invent macros."""
+    audience = _audience_guidelines(lang)
+    print(f"[WebsiteRecipe] URL fallback language={lang}")
+    return f"""The recipe page could not be parsed as HTML (no usable Recipe JSON-LD or recipe elements).
+Use this URL as the source and extract the recipe from that page:
+
+{page_url}
+
+CRITICAL RULES:
+- EXTRACT from that page only. Do NOT invent, guess, or complete missing steps or ingredients.
+- Do NOT add ingredients or cooking steps that are not on the page.
+- Do NOT fill gaps from general cooking knowledge.
+- If a quantity is missing, use "As needed" (or the equivalent in the target language). Do not invent a number.
+- If you cannot access the page or it is not a recipe, return JSON with empty ingredients and instructions arrays and recipe_name "".
+
+Output valid JSON only. JSON keys must stay in English.
+The JSON structure must match this template:
+{{
+    "recipe_name": "Title of the dish",
+    "creator": "Name of the creator or site",
+    "prep_time": "5",
+    "estimated_cooking_time": "10",
+    "estimated_servings": "4",
+    "description": "Short summary from the page — do not invent a new story",
+    "ingredients": [
+        {{
+        "item": "🍔Ingredient Name",
+        "amount": "Quantity and unit"
+        }}
+    ],
+    "instructions": [
+        {{
+        "step": 1,
+        "description": "This cooking step as written on the page",
+        "timestamp_seconds": "0"
+        }}
+    ],
+    "dish_hero_timestamp_seconds": "0"{nutrition_block}
+}}
+Guidelines:
+    1. Every ingredient and every instruction must come from the page at the URL above.
+    2. Valid JSON only — no markdown, no intro, no outro.
+    3. You may add a fitting emoji at the start of each ingredient name.
+    4. Keep steps concise; do not add new technique.
+    5. prep_time and estimated_cooking_time are MINUTES as numeric strings only if the page states them. Otherwise "0".
+    5b. estimated_servings is a numeric string only if the page states yield/servings. Otherwise "1".
+    6. creator is the author or publication from the page, if present.{audience}
+    8. There is no video. Set "dish_hero_timestamp_seconds" to "0".
+    9. Set every instruction "timestamp_seconds" to "0".{nutrition_guideline}{user_adjustment_guidelines(adjustments)}"""
 
 
 def normalize_timestamp_seconds(raw) -> str:
@@ -327,11 +468,12 @@ async def analyze_youtube_url(
     extra_context: Optional[list[str]] = None,
     *,
     include_nutrition: bool = False,
+    adjustments: str = "",
 ) -> str:
     """YouTube imports use Gemini with the watch URL as attachment (no yt-dlp download)."""
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is required for YouTube imports")
-    prompt = build_prompt(language, include_nutrition=include_nutrition)
+    prompt = build_prompt(language, include_nutrition=include_nutrition, adjustments=adjustments)
     client = genai.Client(api_key=GEMINI_API_KEY)
     response = await _gemini_analyze_youtube_url(
         client, youtube_url, prompt, extra_context
@@ -346,8 +488,9 @@ async def analyze_local_video_path(
     extra_context: Optional[list[str]] = None,
     *,
     include_nutrition: bool = False,
+    adjustments: str = "",
 ) -> str:
-    prompt = build_prompt(language, include_nutrition=include_nutrition)
+    prompt = build_prompt(language, include_nutrition=include_nutrition, adjustments=adjustments)
     errors: list[tuple[str, BaseException]] = []
     chain = recipe_ai_provider_chain()
 

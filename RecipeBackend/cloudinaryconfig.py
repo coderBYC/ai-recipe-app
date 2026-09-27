@@ -43,14 +43,38 @@ def thumbnail_delivery_url(thumb_id: str) -> str:
     )
 
 
+def cloudinary_credentials_configured() -> bool:
+    return bool(os.getenv("CLOUDINARY_API_KEY") and os.getenv("CLOUDINARY_API_SECRET"))
+
+
 def upload_thumbnail_jpg(image_bytes: bytes, thumb_id: str) -> str:
     """Upload JPEG bytes; returns Cloudinary ``secure_url`` (falls back to delivery URL)."""
-    if not os.getenv("CLOUDINARY_API_KEY") or not os.getenv("CLOUDINARY_API_SECRET"):
+    if not cloudinary_credentials_configured():
         raise RuntimeError("CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET must be set")
 
     configure_cloudinary()
     upload_result = cloudinary.uploader.upload(
         io.BytesIO(image_bytes),
+        folder=CLOUDINARY_THUMBNAIL_FOLDER,
+        public_id=thumb_id,
+        overwrite=True,
+        resource_type="image",
+        format="jpg",
+    )
+    secure = (upload_result or {}).get("secure_url")
+    if secure:
+        return str(secure)
+    return thumbnail_delivery_url(thumb_id)
+
+
+def upload_thumbnail_from_url(image_url: str, thumb_id: str) -> str:
+    """Ask Cloudinary to fetch a remote image URL (same folder as video thumbs)."""
+    if not cloudinary_credentials_configured():
+        raise RuntimeError("CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET must be set")
+
+    configure_cloudinary()
+    upload_result = cloudinary.uploader.upload(
+        image_url,
         folder=CLOUDINARY_THUMBNAIL_FOLDER,
         public_id=thumb_id,
         overwrite=True,

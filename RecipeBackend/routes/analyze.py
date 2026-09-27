@@ -35,12 +35,15 @@ from recipe_analysis import (
 from served_videos import persist_served_video
 from thumbnails import save_thumbnail_from_video, upload_suffix
 from url_utils import (
+    is_instagram_url,
     is_tiktok_url,
+    is_website_recipe_url,
     is_youtube_url,
     youtube_oembed_author_name,
     youtube_thumbnail_url,
     youtube_watch_url,
 )
+from website_recipe import WebsiteRecipeError, analyze_website_recipe
 
 router = APIRouter(tags=["analyze"])
 
@@ -79,7 +82,13 @@ async def analyze_reel_enqueue(request: Request, req: AnalyzeRequest, wait: bool
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     language = (req.language or "en").strip() or "en"
-    row = await enqueue_import_job(user_id=user_id, url=url, language=language)
+    adjustments = (req.adjustments or "").strip()
+    row = await enqueue_import_job(
+        user_id=user_id,
+        url=url,
+        language=language,
+        adjustments=adjustments,
+    )
     if not wait:
         return {"job_id": row["id"], "status": "pending"}
     payload = await wait_for_job_result(
@@ -109,14 +118,20 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
 
-    source_kind = "instagram"
     if is_youtube_url(url):
         source_kind = "youtube"
     elif is_tiktok_url(url):
         source_kind = "tiktok"
+    elif is_instagram_url(url):
+        source_kind = "instagram"
+    elif is_website_recipe_url(url):
+        source_kind = "website"
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported URL. Use YouTube, Instagram, TikTok, or a recipe website.")
     await enforce_import_quota(request, source_kind)
     require_recipe_ai_configured()
     include_nutrition = await is_pro_user(request)
+    adjustments = (req.adjustments or "").strip()
 
     thumbnail_url = None
     video_url: Optional[str] = None
@@ -132,11 +147,15 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             if not watch_url:
                 raise HTTPException(status_code=400, detail="Invalid YouTube URL")
             creator_name = await youtube_oembed_author_name(watch_url)
+            extra = [f"Original source URL: {watch_url}"]
+            if adjustments:
+                extra.append(f"User customization: {adjustments}")
             raw_text = await analyze_youtube_url(
                 watch_url,
                 req.language,
-                [f"Original source URL: {watch_url}"],
+                extra,
                 include_nutrition=include_nutrition,
+                adjustments=adjustments,
             )
             video_url = watch_url
             thumbnail_url = youtube_thumbnail_url(watch_url) or None
@@ -150,13 +169,17 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
             if not video_name:
                 raise HTTPException(status_code=500, detail="Failed to download TikTok video")
             local_video_path = video_name
+            extra_tt = [f"Original source URL: {url}"]
+            if adjustments:
+                extra_tt.append(f"User customization: {adjustments}")
             raw_text = await analyze_local_video_path(
                 video_name,
                 req.language,
-                [f"Original source URL: {url}"],
+                extra_tt,
                 include_nutrition=include_nutrition,
+                adjustments=adjustments,
             )
-        else:
+        elif is_instagram_url(url):
             ig_result = download_instagram_reel(url)
             if not ig_result:
                 raise HTTPException(status_code=429, detail="Failed to download video")
@@ -170,12 +193,31 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
                 extra.append(
                     f"Instagram caption context (may include ingredients or steps):\n{instagram_caption}"
                 )
+            if adjustments:
+                extra.append(f"User customization: {adjustments}")
             raw_text = await analyze_local_video_path(
                 video_name,
                 req.language,
                 extra,
                 include_nutrition=include_nutrition,
+                adjustments=adjustments,
             )
+        elif is_website_recipe_url(url):
+            raw_text, creator_name, site_thumb = await analyze_website_recipe(
+                url,
+                req.language,
+                include_nutrition=include_nutrition,
+                adjustments=adjustments,
+            )
+            creator_name = creator_name or ""
+            thumbnail_url = site_thumb or None
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported URL. Use YouTube, Instagram, TikTok, or a recipe website.",
+            )
+    except WebsiteRecipeError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
     except InstagramBlockedError as e:
         raise HTTPException(
             status_code=429,
@@ -192,6 +234,8 @@ async def analyze_reel_process(request: Request, req: AnalyzeRequest):
                 "Your import will retry automatically — please wait a few minutes."
             ),
         ) from e
+    except HTTPException:
+        raise
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     except Exception as e:

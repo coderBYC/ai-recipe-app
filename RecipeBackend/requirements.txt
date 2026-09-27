@@ -7,6 +7,7 @@ openai>=1.68.0
 # Instagram metadata fix (PR #2706) shipped in 4.15.3+.
 instaloader>=4.15.3
 httpx
+curl_cffi>=0.7.0
 python-dotenv
 opencv-python-headless
 yt-dlp

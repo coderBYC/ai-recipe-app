@@ -96,7 +96,7 @@ class ImportQueueWorker:
         def _select_pending() -> Any:
             return (
                 sb.table(self.jobs_table)
-                .select("id,url,user_id,status,created_at")
+                .select("id,url,user_id,status,created_at,result_json")
                 .eq("status", "pending")
                 .order("created_at", desc=True)
                 .limit(limit)
@@ -132,7 +132,10 @@ class ImportQueueWorker:
             changed = getattr(res, "data", None) or []
             if not changed:
                 return None
-            return changed[0]
+            claimed = changed[0]
+            if isinstance(claimed, dict) and not claimed.get("result_json") and row.get("result_json"):
+                claimed["result_json"] = row.get("result_json")
+            return claimed
         except APIError:
             return None
 
@@ -149,6 +152,11 @@ class ImportQueueWorker:
         url = str(job.get("url") or "").strip()
         user_id = str(job.get("user_id") or "").strip()
         language = str(job.get("language") or "en").strip() or "en"
+        adjustments = ""
+        queue_meta = job.get("result_json")
+        if isinstance(queue_meta, dict) and isinstance(queue_meta.get("_queue"), dict):
+            language = str(queue_meta["_queue"].get("language") or language).strip() or language
+            adjustments = str(queue_meta["_queue"].get("adjustments") or "").strip()
         if not rid or not url or not user_id:
             await self._mark_failed(rid=rid, message="Invalid queued job payload (missing id/url/user_id).", response_json=None)
             return
@@ -164,7 +172,7 @@ class ImportQueueWorker:
                 resp = await client.post(
                     endpoint,
                     headers=headers,
-                    json={"url": url, "language": language},
+                    json={"url": url, "language": language, "adjustments": adjustments},
                 )
             if resp.status_code == 429:
                 detail: Any
