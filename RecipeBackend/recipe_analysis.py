@@ -89,8 +89,8 @@ def build_prompt(language: str, *, include_nutrition: bool = False, adjustments:
     "description": "A short summary of the dish based on the video context",
     "ingredients": [
         {{
-        "item": "🍔Ingredient Name",
-        "amount": "Quantity and unit" 
+        "item": "Ingredient name",
+        "amount": "Quantity and unit"
         }}
     ],
     "instructions": [
@@ -98,14 +98,14 @@ def build_prompt(language: str, *, include_nutrition: bool = False, adjustments:
         "step": 1,
         "description": "Detailed description of this cooking step",
         "timestamp_seconds": "12.5"
-        }},
+        }}
     ],
     "dish_hero_timestamp_seconds": "0"{nutrition_block}
     }}
     Guidelines:
     1. If specific quantities are not mentioned, use "As needed" (or the equivalent in the target language).
     2. Ensure the output is valid JSON only, with no introductory or concluding text.
-    3. Try add some icons to each ingredient in the front.
+    3. Prefix each ingredient with one fitting food emoji for THAT ingredient (🧅 onion, 🧄 garlic, 🐔 chicken). Never use 🍔 unless the ingredient is actually a burger or beef patty. Do not reuse the same emoji for every line.
     4. Make sure each step is concise, don't include timestamps.
     5. Please include prep_time and estimated_cooking_time as MINUTES in numeric string form (e.g. "5", "10"). Do NOT add words like "minutes".
     5b. Set "estimated_servings" to how many people the recipe serves, as a numeric string (e.g. "2", "4"). If unclear, use your best estimate; minimum "1".
@@ -152,7 +152,7 @@ The JSON structure must match this template:
     "description": "Short summary copied or lightly condensed from the source — do not invent a new story",
     "ingredients": [
         {{
-        "item": "🍔Ingredient Name",
+        "item": "Ingredient name",
         "amount": "Quantity and unit"
         }}
     ],
@@ -168,7 +168,7 @@ The JSON structure must match this template:
 Guidelines:
     1. Every ingredient and every instruction must come from the SOURCE TEXT below.
     2. Valid JSON only — no markdown, no intro, no outro.
-    3. You may add a fitting emoji at the start of each ingredient name.
+    3. Prefix each ingredient with one fitting food emoji for THAT ingredient (🧅 onion, 🧄 garlic, 🐔 chicken). Never use 🍔 unless the ingredient is actually a burger or beef patty. Do not reuse the same emoji for every line.
     4. Keep steps concise; do not add new technique.
     5. prep_time and estimated_cooking_time are MINUTES as numeric strings (e.g. "5", "10") only if the source states them. Otherwise "0".
     5b. estimated_servings is a numeric string only if the source states yield/servings. Otherwise "1".
@@ -220,7 +220,7 @@ The JSON structure must match this template:
     "description": "Short summary from the page — do not invent a new story",
     "ingredients": [
         {{
-        "item": "🍔Ingredient Name",
+        "item": "Ingredient name",
         "amount": "Quantity and unit"
         }}
     ],
@@ -236,7 +236,7 @@ The JSON structure must match this template:
 Guidelines:
     1. Every ingredient and every instruction must come from the page at the URL above.
     2. Valid JSON only — no markdown, no intro, no outro.
-    3. You may add a fitting emoji at the start of each ingredient name.
+    3. Prefix each ingredient with one fitting food emoji for THAT ingredient (🧅 onion, 🧄 garlic, 🐔 chicken). Never use 🍔 unless the ingredient is actually a burger or beef patty. Do not reuse the same emoji for every line.
     4. Keep steps concise; do not add new technique.
     5. prep_time and estimated_cooking_time are MINUTES as numeric strings only if the page states them. Otherwise "0".
     5b. estimated_servings is a numeric string only if the page states yield/servings. Otherwise "1".
